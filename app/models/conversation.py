@@ -16,6 +16,10 @@ class Conversation(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+    document: Mapped["Document"] = relationship("Document", back_populates="conversations")
     messages: Mapped[list["Message"]] = relationship(
-        "Message", back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at"
+        "Message",
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        order_by="messages.c.created_at",
     )

@@ -1,20 +1,17 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter
-from datetime import datetime
+
+from app.core.config import settings
 
 router = APIRouter()
 
+
 @router.get("/health")
 async def health_check():
-    """
-    Health check endpoint to verify that the API is running.
-    - when was it last restarted
-    - current status of the application
-    - any other relevant information (e.g., uptime, version)
-
-    """
+    """Health check endpoint to verify that the API is running."""
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "version": "0.1.0",
-        
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": settings.version,
     }

@@ -17,6 +17,12 @@ class Base(DeclarativeBase):
 
 
 async def create_all_tables() -> None:
+    # Import all models so Base.metadata knows about every table
+    import app.models.document  # noqa: F401
+    import app.models.chunk  # noqa: F401
+    import app.models.conversation  # noqa: F401
+    import app.models.message  # noqa: F401
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

@@ -5,11 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chunk import Chunk
 from app.models.document import Document, DocumentStatus
+from app.services.storage import delete_file
 
 logger = logging.getLogger(__name__)
 
 CHUNK_SIZE = 500      # characters
 CHUNK_OVERLAP = 50    # characters
+
+assert CHUNK_OVERLAP < CHUNK_SIZE, "CHUNK_OVERLAP must be less than CHUNK_SIZE"
 
 SUPPORTED_TYPES = {
     "application/pdf",
@@ -78,5 +81,6 @@ async def ingest_document(document: Document, db: AsyncSession) -> None:
         document.status = DocumentStatus.error
         document.error_message = str(exc)
         await db.commit()
+        delete_file(document.file_path)
         logger.exception("ingestion_failed", extra={"document_id": document.id})
         raise

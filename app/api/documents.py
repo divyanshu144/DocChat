@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
@@ -51,7 +50,6 @@ async def upload_document(
     file_path = await storage.save_upload(file)
 
     document = Document(
-        id=str(uuid.uuid4()),
         filename=file.filename or "unknown",
         content_type=file.content_type,
         file_path=file_path,

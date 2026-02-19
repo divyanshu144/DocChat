@@ -1,6 +1,7 @@
 import logging
 import time
 import uuid
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from app.core.config import settings
@@ -15,22 +16,33 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
 )
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await create_all_tables()
+    logger.info("startup", extra={"app": settings.app_name, "version": settings.version})
+    yield
+
+
 app = FastAPI(
     title=settings.app_name,
     version=settings.version,
     debug=settings.debug,
+    lifespan=lifespan,
 )
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
     start = time.perf_counter()
+    response = None
 
     try:
         response = await call_next(request)
+        response.headers["x-request-id"] = request_id
         return response
     except Exception:
-        # Log exception with stack trace
         logger.exception(
             "request_failed",
             extra={
@@ -42,7 +54,7 @@ async def log_requests(request: Request, call_next):
         raise
     finally:
         duration = time.perf_counter() - start
-        status_code = getattr(locals().get("response", None), "status_code", 500)
+        status_code = response.status_code if response is not None else 500
 
         logger.info(
             "request",
@@ -55,14 +67,11 @@ async def log_requests(request: Request, call_next):
             },
         )
 
-    # (Note: this line won't be reached because of the return above.)
-    # It's here to show intent; better to set the header before returning.
-    # response.headers["x-request-id"] = request_id
-
 # Include API routers
 app.include_router(health.router, prefix=settings.api_prefix, tags=["Health"])
 app.include_router(documents.router, prefix=settings.api_prefix, tags=["Documents"])
 app.include_router(conversations.router, prefix=settings.api_prefix, tags=["Conversations"])
+
 
 @app.get("/")
 async def root():
@@ -71,8 +80,3 @@ async def root():
         "docs": "/docs",
         "health": f"{settings.api_prefix}/health",
     }
-
-@app.on_event("startup")
-async def startup_event():
-    await create_all_tables()
-    logger.info("startup", extra={"app": settings.app_name, "version": settings.version})

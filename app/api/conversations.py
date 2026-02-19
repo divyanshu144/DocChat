@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -69,7 +68,7 @@ async def create_conversation(
             detail=f"Document is not ready for chat (status: {document.status}).",
         )
 
-    conversation = Conversation(id=str(uuid.uuid4()), document_id=body.document_id)
+    conversation = Conversation(document_id=body.document_id)
     db.add(conversation)
     await db.commit()
     await db.refresh(conversation)
@@ -105,8 +104,8 @@ async def send_message(
         top_k=settings.retrieval_top_k,
     )
 
-    # Generate reply
-    answer = chat.generate_reply(
+    # Generate reply (async — does not block the event loop)
+    answer = await chat.generate_reply(
         question=body.question,
         chunks=chunks,
         history=history,
@@ -114,13 +113,11 @@ async def send_message(
 
     # Persist user message and assistant reply
     db.add(Message(
-        id=str(uuid.uuid4()),
         conversation_id=conversation_id,
         role=MessageRole.user,
         content=body.question,
     ))
     db.add(Message(
-        id=str(uuid.uuid4()),
         conversation_id=conversation_id,
         role=MessageRole.assistant,
         content=answer,
