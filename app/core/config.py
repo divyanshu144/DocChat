@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     upload_dir: str = "./uploads"
     max_upload_bytes: int = 10_485_760  # 10 MB
 
+    # Chat
+    anthropic_api_key: str
+    chat_history_limit: int = 10
+    retrieval_top_k: int = 3
+
     class Config:
         env_file = ".env"
 

@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.database import create_all_tables
 from app.api import health
 from app.api import documents
+from app.api import conversations
 
 logger = logging.getLogger("app")
 logging.basicConfig(
@@ -61,6 +62,7 @@ async def log_requests(request: Request, call_next):
 # Include API routers
 app.include_router(health.router, prefix=settings.api_prefix, tags=["Health"])
 app.include_router(documents.router, prefix=settings.api_prefix, tags=["Documents"])
+app.include_router(conversations.router, prefix=settings.api_prefix, tags=["Conversations"])
 
 @app.get("/")
 async def root():
