@@ -24,7 +24,8 @@ class Settings(BaseSettings):
     max_upload_bytes: int = 10_485_760  # 10 MB
 
     # Chat
-    anthropic_api_key: str
+    groq_api_key: str
+    chat_model: str = "llama-3.3-70b-versatile"
     chat_history_limit: int = 10
     retrieval_top_k: int = 3
 

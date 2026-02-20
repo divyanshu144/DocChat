@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -12,6 +13,8 @@ from app.models.conversation import Conversation
 from app.models.document import Document, DocumentStatus
 from app.models.message import Message, MessageRole
 from app.services import chat, retrieval
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -71,9 +74,14 @@ async def create_conversation(
     conversation = Conversation(document_id=body.document_id)
     db.add(conversation)
     await db.commit()
-    await db.refresh(conversation)
 
-    return conversation
+    # Re-fetch with eager-loaded messages to avoid lazy load in async context
+    result = await db.execute(
+        select(Conversation)
+        .where(Conversation.id == conversation.id)
+        .options(selectinload(Conversation.messages))
+    )
+    return result.scalar_one()
 
 
 @router.post("/conversations/{conversation_id}/messages", response_model=ChatResponse)
@@ -105,11 +113,18 @@ async def send_message(
     )
 
     # Generate reply (async — does not block the event loop)
-    answer = await chat.generate_reply(
-        question=body.question,
-        chunks=chunks,
-        history=history,
-    )
+    try:
+        answer = await chat.generate_reply(
+            question=body.question,
+            chunks=chunks,
+            history=history,
+        )
+    except Exception as exc:
+        logger.exception("chat_generation_failed", extra={"conversation_id": conversation_id})
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"LLM request failed: {exc}",
+        )
 
     # Persist user message and assistant reply
     db.add(Message(

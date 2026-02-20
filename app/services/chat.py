@@ -1,8 +1,6 @@
-import anthropic
+from groq import AsyncGroq
 
 from app.core.config import settings
-
-MODEL = "claude-opus-4-6"
 
 SYSTEM_PROMPT = """\
 You are a helpful assistant that answers questions based strictly on the provided document context.
@@ -12,29 +10,32 @@ Document context:
 {context}
 """
 
-_client: anthropic.AsyncAnthropic | None = None
+_client: AsyncGroq | None = None
 
 
-def _get_client() -> anthropic.AsyncAnthropic:
+def _get_client() -> AsyncGroq:
     global _client
     if _client is None:
-        _client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+        _client = AsyncGroq(api_key=settings.groq_api_key)
     return _client
 
 
 async def generate_reply(question: str, chunks: list[str], history: list[dict]) -> str:
-    """Call Claude Opus 4.6 with retrieved context and conversation history."""
+    """Call Groq LLM with retrieved context and conversation history."""
     context = "\n\n---\n\n".join(chunks) if chunks else "No relevant context found."
 
     client = _get_client()
 
-    messages = history + [{"role": "user", "content": question}]
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT.format(context=context)},
+        *history,
+        {"role": "user", "content": question},
+    ]
 
-    response = await client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        system=SYSTEM_PROMPT.format(context=context),
+    response = await client.chat.completions.create(
+        model=settings.chat_model,
         messages=messages,
+        max_tokens=1024,
     )
 
-    return response.content[0].text
+    return response.choices[0].message.content
