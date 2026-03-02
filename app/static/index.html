@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocChat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="grid"></div>
+
+  <main class="container">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Document chat demo</p>
+        <h1>DocChat</h1>
+        <p class="lede">Upload a document, start a conversation, and ask questions. This UI hits your FastAPI endpoints directly.</p>
+      </div>
+      <div class="actions">
+        <button id="healthBtn" class="ghost">Check API health</button>
+        <div id="healthStatus" class="pill muted">Unknown</div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>1. Upload a document</h2>
+      <div class="row">
+        <input id="fileInput" type="file" accept=".pdf,.docx,.txt" />
+        <button id="uploadBtn">Upload</button>
+      </div>
+      <div id="uploadStatus" class="status muted">No file uploaded.</div>
+      <div class="details">
+        <div>Document ID: <span id="documentId" class="mono">-</span></div>
+        <div>Status: <span id="documentStatus" class="mono">-</span></div>
+        <div>Chunks: <span id="documentChunks" class="mono">-</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>2. Create a conversation</h2>
+      <div class="row">
+        <button id="createConversationBtn" disabled>Create conversation</button>
+        <div id="conversationId" class="pill muted">No conversation</div>
+      </div>
+      <div id="conversationStatus" class="status muted">Waiting for a ready document.</div>
+    </section>
+
+    <section class="panel">
+      <h2>3. Ask questions</h2>
+      <div id="chatWindow" class="chat"></div>
+      <div class="row">
+        <input id="questionInput" type="text" placeholder="Ask about the document..." />
+        <button id="sendBtn" disabled>Send</button>
+      </div>
+      <div id="chatStatus" class="status muted">Create a conversation to start chatting.</div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

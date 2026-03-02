@@ -29,6 +29,13 @@ class Settings(BaseSettings):
     chat_history_limit: int = 10
     retrieval_top_k: int = 3
 
+    # Embeddings
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
+    embedding_dim: int = 384
+
+    # Optional background queue (ARQ)
+    redis_url: str | None = None
+
 
 @lru_cache()
 def get_settings() -> Settings:

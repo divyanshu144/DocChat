@@ -2,8 +2,11 @@ import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core.database import create_all_tables
 from app.api import health
@@ -30,6 +33,9 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan,
 )
+
+_STATIC_DIR = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 
 @app.middleware("http")
@@ -75,8 +81,4 @@ app.include_router(conversations.router, prefix=settings.api_prefix, tags=["Conv
 
 @app.get("/")
 async def root():
-    return {
-        "message": f"Welcome to {settings.app_name}",
-        "docs": "/docs",
-        "health": f"{settings.api_prefix}/health",
-    }
+    return FileResponse(_STATIC_DIR / "index.html")

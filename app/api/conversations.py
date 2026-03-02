@@ -2,13 +2,14 @@ import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
-from app.core.database import get_db
+from app.core.database import AsyncSessionLocal, get_db
 from app.models.conversation import Conversation
 from app.models.document import Document, DocumentStatus
 from app.models.message import Message, MessageRole
@@ -52,6 +53,20 @@ class ChatResponse(BaseModel):
     answer: str
 
 
+# --- Helpers ---
+
+async def _load_recent_history(conversation_id: str, db: AsyncSession) -> list[dict]:
+    """Fetch the last N messages for a conversation as LLM history dicts."""
+    msgs_result = await db.execute(
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at.desc())
+        .limit(settings.chat_history_limit)
+    )
+    recent = list(reversed(msgs_result.scalars().all()))
+    return [{"role": m.role.value, "content": m.content} for m in recent]
+
+
 # --- Endpoints ---
 
 @router.post("/conversations", response_model=ConversationResponse, status_code=status.HTTP_201_CREATED)
@@ -75,7 +90,7 @@ async def create_conversation(
     db.add(conversation)
     await db.commit()
 
-    # Re-fetch with eager-loaded messages to avoid lazy load in async context
+    # Re-fetch with eager-loaded messages to satisfy the response schema
     result = await db.execute(
         select(Conversation)
         .where(Conversation.id == conversation.id)
@@ -91,20 +106,16 @@ async def send_message(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(Conversation)
-        .where(Conversation.id == conversation_id)
-        .options(selectinload(Conversation.messages))
+        select(Conversation).where(Conversation.id == conversation_id)
     )
     conversation = result.scalar_one_or_none()
 
     if conversation is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found.")
 
-    # Build history for the LLM (last N messages)
-    recent = conversation.messages[-settings.chat_history_limit:]
-    history = [{"role": m.role.value, "content": m.content} for m in recent]
+    # Fetch only the last N messages from the DB — no full table scan in memory
+    history = await _load_recent_history(conversation_id, db)
 
-    # Retrieve relevant chunks
     chunks = await retrieval.retrieve_chunks(
         query=body.question,
         document_id=conversation.document_id,
@@ -112,7 +123,6 @@ async def send_message(
         top_k=settings.retrieval_top_k,
     )
 
-    # Generate reply (async — does not block the event loop)
     try:
         answer = await chat.generate_reply(
             question=body.question,
@@ -126,20 +136,69 @@ async def send_message(
             detail=f"LLM request failed: {exc}",
         )
 
-    # Persist user message and assistant reply
-    db.add(Message(
-        conversation_id=conversation_id,
-        role=MessageRole.user,
-        content=body.question,
-    ))
-    db.add(Message(
-        conversation_id=conversation_id,
-        role=MessageRole.assistant,
-        content=answer,
-    ))
+    db.add(Message(conversation_id=conversation_id, role=MessageRole.user, content=body.question))
+    db.add(Message(conversation_id=conversation_id, role=MessageRole.assistant, content=answer))
     await db.commit()
 
     return ChatResponse(conversation_id=conversation_id, answer=answer)
+
+
+@router.post("/conversations/{conversation_id}/messages/stream")
+async def send_message_stream(
+    conversation_id: str,
+    body: ChatRequest,
+    db: AsyncSession = Depends(get_db),
+) -> StreamingResponse:
+    result = await db.execute(
+        select(Conversation).where(Conversation.id == conversation_id)
+    )
+    conversation = result.scalar_one_or_none()
+
+    if conversation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found.")
+
+    history = await _load_recent_history(conversation_id, db)
+
+    chunks = await retrieval.retrieve_chunks(
+        query=body.question,
+        document_id=conversation.document_id,
+        db=db,
+        top_k=settings.retrieval_top_k,
+    )
+
+    # Persist the user message before streaming begins
+    db.add(Message(conversation_id=conversation_id, role=MessageRole.user, content=body.question))
+    await db.commit()
+
+    question = body.question  # capture for the closure
+
+    async def event_stream():
+        full_reply: list[str] = []
+        try:
+            async for token in chat.generate_reply_stream(
+                question=question,
+                chunks=chunks,
+                history=history,
+            ):
+                full_reply.append(token)
+                yield f"data: {token}\n\n"
+        except Exception:
+            logger.exception("chat_stream_failed", extra={"conversation_id": conversation_id})
+            yield "data: [ERROR]\n\n"
+            return
+
+        yield "data: [DONE]\n\n"
+
+        # Persist the assistant message after the stream completes
+        async with AsyncSessionLocal() as bg_db:
+            bg_db.add(Message(
+                conversation_id=conversation_id,
+                role=MessageRole.assistant,
+                content="".join(full_reply),
+            ))
+            await bg_db.commit()
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 @router.get("/conversations/{conversation_id}", response_model=ConversationResponse)

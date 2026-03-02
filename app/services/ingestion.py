@@ -1,6 +1,8 @@
+import asyncio
 import logging
 from pathlib import Path
 
+import numpy as np
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chunk import Chunk
@@ -53,7 +55,9 @@ def _chunk_text(text: str) -> list[str]:
 
 
 async def ingest_document(document: Document, db: AsyncSession) -> None:
-    """Extract text from a document, chunk it, and persist chunks to the DB."""
+    """Extract text from a document, chunk it, embed chunks, and persist to DB."""
+    from app.services.retrieval import _get_embedder, invalidate_bm25
+
     document.status = DocumentStatus.processing
     await db.commit()
 
@@ -61,19 +65,38 @@ async def ingest_document(document: Document, db: AsyncSession) -> None:
         text = _extract_text(document.file_path, document.content_type)
         raw_chunks = _chunk_text(text)
 
+        # Embed all chunks in a thread pool to avoid blocking the event loop
+        embedder = _get_embedder()
+        loop = asyncio.get_running_loop()
+        if embedder is not None:
+            embeddings = await loop.run_in_executor(
+                None, lambda: list(embedder.embed(raw_chunks))
+            )
+        else:
+            embeddings = [None] * len(raw_chunks)
+
         chunks = [
             Chunk(
                 document_id=document.id,
                 chunk_index=i,
                 text=chunk_text,
+                embedding=(
+                    np.array(emb, dtype=np.float32).tobytes()
+                    if emb is not None else None
+                ),
             )
-            for i, chunk_text in enumerate(raw_chunks)
+            for i, (chunk_text, emb) in enumerate(zip(raw_chunks, embeddings))
         ]
 
         db.add_all(chunks)
         document.chunk_count = len(chunks)
         document.status = DocumentStatus.ready
         await db.commit()
+
+        # Remove raw upload after successful ingestion
+        delete_file(document.file_path)
+        # Invalidate any stale BM25 index for this document
+        invalidate_bm25(document.id)
 
         logger.info("ingestion_complete", extra={"document_id": document.id, "chunks": len(chunks)})
 

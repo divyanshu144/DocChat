@@ -1,0 +1,269 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f2ea;
+  --ink: #14110f;
+  --muted: #5e5b54;
+  --accent: #0b5d5b;
+  --accent-2: #d9822b;
+  --panel: rgba(255, 255, 255, 0.82);
+  --border: rgba(20, 17, 15, 0.12);
+  --shadow: 0 24px 60px rgba(20, 17, 15, 0.12);
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at 20% 20%, #f2e8d7 0%, var(--bg) 45%, #efe5d6 100%);
+  min-height: 100vh;
+}
+
+h1, h2 {
+  margin: 0 0 12px;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 4vw, 3.5rem);
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: grid;
+  gap: 24px;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.lede {
+  font-family: "IBM Plex Serif", serif;
+  font-size: 1.05rem;
+  max-width: 480px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  animation: rise 0.6s ease both;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+input[type="file"],
+input[type="text"] {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-family: inherit;
+  background: #fff;
+  min-width: 220px;
+}
+
+input[type="text"] {
+  flex: 1;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 10px 18px rgba(11, 93, 91, 0.18);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  box-shadow: none;
+}
+
+.status {
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+
+.pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.mono {
+  font-family: "IBM Plex Serif", serif;
+  font-weight: 600;
+}
+
+.chat {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  min-height: 180px;
+  padding: 16px;
+  background: #fff;
+  margin-bottom: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.message {
+  padding: 12px 14px;
+  border-radius: 14px;
+  line-height: 1.4;
+  max-width: 80%;
+}
+
+.message.user {
+  background: #f0f7f6;
+  border: 1px solid rgba(11, 93, 91, 0.2);
+  justify-self: end;
+}
+
+.message.assistant {
+  background: #fff4e9;
+  border: 1px solid rgba(217, 130, 43, 0.24);
+  justify-self: start;
+}
+
+.bg-orb {
+  position: fixed;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(0px);
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.orb-1 {
+  top: -120px;
+  right: 10%;
+  background: radial-gradient(circle, rgba(11, 93, 91, 0.25), rgba(11, 93, 91, 0));
+  animation: drift 12s ease-in-out infinite;
+}
+
+.orb-2 {
+  bottom: -140px;
+  left: 10%;
+  background: radial-gradient(circle, rgba(217, 130, 43, 0.25), rgba(217, 130, 43, 0));
+  animation: drift 14s ease-in-out infinite reverse;
+}
+
+.grid {
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(rgba(20, 17, 15, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 17, 15, 0.04) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes drift {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(18px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    flex-direction: column;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

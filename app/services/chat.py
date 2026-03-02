@@ -1,3 +1,5 @@
+from typing import AsyncGenerator
+
 from groq import AsyncGroq
 
 from app.core.config import settings
@@ -20,22 +22,36 @@ def _get_client() -> AsyncGroq:
     return _client
 
 
-async def generate_reply(question: str, chunks: list[str], history: list[dict]) -> str:
-    """Call Groq LLM with retrieved context and conversation history."""
+def _build_messages(question: str, chunks: list[str], history: list[dict]) -> list[dict]:
     context = "\n\n---\n\n".join(chunks) if chunks else "No relevant context found."
-
-    client = _get_client()
-
-    messages = [
+    return [
         {"role": "system", "content": SYSTEM_PROMPT.format(context=context)},
         *history,
         {"role": "user", "content": question},
     ]
 
-    response = await client.chat.completions.create(
+
+async def generate_reply(question: str, chunks: list[str], history: list[dict]) -> str:
+    """Call Groq LLM with retrieved context and conversation history."""
+    response = await _get_client().chat.completions.create(
         model=settings.chat_model,
-        messages=messages,
+        messages=_build_messages(question, chunks, history),
         max_tokens=1024,
     )
-
     return response.choices[0].message.content
+
+
+async def generate_reply_stream(
+    question: str, chunks: list[str], history: list[dict]
+) -> AsyncGenerator[str, None]:
+    """Stream Groq LLM tokens as an async generator."""
+    stream = await _get_client().chat.completions.create(
+        model=settings.chat_model,
+        messages=_build_messages(question, chunks, history),
+        max_tokens=1024,
+        stream=True,
+    )
+    async for chunk in stream:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta
