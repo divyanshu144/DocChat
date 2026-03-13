@@ -27,7 +27,21 @@ class Settings(BaseSettings):
     groq_api_key: str
     chat_model: str = "llama-3.3-70b-versatile"
     chat_history_limit: int = 10
-    retrieval_top_k: int = 3
+    retrieval_top_k: int = 15
+
+    # Re-ranking (FlashRank cross-encoder)
+    rerank_enabled: bool = True
+    rerank_top_k: int = 5          # chunks sent to LLM after re-ranking
+
+    # HyDE — embed a hypothetical answer instead of the raw question
+    hyde_enabled: bool = False     # opt-in; adds one LLM call per query
+
+    # Semantic cache (requires REDIS_URL)
+    semantic_cache_enabled: bool = False
+    semantic_cache_threshold: float = 0.95
+
+    # Conversation summarization — summarise history older than this many messages
+    history_summary_threshold: int = 20
 
     # Embeddings
     embedding_model: str = "BAAI/bge-small-en-v1.5"

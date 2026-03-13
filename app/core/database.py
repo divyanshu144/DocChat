@@ -30,17 +30,32 @@ async def _run_migrations(conn) -> None:
     is_sqlite = settings.database_url.startswith("sqlite")
 
     if is_sqlite:
+        # --- chunks table ---
         try:
             result = await conn.execute(text("PRAGMA table_info(chunks)"))
-            columns = {row[1] for row in result.fetchall()}
-            if "embedding" not in columns:
+            cols = {row[1] for row in result.fetchall()}
+            if "embedding" not in cols:
                 await conn.execute(text("ALTER TABLE chunks ADD COLUMN embedding BLOB"))
-            # Ensure the document_id index exists (idempotent)
+            if "page_number" not in cols:
+                await conn.execute(text("ALTER TABLE chunks ADD COLUMN page_number INTEGER"))
+            if "section_heading" not in cols:
+                await conn.execute(text("ALTER TABLE chunks ADD COLUMN section_heading TEXT"))
             await conn.execute(
                 text("CREATE INDEX IF NOT EXISTS ix_chunks_document_id ON chunks (document_id)")
             )
         except Exception:
             pass  # Table doesn't exist yet; create_all will handle it
+
+        # --- messages table ---
+        try:
+            result = await conn.execute(text("PRAGMA table_info(messages)"))
+            cols = {row[1] for row in result.fetchall()}
+            if "is_complete" not in cols:
+                await conn.execute(
+                    text("ALTER TABLE messages ADD COLUMN is_complete INTEGER NOT NULL DEFAULT 1")
+                )
+        except Exception:
+            pass
     else:
         try:
             await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
@@ -52,6 +67,29 @@ async def _run_migrations(conn) -> None:
             )
             if not result.fetchone():
                 await conn.execute(text("ALTER TABLE chunks ADD COLUMN embedding BYTEA"))
+            # page_number / section_heading
+            for col, coltype in [("page_number", "INTEGER"), ("section_heading", "TEXT")]:
+                r = await conn.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        f"WHERE table_name='chunks' AND column_name='{col}'"
+                    )
+                )
+                if not r.fetchone():
+                    await conn.execute(
+                        text(f"ALTER TABLE chunks ADD COLUMN {col} {coltype}")
+                    )
+            # messages.is_complete
+            r = await conn.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='messages' AND column_name='is_complete'"
+                )
+            )
+            if not r.fetchone():
+                await conn.execute(
+                    text("ALTER TABLE messages ADD COLUMN is_complete BOOLEAN DEFAULT TRUE")
+                )
         except Exception:
             pass
 

@@ -140,6 +140,82 @@ button.ghost {
   box-shadow: none;
 }
 
+button.small {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+.panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.panel-header-row h2 {
+  margin: 0;
+}
+
+.conversations-list {
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.conv-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  gap: 12px;
+}
+
+.conv-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(11, 93, 91, 0.1);
+}
+
+.conv-item.active {
+  border-color: var(--accent);
+  background: #f0f7f6;
+}
+
+.conv-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.conv-filename {
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-detail {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.conv-badge {
+  flex-shrink: 0;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .status {
   margin-top: 12px;
   font-size: 0.95rem;

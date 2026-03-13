@@ -50,8 +50,21 @@
       <div id="conversationStatus" class="status muted">Waiting for a ready document.</div>
     </section>
 
+    <section class="panel" id="pastConversationsPanel">
+      <div class="panel-header-row">
+        <h2>Past conversations</h2>
+        <button id="refreshConversationsBtn" class="ghost small">Refresh</button>
+      </div>
+      <div id="conversationsList" class="conversations-list">
+        <p class="muted" id="conversationsEmpty">No conversations yet.</p>
+      </div>
+    </section>
+
     <section class="panel">
-      <h2>3. Ask questions</h2>
+      <div class="panel-header-row">
+        <h2>3. Ask questions</h2>
+        <button id="downloadBtn" class="ghost small" disabled>Download chat</button>
+      </div>
       <div id="chatWindow" class="chat"></div>
       <div class="row">
         <input id="questionInput" type="text" placeholder="Ask about the document..." />
