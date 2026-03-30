@@ -17,6 +17,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 _MAX_ENTRIES_PER_DOC = 200   # FIFO eviction beyond this limit
+_CACHE_TTL = 86400           # 24-hour TTL — prevents unbounded Redis growth and stale answers
 
 
 class SemanticCache:
@@ -59,6 +60,7 @@ class SemanticCache:
         entry = json.dumps({"embedding": query_emb.tolist(), "answer": answer})
         key = self._key(document_id)
         await self._client.hset(key, str(uuid.uuid4()), entry)
+        await self._client.expire(key, _CACHE_TTL)
 
         # Evict oldest entry when the hash grows beyond the cap
         length = await self._client.hlen(key)
@@ -66,6 +68,10 @@ class SemanticCache:
             fields = await self._client.hkeys(key)
             if fields:
                 await self._client.hdel(key, fields[0])
+
+    async def invalidate(self, document_id: str) -> None:
+        """Delete all cached answers for a document (call after re-ingestion)."""
+        await self._client.delete(self._key(document_id))
 
     async def close(self) -> None:
         await self._client.aclose()
@@ -76,6 +82,13 @@ class SemanticCache:
 # ---------------------------------------------------------------------------
 
 _cache: SemanticCache | None = None
+
+
+async def invalidate_semantic_cache(document_id: str) -> None:
+    """Module-level helper — evicts cached answers for a document from Redis."""
+    cache = get_semantic_cache()
+    if cache is not None:
+        await cache.invalidate(document_id)
 
 
 def get_semantic_cache() -> SemanticCache | None:

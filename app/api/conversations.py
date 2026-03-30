@@ -2,7 +2,7 @@ import logging
 import time
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import func as sqlfunc, select
@@ -11,6 +11,8 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal, get_db
+from app.core.limiter import limiter
+from app.core.security import require_api_key
 from app.models.conversation import Conversation
 from app.models.document import Document, DocumentStatus
 from app.models.message import Message, MessageRole
@@ -19,7 +21,7 @@ from app.services.semantic_cache import get_semantic_cache
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_key)])
 
 
 # ---------------------------------------------------------------------------
@@ -242,7 +244,9 @@ async def create_conversation(
 
 
 @router.post("/conversations/{conversation_id}/messages", response_model=ChatResponse)
+@limiter.limit("20/minute")
 async def send_message(
+    request: Request,
     conversation_id: str,
     body: ChatRequest,
     db: AsyncSession = Depends(get_db),
@@ -281,7 +285,7 @@ async def send_message(
         llm_duration.observe(time.perf_counter() - t0)
     except Exception as exc:
         logger.exception("chat_generation_failed", extra={"conversation_id": conversation_id})
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"LLM request failed: {exc}")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="LLM request failed. Please try again.")
 
     # Store in semantic cache for future identical/similar queries
     if sc is not None and query_emb is not None:
@@ -298,7 +302,9 @@ async def send_message(
 
 
 @router.post("/conversations/{conversation_id}/messages/stream")
+@limiter.limit("20/minute")
 async def send_message_stream(
+    request: Request,
     conversation_id: str,
     body: ChatRequest,
     db: AsyncSession = Depends(get_db),

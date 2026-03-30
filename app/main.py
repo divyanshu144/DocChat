@@ -4,13 +4,17 @@ import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.database import create_all_tables
+from app.core.limiter import limiter
+from app.core.security import require_api_key
 from app.api import health
 from app.api import documents
 from app.api import conversations
@@ -28,8 +32,6 @@ async def lifespan(app: FastAPI):
     await create_all_tables()
 
     # Pre-load ONNX singletons so the first request doesn't pay the cold-start penalty.
-    # Both fastembed and FlashRank download their models on first instantiation (~100-300ms
-    # after the first run when models are cached locally).
     loop = asyncio.get_event_loop()
     from app.services.retrieval import _get_embedder
     from app.services.reranker import _get_ranker
@@ -47,6 +49,10 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan,
 )
+
+# Attach limiter to app state and register 429 handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 _STATIC_DIR = Path(__file__).resolve().parent / "static"
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
@@ -93,9 +99,9 @@ app.include_router(documents.router, prefix=settings.api_prefix, tags=["Document
 app.include_router(conversations.router, prefix=settings.api_prefix, tags=["Conversations"])
 
 
-@app.get("/metrics", include_in_schema=False)
+@app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_api_key)])
 async def metrics():
-    """Prometheus metrics endpoint."""
+    """Prometheus metrics endpoint — protected by API key."""
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 

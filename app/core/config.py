@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     app_name: str = "DocChat"
     version: str = "0.1.0"
-    debug: bool = True
+    debug: bool = False
 
     # API
     api_prefix: str = "/api/v1"
@@ -47,8 +47,25 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     embedding_dim: int = 384
 
-    # Optional background queue (ARQ)
+    # API key authentication (set to enable; leave unset to disable in dev)
+    api_key: str | None = None
+
+    # Optional background queue (ARQ) + Redis-backed caches
     redis_url: str | None = None
+
+    # AWS S3 (optional — falls back to local disk when unset)
+    s3_bucket: str | None = None
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
+    aws_region: str = "us-east-1"
+
+    # DB connection pool (PostgreSQL only)
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+
+    @property
+    def use_s3(self) -> bool:
+        return bool(self.s3_bucket)
 
 
 @lru_cache()

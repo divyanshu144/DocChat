@@ -1,5 +1,9 @@
 import asyncio
+import io
+import json
 import logging
+import struct
+from dataclasses import dataclass
 
 import numpy as np
 from cachetools import LRUCache
@@ -68,33 +72,171 @@ def _load_embedding_blob(blob: bytes) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
-# LRU retrieval cache — document_id → (BM25Okapi, chunks, emb_matrix, emb_indices)
+# CachedChunk — plain dataclass; safe to serialize with JSON (no pickle)
+# ---------------------------------------------------------------------------
+
+@dataclass
+class CachedChunk:
+    id: str
+    text: str
+    page_number: int | None
+    section_heading: str | None
+
+
+# ---------------------------------------------------------------------------
+# Safe serialization for Redis — JSON + numpy binary (no pickle)
 #
-# maxsize=50: at ~10 MB per doc this caps RAM at ~500 MB.
+# Format: [4-byte big-endian meta_len][meta JSON bytes][numpy .npy bytes]
+# BM25 is NOT stored — it is rebuilt cheaply from chunk text on load.
+# This eliminates the RCE risk that pickle.loads() on untrusted Redis data
+# would create if Redis were ever compromised or misconfigured.
+# ---------------------------------------------------------------------------
+
+def _serialize_for_redis(
+    chunks: list[CachedChunk],
+    emb_matrix,
+    emb_indices: list,
+) -> bytes:
+    meta = {
+        "chunks": [
+            {
+                "id": c.id,
+                "text": c.text,
+                "page_number": c.page_number,
+                "section_heading": c.section_heading,
+            }
+            for c in chunks
+        ],
+        "emb_indices": emb_indices,
+    }
+    meta_bytes = json.dumps(meta, ensure_ascii=False).encode("utf-8")
+    buf = io.BytesIO()
+    buf.write(struct.pack(">I", len(meta_bytes)))
+    buf.write(meta_bytes)
+    if emb_matrix is not None:
+        np.save(buf, emb_matrix)
+    return buf.getvalue()
+
+
+def _deserialize_from_redis(data: bytes) -> tuple:
+    buf = io.BytesIO(data)
+    meta_len = struct.unpack(">I", buf.read(4))[0]
+    meta = json.loads(buf.read(meta_len).decode("utf-8"))
+    chunks = [CachedChunk(**d) for d in meta["chunks"]]
+    emb_indices = meta["emb_indices"]
+    rest = buf.read()
+    emb_matrix = np.load(io.BytesIO(rest)) if rest else None
+    # Rebuild BM25 from plain text — data-only, no code execution possible
+    bm25 = BM25Okapi([_tokenize(c.text) for c in chunks])
+    return bm25, chunks, emb_matrix, emb_indices
+
+
+# ---------------------------------------------------------------------------
+# L1: in-process LRU cache — document_id → (BM25Okapi, chunks, emb_matrix, emb_indices)
 # ---------------------------------------------------------------------------
 
 _retrieval_cache: LRUCache = LRUCache(maxsize=50)
 
+# ---------------------------------------------------------------------------
+# L2: Redis cache — serialized with JSON + numpy (TTL=1h)
+# ---------------------------------------------------------------------------
+
+_REDIS_TTL = 3600
+_redis_client = None
+
+
+def _get_redis_client():
+    global _redis_client
+    from app.core.config import settings
+    if _redis_client is None and settings.redis_url:
+        import redis.asyncio as aioredis
+        _redis_client = aioredis.from_url(settings.redis_url, decode_responses=False)
+    return _redis_client
+
+
+async def _redis_cache_get(key: str) -> tuple | None:
+    client = _get_redis_client()
+    if client is None:
+        return None
+    try:
+        data = await client.get(key)
+        if data is None:
+            return None
+        return _deserialize_from_redis(data)
+    except Exception:
+        logger.exception("redis_cache_get_error")
+        return None
+
+
+async def _redis_cache_set(
+    key: str,
+    chunks: list[CachedChunk],
+    emb_matrix,
+    emb_indices: list,
+) -> None:
+    client = _get_redis_client()
+    if client is None:
+        return
+    try:
+        data = _serialize_for_redis(chunks, emb_matrix, emb_indices)
+        await client.setex(key, _REDIS_TTL, data)
+    except Exception:
+        logger.exception("redis_cache_set_error")
+
+
+async def _redis_cache_delete(key: str) -> None:
+    client = _get_redis_client()
+    if client is None:
+        return
+    try:
+        await client.delete(key)
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Cache invalidation — evicts both L1 and L2 (+ semantic cache)
+# ---------------------------------------------------------------------------
 
 def invalidate_bm25(document_id: str) -> None:
-    """Evict a document's cache entry — call this after re-ingestion."""
+    """Evict a document's entry from L1 LRU, Redis L2, and the semantic cache."""
     _retrieval_cache.pop(document_id, None)
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_redis_cache_delete(f"retrieval:{document_id}"))
+        # Also clear semantic cache so stale answers aren't served after re-ingestion
+        from app.services.semantic_cache import invalidate_semantic_cache
+        loop.create_task(invalidate_semantic_cache(document_id))
+    except RuntimeError:
+        pass  # No running event loop (e.g. tests)
 
 
-def _build_cache_entry(chunks: list) -> tuple:
-    tokenized = [_tokenize(c.text) for c in chunks]
+# ---------------------------------------------------------------------------
+# Cache builder — converts ORM Chunk objects to CachedChunk (JSON-serializable)
+# ---------------------------------------------------------------------------
+
+def _build_cache_entry(orm_chunks: list) -> tuple:
+    cached_chunks = [
+        CachedChunk(
+            id=c.id,
+            text=c.text,
+            page_number=c.page_number,
+            section_heading=c.section_heading,
+        )
+        for c in orm_chunks
+    ]
+
+    tokenized = [_tokenize(c.text) for c in cached_chunks]
     bm25 = BM25Okapi(tokenized)
 
-    embedded_pairs = [(i, c) for i, c in enumerate(chunks) if c.embedding]
+    embedded_pairs = [(i, c) for i, c in enumerate(orm_chunks) if c.embedding]
     if embedded_pairs:
-        # Deserialise once and build a contiguous matrix — all future queries
-        # just do a single matrix-vector multiply (no repeated frombuffer calls).
         emb_matrix = np.stack([_load_embedding_blob(c.embedding) for _, c in embedded_pairs])
         emb_indices = [i for i, _ in embedded_pairs]
     else:
         emb_matrix, emb_indices = None, []
 
-    return bm25, list(chunks), emb_matrix, emb_indices
+    return bm25, cached_chunks, emb_matrix, emb_indices
 
 
 # ---------------------------------------------------------------------------
@@ -151,20 +293,32 @@ async def retrieve_chunks(
 ) -> list[str]:
     """Return top-k chunk texts (with metadata prefix) using hybrid BM25 + semantic RRF.
 
-    Args:
-        expanded_query: HyDE-generated hypothetical answer; used for the semantic
-                        embedding instead of the raw query when provided.
-        query_emb:      Pre-computed query embedding (avoids re-embedding when the
-                        caller already has it, e.g. for semantic cache lookup).
+    Cache hierarchy:
+      L1 — in-process LRU (fastest; per-instance)
+      L2 — Redis (shared across instances; TTL=1h; serialized as JSON+numpy — no pickle)
+      L3 — PostgreSQL/SQLite (source of truth; slowest)
     """
+    redis_key = f"retrieval:{document_id}"
+
     if document_id not in _retrieval_cache:
-        result = await db.execute(
-            select(Chunk).where(Chunk.document_id == document_id).order_by(Chunk.chunk_index)
-        )
-        chunks = result.scalars().all()
-        if not chunks:
-            return []
-        _retrieval_cache[document_id] = _build_cache_entry(chunks)
+        # L2: check Redis
+        redis_entry = await _redis_cache_get(redis_key)
+        if redis_entry is not None:
+            _retrieval_cache[document_id] = redis_entry
+        else:
+            # L3: rebuild from DB
+            result = await db.execute(
+                select(Chunk).where(Chunk.document_id == document_id).order_by(Chunk.chunk_index)
+            )
+            orm_chunks = result.scalars().all()
+            if not orm_chunks:
+                return []
+            entry = _build_cache_entry(orm_chunks)
+            _retrieval_cache[document_id] = entry
+            _, cached_chunks, emb_matrix, emb_indices = entry
+            asyncio.get_running_loop().create_task(
+                _redis_cache_set(redis_key, cached_chunks, emb_matrix, emb_indices)
+            )
 
     bm25, cached_chunks, emb_matrix, emb_indices = _retrieval_cache[document_id]
     if not cached_chunks:
@@ -177,7 +331,6 @@ async def retrieve_chunks(
     # Semantic (requires embedder + pre-built matrix)
     embedder = _get_embedder()
     if embedder is not None and emb_matrix is not None:
-        # Use pre-computed embedding when available; re-embed HyDE text or raw query otherwise
         if query_emb is None:
             search_text = expanded_query if expanded_query else query
             loop = asyncio.get_running_loop()

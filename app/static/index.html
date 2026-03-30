@@ -6,73 +6,54 @@
   <title>DocChat</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
-  <div class="grid"></div>
+  <div class="grid-bg"></div>
 
-  <main class="container">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">Document chat demo</p>
-        <h1>DocChat</h1>
-        <p class="lede">Upload a document, start a conversation, and ask questions. This UI hits your FastAPI endpoints directly.</p>
-      </div>
-      <div class="actions">
-        <button id="healthBtn" class="ghost">Check API health</button>
-        <div id="healthStatus" class="pill muted">Unknown</div>
-      </div>
-    </header>
+  <nav class="navbar">
+    <a class="navbar-logo" href="#/documents">
+      <span class="logo-mark">D</span>DocChat
+    </a>
+    <div class="navbar-links">
+      <a class="nav-link" href="#/documents" data-view="documents">Documents</a>
+      <a class="nav-link" href="#/conversations" data-view="conversations">Conversations</a>
+    </div>
+    <div class="health-indicator" id="healthIndicator">
+      <span class="health-dot" id="healthDot"></span>
+      <span class="health-label" id="healthLabel">Checking</span>
+    </div>
+  </nav>
 
-    <section class="panel">
-      <h2>1. Upload a document</h2>
-      <div class="row">
-        <input id="fileInput" type="file" accept=".pdf,.docx,.txt" />
-        <button id="uploadBtn">Upload</button>
-      </div>
-      <div id="uploadStatus" class="status muted">No file uploaded.</div>
-      <div class="details">
-        <div>Document ID: <span id="documentId" class="mono">-</span></div>
-        <div>Status: <span id="documentStatus" class="mono">-</span></div>
-        <div>Chunks: <span id="documentChunks" class="mono">-</span></div>
-      </div>
-    </section>
+  <div class="app" id="app"></div>
 
-    <section class="panel">
-      <h2>2. Create a conversation</h2>
-      <div class="row">
-        <button id="createConversationBtn" disabled>Create conversation</button>
-        <div id="conversationId" class="pill muted">No conversation</div>
+  <!-- Upload modal -->
+  <div class="modal-backdrop" id="uploadModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Upload document">
+      <div class="modal-header">
+        <h2>Upload document</h2>
+        <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
       </div>
-      <div id="conversationStatus" class="status muted">Waiting for a ready document.</div>
-    </section>
-
-    <section class="panel" id="pastConversationsPanel">
-      <div class="panel-header-row">
-        <h2>Past conversations</h2>
-        <button id="refreshConversationsBtn" class="ghost small">Refresh</button>
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">📄</div>
+        <p class="drop-title">Drop your file here</p>
+        <p class="drop-sub">PDF, DOCX, or TXT · up to 10 MB</p>
+        <label class="btn-upload-label" for="fileInput">Browse files</label>
+        <input type="file" id="fileInput" accept=".pdf,.docx,.txt" hidden />
       </div>
-      <div id="conversationsList" class="conversations-list">
-        <p class="muted" id="conversationsEmpty">No conversations yet.</p>
+      <div class="upload-progress" id="uploadProgress" hidden>
+        <div class="progress-header">
+          <span class="progress-filename" id="progressFilename"></span>
+          <span class="progress-state" id="progressState"></span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <p class="progress-hint" id="progressHint"></p>
       </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-header-row">
-        <h2>3. Ask questions</h2>
-        <button id="downloadBtn" class="ghost small" disabled>Download chat</button>
-      </div>
-      <div id="chatWindow" class="chat"></div>
-      <div class="row">
-        <input id="questionInput" type="text" placeholder="Ask about the document..." />
-        <button id="sendBtn" disabled>Send</button>
-      </div>
-      <div id="chatStatus" class="status muted">Create a conversation to start chatting.</div>
-    </section>
-  </main>
+    </div>
+  </div>
 
   <script src="/static/app.js"></script>
 </body>

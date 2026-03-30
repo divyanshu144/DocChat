@@ -1,3 +1,5 @@
+import logging
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -8,12 +10,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.security import require_api_key
 from app.models.document import Document, DocumentStatus
 from app.services import ingestion, storage
+from app.services.storage import FileTooLargeError
 
-router = APIRouter()
+logger = logging.getLogger(__name__)
+
+router = APIRouter(dependencies=[Depends(require_api_key)])
 
 ALLOWED_CONTENT_TYPES = ingestion.SUPPORTED_TYPES
+
+# Lazy import — python-magic requires libmagic system library
+try:
+    import magic as _magic
+    _MAGIC_AVAILABLE = True
+except ImportError:
+    _MAGIC_AVAILABLE = False
+    logger.warning(
+        "python-magic not installed or libmagic missing — "
+        "file content MIME verification is disabled"
+    )
 
 
 class DocumentResponse(BaseModel):
@@ -26,6 +43,13 @@ class DocumentResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+def _sanitize_filename(name: str) -> str:
+    """Strip path components and limit to safe characters."""
+    name = Path(name).name  # drop any directory traversal
+    name = re.sub(r"[^\w.\-]", "_", name)  # allow only word chars, dots, hyphens
+    return name[:255] or "unknown"
 
 
 async def _run_ingestion_bg(document_id: str) -> None:
@@ -58,24 +82,38 @@ async def upload_document(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
+    # 1. Validate declared content type
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=f"Unsupported file type '{file.content_type}'. Allowed: {sorted(ALLOWED_CONTENT_TYPES)}",
         )
 
-    # Save first, then check size — avoids buffering entire file in RAM
-    file_path = await storage.save_upload(file)
-    file_size = Path(file_path).stat().st_size
-    if file_size > settings.max_upload_bytes:
-        storage.delete_file(file_path)
+    # 2. Verify actual file content via magic bytes (prevents content-type spoofing)
+    if _MAGIC_AVAILABLE:
+        header = await file.read(2048)
+        await file.seek(0)
+        actual_mime = _magic.from_buffer(header, mime=True)
+        if actual_mime not in ALLOWED_CONTENT_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail=f"File content does not match declared type. Detected: {actual_mime}",
+            )
+
+    # 3. Save (size limit enforced during streaming — no full disk write before check)
+    try:
+        file_path = await storage.save_upload(file)
+    except FileTooLargeError:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"File exceeds maximum size of {settings.max_upload_bytes} bytes.",
         )
 
+    # 4. Sanitize filename before persisting
+    safe_filename = _sanitize_filename(file.filename or "unknown")
+
     document = Document(
-        filename=file.filename or "unknown",
+        filename=safe_filename,
         content_type=file.content_type,
         file_path=file_path,
         status=DocumentStatus.pending,

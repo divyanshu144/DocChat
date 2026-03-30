@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chunk import Chunk
 from app.models.document import Document, DocumentStatus
-from app.services.storage import delete_file
+from app.services.storage import delete_file, download_for_processing
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,7 @@ def _extract_docx_segments(path: Path) -> list[_Segment]:
 # Dispatcher + chunker
 # ---------------------------------------------------------------------------
 
-def _extract_segments(file_path: str, content_type: str) -> list[_Segment]:
+def _extract_segments(file_path: "str | Path", content_type: str) -> list[_Segment]:
     path = Path(file_path)
     if content_type == "text/plain":
         return [_Segment(text=path.read_text(encoding="utf-8", errors="replace"))]
@@ -180,10 +180,13 @@ async def ingest_document(document: Document, db: AsyncSession) -> None:
     try:
         loop = asyncio.get_running_loop()
 
-        # CPU/IO-bound extraction runs off the event loop
-        segments = await loop.run_in_executor(
-            None, _extract_segments, document.file_path, document.content_type
-        )
+        # Download from S3 (or yield local path directly) for extraction
+        async with download_for_processing(document.file_path) as path:
+            # CPU/IO-bound extraction runs off the event loop
+            segments = await loop.run_in_executor(
+                None, _extract_segments, path, document.content_type
+            )
+
         raw_chunks = _chunk_segments(segments)
         chunk_texts = [c["text"] for c in raw_chunks]
 

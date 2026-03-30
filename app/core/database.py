@@ -4,15 +4,23 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.core.config import settings
 
-engine = create_async_engine(settings.database_url, echo=settings.debug)
-
-# Enable WAL mode for SQLite so reads don't block writes
 if settings.database_url.startswith("sqlite"):
+    engine = create_async_engine(settings.database_url, echo=settings.debug)
+
+    # Enable WAL mode for SQLite so reads don't block writes
     @event.listens_for(engine.sync_engine, "connect")
     def _set_wal_mode(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.close()
+else:
+    engine = create_async_engine(
+        settings.database_url,
+        echo=settings.debug,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_max_overflow,
+        pool_pre_ping=True,
+    )
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
@@ -70,12 +78,16 @@ async def _run_migrations(conn) -> None:
             # page_number / section_heading
             for col, coltype in [("page_number", "INTEGER"), ("section_heading", "TEXT")]:
                 r = await conn.execute(
+                    # Parameterized SELECT — safe against injection via col name
                     text(
                         "SELECT column_name FROM information_schema.columns "
-                        f"WHERE table_name='chunks' AND column_name='{col}'"
-                    )
+                        "WHERE table_name='chunks' AND column_name=:col"
+                    ),
+                    {"col": col},
                 )
                 if not r.fetchone():
+                    # DDL (ALTER TABLE) cannot use bind parameters; col and coltype
+                    # are hardcoded string literals above — not user-supplied input.
                     await conn.execute(
                         text(f"ALTER TABLE chunks ADD COLUMN {col} {coltype}")
                     )
