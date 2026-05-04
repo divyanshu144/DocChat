@@ -1,0 +1,20 @@
+---
+source_file: "app/services/ingestion.py"
+type: "code"
+community: "_Segment / _chunk_segments()"
+location: "L141"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/_Segment_/__chunk_segments()
+---
+
+# _extract_segments()
+
+## Connections
+- [[_Segment]] - `calls` [EXTRACTED]
+- [[_extract_docx_segments()]] - `calls` [EXTRACTED]
+- [[_extract_pdf_segments()]] - `calls` [EXTRACTED]
+- [[ingestion.py]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/_Segment_/__chunk_segments()

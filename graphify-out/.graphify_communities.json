@@ -1,0 +1,613 @@
+{
+  "0": [
+    "api_conversations_chatrequest",
+    "api_conversations_chatresponse",
+    "api_conversations_conversationcreate",
+    "api_conversations_conversationresponse",
+    "api_conversations_conversationsummary",
+    "api_conversations_create_conversation",
+    "api_conversations_get_conversation",
+    "api_conversations_list_conversations",
+    "api_conversations_load_history",
+    "api_conversations_messageresponse",
+    "api_conversations_rationale_142",
+    "api_conversations_rationale_195",
+    "api_conversations_rationale_80",
+    "api_conversations_run_retrieval_pipeline",
+    "api_conversations_send_message",
+    "api_conversations_send_message_stream",
+    "api_documents_documentresponse",
+    "app_api_conversations_py",
+    "app_models_chunk_py",
+    "app_models_conversation_py",
+    "app_models_document_py",
+    "app_models_message_py",
+    "base",
+    "basemodel",
+    "core_database_base",
+    "declarativebase",
+    "models_chunk_chunk",
+    "models_conversation_conversation",
+    "models_document_document",
+    "models_document_documentstatus",
+    "models_message_message",
+    "models_message_messagerole",
+    "scripts_benchmark_cacheresult",
+    "scripts_benchmark_ingestionresult",
+    "scripts_benchmark_rationale_203",
+    "scripts_benchmark_rationale_240",
+    "scripts_benchmark_rationale_279",
+    "scripts_benchmark_rerankerresult",
+    "scripts_benchmark_retrievalresult",
+    "scripts_benchmark_scaleresult",
+    "services_ingestion_rationale_153",
+    "services_ingestion_rationale_219",
+    "services_ingestion_rationale_57",
+    "tests_test_conversations_incomplete_py",
+    "tests_test_conversations_incomplete_rationale_1",
+    "tests_test_conversations_incomplete_rationale_13",
+    "tests_test_conversations_incomplete_rationale_25",
+    "tests_test_conversations_incomplete_rationale_35",
+    "tests_test_conversations_incomplete_rationale_45",
+    "tests_test_conversations_incomplete_rationale_59",
+    "tests_test_conversations_incomplete_rationale_87",
+    "tests_test_conversations_incomplete_test_all_incomplete_messages_excluded",
+    "tests_test_conversations_incomplete_test_get_conversation_response_empty_messages",
+    "tests_test_conversations_incomplete_test_get_conversation_response_schema",
+    "tests_test_conversations_incomplete_test_incomplete_messages_filtered",
+    "tests_test_conversations_incomplete_test_mixed_messages_only_complete_returned",
+    "tests_test_conversations_incomplete_test_only_complete_messages_pass_filter"
+  ],
+  "1": [
+    "chat_build_messages",
+    "chat_expand_query_hyde",
+    "chat_generate_reply",
+    "chat_generate_reply_stream",
+    "chat_get_client",
+    "chat_summarize_history",
+    "conversations_event_stream",
+    "conversations_load_history",
+    "conversations_run_retrieval_pipeline",
+    "conversations_send_message",
+    "conversations_send_message_stream",
+    "embedder_embed_independently",
+    "embedder_embed_late",
+    "embedder_embed_query",
+    "embedder_get_embedder",
+    "embedder_late_chunking_embedder",
+    "embedder_mean_pool",
+    "embedder_normalize",
+    "embedder_pin_cache",
+    "ingestion_chunk_segments",
+    "ingestion_detect_pdf_heading",
+    "ingestion_embed_chunks_late",
+    "ingestion_extract_docx_segments",
+    "ingestion_extract_pdf_segments",
+    "ingestion_extract_segments",
+    "ingestion_get_splitter",
+    "ingestion_ingest_document",
+    "reranker_get_ranker",
+    "reranker_rerank",
+    "retrieval_build_cache_entry",
+    "retrieval_cosine_similarities",
+    "retrieval_embed_query",
+    "retrieval_format_chunk",
+    "retrieval_invalidate_bm25",
+    "retrieval_load_embedding_blob",
+    "retrieval_lru_cache",
+    "retrieval_redis_cache",
+    "retrieval_retrieve_chunks",
+    "retrieval_rrf",
+    "retrieval_tokenize",
+    "semantic_cache_get_semantic_cache",
+    "semantic_cache_invalidate_semantic_cache",
+    "semantic_cache_semantic_cache",
+    "storage_delete_file",
+    "storage_download_for_processing",
+    "tasks_ingest_document_task",
+    "test_chat",
+    "test_sse_framing"
+  ],
+  "2": [
+    "app_main_log_requests",
+    "app_services_reranker_py",
+    "exception",
+    "scripts_benchmark_chunks_per_sec",
+    "scripts_benchmark_create_doc_record",
+    "scripts_benchmark_fmt_bytes",
+    "scripts_benchmark_fmt_ms",
+    "scripts_benchmark_generate_pdf",
+    "scripts_benchmark_hr",
+    "scripts_benchmark_json_default",
+    "scripts_benchmark_main",
+    "scripts_benchmark_mean",
+    "scripts_benchmark_p50",
+    "scripts_benchmark_p95",
+    "scripts_benchmark_p99",
+    "scripts_benchmark_percentile",
+    "scripts_benchmark_print_report",
+    "scripts_benchmark_py",
+    "scripts_benchmark_run_cache_benchmark",
+    "scripts_benchmark_run_ingestion_benchmark",
+    "scripts_benchmark_run_rerank_benchmark",
+    "scripts_benchmark_run_retrieval_benchmark",
+    "scripts_benchmark_run_scale_benchmark",
+    "scripts_benchmark_setup_db",
+    "scripts_benchmark_teardown_db",
+    "scripts_benchmark_to_json",
+    "services_embedder_get_embedder",
+    "services_embedder_rationale_32",
+    "services_ingestion_ingest_document",
+    "services_reranker_get_ranker",
+    "services_reranker_rationale_1",
+    "services_reranker_rationale_31",
+    "services_reranker_rerank",
+    "services_retrieval_invalidate_bm25",
+    "services_retrieval_rationale_191",
+    "services_semantic_cache_rationale_59",
+    "services_semantic_cache_semanticcache_close",
+    "services_semantic_cache_semanticcache_set",
+    "services_storage_download_for_processing",
+    "services_storage_rationale_96",
+    "str"
+  ],
+  "3": [
+    "audit_arch_linear_cache_scan",
+    "audit_arch_no_message_index",
+    "audit_bug10_health_status_mismatch",
+    "audit_bug13_double_system_message",
+    "audit_bug14_relationship_order_by",
+    "audit_bug1_none_content",
+    "audit_bug2_sse_newline",
+    "audit_bug6_cache_wrong_order",
+    "audit_bug7_arq_pool_leak",
+    "audit_feature4_multi_doc",
+    "audit_feature5_ingest_progress",
+    "benchmark_document_scale",
+    "benchmark_generate_pdf",
+    "benchmark_ground_truth",
+    "benchmark_ingestion_speed",
+    "benchmark_reranking_precision",
+    "benchmark_retrieval_latency",
+    "benchmark_semantic_cache",
+    "benchmark_suite",
+    "concept_background_ingestion",
+    "concept_hybrid_retrieval",
+    "concept_hyde",
+    "concept_sse_streaming",
+    "concept_two_layer_cache",
+    "dep_fastembed",
+    "dep_flashrank",
+    "dep_langchain_text_splitters",
+    "dep_nltk",
+    "dep_pymupdf",
+    "dep_rank_bm25",
+    "readme_db_schema",
+    "readme_document_lifecycle",
+    "readme_float16_embedding_rationale",
+    "readme_rag_pipeline",
+    "static_index_html"
+  ],
+  "4": [
+    "config_getsettings",
+    "config_settings",
+    "database_asyncsessionlocal",
+    "database_base",
+    "database_createalltables",
+    "database_engine",
+    "database_getdb",
+    "database_runmigrations",
+    "database_setwalmode",
+    "documents_documentresponse",
+    "documents_enqueueingest",
+    "documents_getdocument",
+    "documents_listdocuments",
+    "documents_router",
+    "documents_runingestionbg",
+    "documents_sanitizefilename",
+    "documents_uploaddocument",
+    "health_healthcheck",
+    "health_router",
+    "limiter_limiter",
+    "main_app",
+    "main_lifespan",
+    "main_metrics",
+    "models_chunk",
+    "models_conversation",
+    "models_document",
+    "models_documentstatus",
+    "models_message",
+    "models_messagerole",
+    "security_requireapikey"
+  ],
+  "5": [
+    "app_services_retrieval_py",
+    "app_workers_tasks_py",
+    "services_retrieval_build_cache_entry",
+    "services_retrieval_cachedchunk",
+    "services_retrieval_cosine_similarities",
+    "services_retrieval_deserialize_from_redis",
+    "services_retrieval_embed_query",
+    "services_retrieval_format_chunk",
+    "services_retrieval_get_embedder",
+    "services_retrieval_get_redis_client",
+    "services_retrieval_load_embedding_blob",
+    "services_retrieval_rationale_23",
+    "services_retrieval_rationale_250",
+    "services_retrieval_rationale_265",
+    "services_retrieval_rationale_281",
+    "services_retrieval_redis_cache_delete",
+    "services_retrieval_redis_cache_get",
+    "services_retrieval_redis_cache_set",
+    "services_retrieval_retrieve_chunks",
+    "services_retrieval_rrf",
+    "services_retrieval_serialize_for_redis",
+    "services_retrieval_tokenize",
+    "services_semantic_cache_rationale_34",
+    "services_semantic_cache_semanticcache_get",
+    "workers_tasks_ingest_document_task",
+    "workers_tasks_rationale_1",
+    "workers_tasks_rationale_15",
+    "workers_tasks_workersettings"
+  ],
+  "6": [
+    "app_services_chat_py",
+    "services_chat_build_messages",
+    "services_chat_expand_query_hyde",
+    "services_chat_generate_reply",
+    "services_chat_generate_reply_stream",
+    "services_chat_get_client",
+    "services_chat_rationale_42",
+    "services_chat_rationale_54",
+    "services_chat_rationale_68",
+    "services_chat_rationale_93",
+    "services_chat_summarize_history",
+    "tests_test_chat_make_completion",
+    "tests_test_chat_make_stream_chunk",
+    "tests_test_chat_py",
+    "tests_test_chat_rationale_1",
+    "tests_test_chat_rationale_119",
+    "tests_test_chat_rationale_18",
+    "tests_test_chat_rationale_30",
+    "tests_test_chat_rationale_51",
+    "tests_test_chat_rationale_7",
+    "tests_test_chat_rationale_71",
+    "tests_test_chat_rationale_92",
+    "tests_test_chat_test_generate_reply_returns_content_when_present",
+    "tests_test_chat_test_generate_reply_returns_empty_string_when_content_is_empty_string",
+    "tests_test_chat_test_generate_reply_returns_empty_string_when_content_is_none",
+    "tests_test_chat_test_generate_reply_stream_skips_empty_string_delta",
+    "tests_test_chat_test_generate_reply_stream_skips_none_delta"
+  ],
+  "7": [
+    "tests_test_sse_framing_py",
+    "tests_test_sse_framing_rationale_1",
+    "tests_test_sse_framing_rationale_13",
+    "tests_test_sse_framing_rationale_18",
+    "tests_test_sse_framing_rationale_23",
+    "tests_test_sse_framing_rationale_28",
+    "tests_test_sse_framing_rationale_33",
+    "tests_test_sse_framing_rationale_38",
+    "tests_test_sse_framing_rationale_44",
+    "tests_test_sse_framing_rationale_49",
+    "tests_test_sse_framing_rationale_54",
+    "tests_test_sse_framing_rationale_59",
+    "tests_test_sse_framing_rationale_6",
+    "tests_test_sse_framing_sse_frame",
+    "tests_test_sse_framing_testsseframing",
+    "tests_test_sse_framing_testsseframing_test_empty_token_produces_empty_data_line",
+    "tests_test_sse_framing_testsseframing_test_frame_always_ends_with_double_newline",
+    "tests_test_sse_framing_testsseframing_test_multiline_preserves_content",
+    "tests_test_sse_framing_testsseframing_test_sentinel_done_unchanged",
+    "tests_test_sse_framing_testsseframing_test_sentinel_error_unchanged",
+    "tests_test_sse_framing_testsseframing_test_single_line_token_produces_standard_frame",
+    "tests_test_sse_framing_testsseframing_test_three_line_token",
+    "tests_test_sse_framing_testsseframing_test_token_with_only_newline",
+    "tests_test_sse_framing_testsseframing_test_trailing_newline_in_token",
+    "tests_test_sse_framing_testsseframing_test_two_line_token_produces_two_data_lines"
+  ],
+  "8": [
+    "app_static_app_js",
+    "static_app_api",
+    "static_app_checkhealth",
+    "static_app_closeuploadmodal",
+    "static_app_docicon",
+    "static_app_downloadchat",
+    "static_app_esc",
+    "static_app_formatdate",
+    "static_app_handleupload",
+    "static_app_inituploadmodal",
+    "static_app_msgbubble",
+    "static_app_openuploadmodal",
+    "static_app_polldocument",
+    "static_app_renderchat",
+    "static_app_renderconversations",
+    "static_app_renderconvlist",
+    "static_app_renderdocgrid",
+    "static_app_renderdocuments",
+    "static_app_router",
+    "static_app_scrollbottom",
+    "static_app_sendmessage",
+    "static_app_setprogress",
+    "static_app_setupchatinput",
+    "static_app_startconversation"
+  ],
+  "9": [
+    "app_services_ingestion_py",
+    "services_ingestion_chunk_segments",
+    "services_ingestion_detect_pdf_heading",
+    "services_ingestion_extract_docx_segments",
+    "services_ingestion_extract_pdf_segments",
+    "services_ingestion_extract_segments",
+    "services_ingestion_get_splitter",
+    "services_ingestion_segment",
+    "tests_test_ingestion_py",
+    "tests_test_ingestion_rationale_1",
+    "tests_test_ingestion_rationale_14",
+    "tests_test_ingestion_rationale_31",
+    "tests_test_ingestion_rationale_49",
+    "tests_test_ingestion_rationale_54",
+    "tests_test_ingestion_rationale_61",
+    "tests_test_ingestion_rationale_70",
+    "tests_test_ingestion_test_chunk_segments_basic",
+    "tests_test_ingestion_test_chunk_segments_chunk_dict_keys",
+    "tests_test_ingestion_test_chunk_segments_empty_input",
+    "tests_test_ingestion_test_chunk_segments_no_empty_text",
+    "tests_test_ingestion_test_chunk_segments_preserves_metadata",
+    "tests_test_ingestion_test_chunk_segments_whitespace_only_skipped"
+  ],
+  "10": [
+    "app_services_embedder_py",
+    "services_embedder_latechunkingembedder",
+    "services_embedder_latechunkingembedder_embed_independently",
+    "services_embedder_latechunkingembedder_embed_late",
+    "services_embedder_latechunkingembedder_embed_query",
+    "services_embedder_latechunkingembedder_init",
+    "services_embedder_latechunkingembedder_run",
+    "services_embedder_mean_pool",
+    "services_embedder_normalize",
+    "services_embedder_pin_cache",
+    "services_embedder_rationale_1",
+    "services_embedder_rationale_115",
+    "services_embedder_rationale_122",
+    "services_embedder_rationale_137",
+    "services_embedder_rationale_191",
+    "services_embedder_rationale_207",
+    "services_embedder_rationale_218",
+    "services_embedder_rationale_50",
+    "services_ingestion_embed_chunks_late",
+    "services_ingestion_rationale_180"
+  ],
+  "11": [
+    "api_documents_enqueue_ingestion",
+    "api_documents_get_document",
+    "api_documents_list_documents",
+    "api_documents_rationale_49",
+    "api_documents_rationale_56",
+    "api_documents_run_ingestion_bg",
+    "api_documents_sanitize_filename",
+    "api_documents_upload_document",
+    "app_api_documents_py",
+    "app_services_storage_py",
+    "services_storage_delete_file",
+    "services_storage_filetoolargeerror",
+    "services_storage_rationale_14",
+    "services_storage_rationale_18",
+    "services_storage_rationale_27",
+    "services_storage_rationale_72",
+    "services_storage_safe_extension",
+    "services_storage_save_upload"
+  ],
+  "12": [
+    "app_core_database_py",
+    "app_main_lifespan",
+    "app_main_metrics",
+    "app_main_py",
+    "app_main_rationale_104",
+    "app_main_root",
+    "core_database_create_all_tables",
+    "core_database_get_db",
+    "core_database_rationale_37",
+    "core_database_run_migrations",
+    "core_database_set_wal_mode"
+  ],
+  "13": [
+    "app_services_semantic_cache_py",
+    "services_semantic_cache_get_semantic_cache",
+    "services_semantic_cache_invalidate_semantic_cache",
+    "services_semantic_cache_key",
+    "services_semantic_cache_rationale_1",
+    "services_semantic_cache_rationale_73",
+    "services_semantic_cache_rationale_88",
+    "services_semantic_cache_semanticcache",
+    "services_semantic_cache_semanticcache_init",
+    "services_semantic_cache_semanticcache_invalidate"
+  ],
+  "14": [
+    "audit_bug3_chunk_segments_blocking",
+    "test_chunk_segments_basic",
+    "test_chunk_segments_chunk_dict_keys",
+    "test_chunk_segments_empty_input",
+    "test_chunk_segments_no_empty_text",
+    "test_chunk_segments_preserves_metadata",
+    "test_chunk_segments_whitespace_skipped",
+    "test_ingestion_testsuite"
+  ],
+  "15": [
+    "app_core_config_py",
+    "basesettings",
+    "core_config_get_settings",
+    "core_config_rationale_10",
+    "core_config_rationale_73",
+    "core_config_settings",
+    "core_config_use_s3"
+  ],
+  "16": [
+    "audit_bug8_redis_missing_dep",
+    "dep_arq",
+    "dep_redis",
+    "readme_horizontal_scaling"
+  ],
+  "17": [
+    "app_core_security_py",
+    "core_security_rationale_8",
+    "core_security_require_api_key"
+  ],
+  "18": [
+    "api_health_health_check",
+    "api_health_rationale_12",
+    "app_api_health_py"
+  ],
+  "19": [
+    "audit_bug11_debug_default_true",
+    "dep_aiosqlite",
+    "dep_sqlalchemy"
+  ],
+  "20": [
+    "claude_md_conventions",
+    "claude_md_plan_mode",
+    "claude_md_task_management"
+  ],
+  "21": [
+    "app_core_metrics_py",
+    "core_metrics_rationale_1"
+  ],
+  "22": [
+    "metrics_ingestionchunks",
+    "metrics_ingestionduration"
+  ],
+  "23": [
+    "metrics_semanticcachehits",
+    "metrics_semanticcachemisses"
+  ],
+  "24": [
+    "ingestion_segment",
+    "retrieval_cached_chunk"
+  ],
+  "25": [
+    "conversations_get_conversation",
+    "test_conversations_incomplete"
+  ],
+  "26": [
+    "dep_fastapi",
+    "dep_uvicorn"
+  ],
+  "27": [
+    "audit_arch_orphaned_messages",
+    "audit_bug4_incomplete_messages_exposed"
+  ],
+  "28": [
+    "audit_arch_no_delete",
+    "audit_feature2_deletion"
+  ],
+  "29": [
+    "audit_arch_no_auth",
+    "audit_feature3_auth"
+  ],
+  "30": [
+    "upload_hello_world",
+    "upload_python_doc"
+  ],
+  "31": [
+    "app_init_py"
+  ],
+  "32": [
+    "app_core_init_py"
+  ],
+  "33": [
+    "app_core_limiter_py"
+  ],
+  "34": [
+    "app_models_init_py"
+  ],
+  "35": [
+    "app_api_init_py"
+  ],
+  "36": [
+    "app_workers_init_py"
+  ],
+  "37": [
+    "app_services_init_py"
+  ],
+  "38": [
+    "tests_init_py"
+  ],
+  "39": [
+    "main_logrequests"
+  ],
+  "40": [
+    "main_root"
+  ],
+  "41": [
+    "metrics_retrievalduration"
+  ],
+  "42": [
+    "metrics_rerankduration"
+  ],
+  "43": [
+    "metrics_llmduration"
+  ],
+  "44": [
+    "metrics_llmstreamduration"
+  ],
+  "45": [
+    "metrics_hydeexpansions"
+  ],
+  "46": [
+    "conversations_router"
+  ],
+  "47": [
+    "conversations_create_conversation"
+  ],
+  "48": [
+    "conversations_list_conversations"
+  ],
+  "49": [
+    "tasks_worker_settings"
+  ],
+  "50": [
+    "storage_save_upload"
+  ],
+  "51": [
+    "requirements_deps"
+  ],
+  "52": [
+    "dep_groq"
+  ],
+  "53": [
+    "dep_numpy"
+  ],
+  "54": [
+    "dep_pytesseract"
+  ],
+  "55": [
+    "dep_prometheus_client"
+  ],
+  "56": [
+    "dep_cachetools"
+  ],
+  "57": [
+    "dep_slowapi"
+  ],
+  "58": [
+    "dep_aioboto3"
+  ],
+  "59": [
+    "audit_bug5_file_size_check_late"
+  ],
+  "60": [
+    "audit_bug9_cache_eviction_random"
+  ],
+  "61": [
+    "audit_bug12_numpy_annotation"
+  ],
+  "62": [
+    "audit_arch_max_tokens_hardcoded"
+  ],
+  "63": [
+    "audit_feature1_citations"
+  ],
+  "64": [
+    "upload_smoke_test"
+  ]
+}

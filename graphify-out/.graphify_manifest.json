@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "root": ".",
+  "total_files": 48,
+  "total_words": 22184,
+  "nodes": 481,
+  "edges": 854,
+  "communities": 65,
+  "outputs": [
+    "graphify-out/graph.json",
+    "graphify-out/graph.html",
+    "graphify-out/GRAPH_REPORT.md"
+  ],
+  "temp_files_cleaned": true
+}

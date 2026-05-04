@@ -1,0 +1,18 @@
+---
+source_file: "scripts/benchmark.py"
+type: "code"
+community: "RAG Pipeline Architecture (REA / DocChat Benchmarking Suite"
+location: "line 75"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/RAG_Pipeline_Architecture_(REA_/_DocChat_Benchmarking_Suite
+---
+
+# Benchmark Ground Truth Query Set
+
+## Connections
+- [[Reranking Precision Benchmark (MRR  Hit@k)]] - `references` [EXTRACTED]
+- [[Retrieval Latency Benchmark]] - `references` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/RAG_Pipeline_Architecture_(REA_/_DocChat_Benchmarking_Suite

@@ -21,5 +21,5 @@ class Conversation(Base):
         "Message",
         back_populates="conversation",
         cascade="all, delete-orphan",
-        order_by="messages.c.created_at",
+        order_by="Message.created_at",
     )

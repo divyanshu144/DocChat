@@ -45,6 +45,7 @@ def _get_splitter():
         chunk_overlap=CHUNK_OVERLAP,
         separators=["\n\n", "\n", ". ", "! ", "? ", "; ", " ", ""],
         length_function=len,
+        add_start_index=True,  # enables char-offset tracking for late chunking
     )
 
 
@@ -149,18 +150,65 @@ def _extract_segments(file_path: "str | Path", content_type: str) -> list[_Segme
 
 
 def _chunk_segments(segments: list[_Segment]) -> list[dict]:
-    """Sentence-aware split of each segment; metadata is carried forward."""
+    """Sentence-aware split of each segment; metadata + char offsets are carried forward.
+
+    Each returned dict includes:
+      - text, page_number, section_heading  (as before)
+      - seg_idx    — index into the segments list (for late chunking)
+      - char_start — character offset of this chunk within its segment's text
+    """
     splitter = _get_splitter()
     chunks: list[dict] = []
-    for seg in segments:
-        for chunk_text in splitter.split_text(seg.text):
-            if chunk_text.strip():
+    for seg_idx, seg in enumerate(segments):
+        for doc in splitter.create_documents([seg.text]):
+            if doc.page_content.strip():
                 chunks.append({
-                    "text": chunk_text,
+                    "text": doc.page_content,
                     "page_number": seg.page_number,
                     "section_heading": seg.section_heading,
+                    "seg_idx": seg_idx,
+                    "char_start": doc.metadata.get("start_index", 0),
                 })
     return chunks
+
+
+def _embed_chunks_late(
+    raw_chunks: list[dict],
+    segments: list[_Segment],
+    embedder: "LateChunkingEmbedder",
+) -> list["np.ndarray | None"]:
+    """Group chunks by their source segment and embed each group with late chunking.
+
+    Chunks whose segment fits within 512 tokens get contextual embeddings where
+    each chunk's embedding reflects the full page context.  Chunks on longer
+    segments fall back to independent embedding automatically.
+    """
+    from app.services.embedder import LateChunkingEmbedder  # type hint only
+
+    results: list = [None] * len(raw_chunks)
+    i = 0
+    while i < len(raw_chunks):
+        seg_idx = raw_chunks[i].get("seg_idx")
+
+        # Find the contiguous run of chunks belonging to this segment
+        j = i
+        while j < len(raw_chunks) and raw_chunks[j].get("seg_idx") == seg_idx:
+            j += 1
+
+        group = raw_chunks[i:j]
+        chunk_texts = [c["text"] for c in group]
+        char_starts = [c.get("char_start", 0) for c in group]
+
+        if seg_idx is not None and seg_idx < len(segments):
+            embs = embedder.embed_late(segments[seg_idx].text, chunk_texts, char_starts)
+        else:
+            embs = embedder.embed_independently(chunk_texts)
+
+        for k, emb in enumerate(embs):
+            results[i + k] = emb
+        i = j
+
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -168,9 +216,10 @@ def _chunk_segments(segments: list[_Segment]) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 async def ingest_document(document: Document, db: AsyncSession) -> None:
-    """Extract → chunk → embed → persist; delete raw file on completion."""
+    """Extract → chunk → late-chunk embed → persist; delete raw file on completion."""
     from app.core.metrics import ingestion_chunks, ingestion_duration
-    from app.services.retrieval import _get_embedder, invalidate_bm25
+    from app.services.embedder import get_embedder
+    from app.services.retrieval import invalidate_bm25
 
     document.status = DocumentStatus.processing
     await db.commit()
@@ -187,17 +236,19 @@ async def ingest_document(document: Document, db: AsyncSession) -> None:
                 None, _extract_segments, path, document.content_type
             )
 
-        raw_chunks = _chunk_segments(segments)
-        chunk_texts = [c["text"] for c in raw_chunks]
+        # CPU-bound chunking also runs off the event loop to avoid blocking
+        # in-flight requests (200-page PDF can take 200–600ms on the event loop)
+        raw_chunks = await loop.run_in_executor(None, _chunk_segments, segments)
 
-        # Embed in thread pool to avoid blocking
-        embedder = _get_embedder()
+        # Late-chunking embed: each chunk gets contextual embeddings from its page.
+        # Falls back to independent embedding for pages > 512 tokens.
+        embedder = get_embedder()
         if embedder is not None:
             embeddings = await loop.run_in_executor(
-                None, lambda: list(embedder.embed(chunk_texts))
+                None, _embed_chunks_late, raw_chunks, segments, embedder
             )
         else:
-            embeddings = [None] * len(chunk_texts)
+            embeddings = [None] * len(raw_chunks)
 
         chunks = [
             Chunk(

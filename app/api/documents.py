@@ -70,8 +70,8 @@ async def _enqueue_ingestion(document_id: str, background_tasks: BackgroundTasks
     if settings.redis_url:
         from arq import create_pool
         from arq.connections import RedisSettings
-        pool = await create_pool(RedisSettings.from_dsn(settings.redis_url))
-        await pool.enqueue_job("ingest_document_task", document_id)
+        async with create_pool(RedisSettings.from_dsn(settings.redis_url)) as pool:
+            await pool.enqueue_job("ingest_document_task", document_id)
     else:
         background_tasks.add_task(_run_ingestion_bg, document_id)
 

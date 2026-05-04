@@ -11,7 +11,7 @@ router = APIRouter()
 async def health_check():
     """Health check endpoint to verify that the API is running."""
     return {
-        "status": "healthy",
+        "status": "ok",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": settings.version,
     }

@@ -16,7 +16,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-_MAX_ENTRIES_PER_DOC = 200   # FIFO eviction beyond this limit
+_MAX_ENTRIES_PER_DOC = 200   # approximate (random) eviction beyond this limit
 _CACHE_TTL = 86400           # 24-hour TTL — prevents unbounded Redis growth and stale answers
 
 
@@ -62,7 +62,7 @@ class SemanticCache:
         await self._client.hset(key, str(uuid.uuid4()), entry)
         await self._client.expire(key, _CACHE_TTL)
 
-        # Evict oldest entry when the hash grows beyond the cap
+        # Evict a random entry when the hash grows beyond the cap (HKEYS order is arbitrary)
         length = await self._client.hlen(key)
         if length > _MAX_ENTRIES_PER_DOC:
             fields = await self._client.hkeys(key)

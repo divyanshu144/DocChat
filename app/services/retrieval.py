@@ -16,24 +16,13 @@ from app.models.chunk import Chunk
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Embedder singleton (fastembed ONNX, no PyTorch required)
+# Embedder — delegated to embedder.py (late-chunking ONNX embedder)
 # ---------------------------------------------------------------------------
 
-try:
-    from fastembed import TextEmbedding as _TextEmbedding
-    _fastembed_available = True
-except ImportError:
-    _fastembed_available = False
-
-_embedder = None
-
-
 def _get_embedder():
-    global _embedder
-    if _embedder is None and _fastembed_available:
-        from app.core.config import settings
-        _embedder = _TextEmbedding(settings.embedding_model)
-    return _embedder
+    """Returns the LateChunkingEmbedder singleton, or None if unavailable."""
+    from app.services.embedder import get_embedder
+    return get_embedder()
 
 
 # ---------------------------------------------------------------------------
@@ -273,14 +262,12 @@ def _format_chunk(chunk) -> str:
 # ---------------------------------------------------------------------------
 
 async def embed_query(query: str) -> np.ndarray | None:
-    """Embed a single query string; returns None if fastembed is unavailable."""
+    """Embed a single query string; returns None if the embedder is unavailable."""
     embedder = _get_embedder()
     if embedder is None:
         return None
     loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        None, lambda: np.array(next(embedder.embed([query])), dtype=np.float32)
-    )
+    return await loop.run_in_executor(None, embedder.embed_query, query)
 
 
 async def retrieve_chunks(
@@ -334,9 +321,7 @@ async def retrieve_chunks(
         if query_emb is None:
             search_text = expanded_query if expanded_query else query
             loop = asyncio.get_running_loop()
-            query_emb = await loop.run_in_executor(
-                None, lambda: np.array(next(embedder.embed([search_text])), dtype=np.float32)
-            )
+            query_emb = await loop.run_in_executor(None, embedder.embed_query, search_text)
 
         cos_sims = _cosine_similarities(query_emb, emb_matrix)
         semantic_order = list(np.argsort(cos_sims)[::-1])

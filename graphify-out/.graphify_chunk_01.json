@@ -1,0 +1,988 @@
+{
+  "nodes": [
+    {
+      "id": "main_app",
+      "label": "FastAPI App Instance",
+      "file_type": "code",
+      "source_file": "app/main.py",
+      "source_location": "line 46",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "main_lifespan",
+      "label": "lifespan (startup handler)",
+      "file_type": "code",
+      "source_file": "app/main.py",
+      "source_location": "line 30",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "main_logrequests",
+      "label": "log_requests (HTTP middleware)",
+      "file_type": "code",
+      "source_file": "app/main.py",
+      "source_location": "line 62",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "main_metrics",
+      "label": "metrics() — Prometheus endpoint",
+      "file_type": "code",
+      "source_file": "app/main.py",
+      "source_location": "line 103",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "main_root",
+      "label": "root() — serves index.html",
+      "file_type": "code",
+      "source_file": "app/main.py",
+      "source_location": "line 108",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "config_settings",
+      "label": "Settings (pydantic-settings singleton)",
+      "file_type": "code",
+      "source_file": "app/core/config.py",
+      "source_location": "line 9",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "config_getsettings",
+      "label": "get_settings() — lru_cache factory",
+      "file_type": "code",
+      "source_file": "app/core/config.py",
+      "source_location": "line 72",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_engine",
+      "label": "async SQLAlchemy engine",
+      "file_type": "code",
+      "source_file": "app/core/database.py",
+      "source_location": "line 8",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_base",
+      "label": "Base (DeclarativeBase)",
+      "file_type": "code",
+      "source_file": "app/core/database.py",
+      "source_location": "line 32",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_asyncsessionlocal",
+      "label": "AsyncSessionLocal (session factory)",
+      "file_type": "code",
+      "source_file": "app/core/database.py",
+      "source_location": "line 25",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_runmigrations",
+      "label": "_run_migrations() — idempotent column migrations",
+      "file_type": "code",
+      "source_file": "app/core/database.py",
+      "source_location": "line 36",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_createalltables",
+      "label": "create_all_tables()",
+      "file_type": "code",
+      "source_file": "app/core/database.py",
+      "source_location": "line 109",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_getdb",
+      "label": "get_db() — async session dependency",
+      "file_type": "code",
+      "source_file": "app/core/database.py",
+      "source_location": "line 121",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_setwalmode",
+      "label": "_set_wal_mode() — SQLite WAL pragma listener",
+      "file_type": "code",
+      "source_file": "app/core/database.py",
+      "source_location": "line 12",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_ingestionduration",
+      "label": "ingestion_duration (Histogram)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 9",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_retrievalduration",
+      "label": "retrieval_duration (Histogram)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 14",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_rerankduration",
+      "label": "rerank_duration (Histogram)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 19",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_llmduration",
+      "label": "llm_duration (Histogram)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 24",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_llmstreamduration",
+      "label": "llm_stream_duration (Histogram)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 29",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_ingestionchunks",
+      "label": "ingestion_chunks (Counter)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 34",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_semanticcachehits",
+      "label": "semantic_cache_hits (Counter)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 39",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_semanticcachemisses",
+      "label": "semantic_cache_misses (Counter)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 44",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metrics_hydeexpansions",
+      "label": "hyde_expansions (Counter)",
+      "file_type": "code",
+      "source_file": "app/core/metrics.py",
+      "source_location": "line 49",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "security_requireapikey",
+      "label": "require_api_key() — FastAPI dependency",
+      "file_type": "code",
+      "source_file": "app/core/security.py",
+      "source_location": "line 7",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "limiter_limiter",
+      "label": "limiter (SlowAPI Limiter singleton)",
+      "file_type": "code",
+      "source_file": "app/core/limiter.py",
+      "source_location": "line 6",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "models_document",
+      "label": "Document (SQLAlchemy model)",
+      "file_type": "code",
+      "source_file": "app/models/document.py",
+      "source_location": "line 18",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "models_documentstatus",
+      "label": "DocumentStatus (enum: pending/processing/ready/error)",
+      "file_type": "code",
+      "source_file": "app/models/document.py",
+      "source_location": "line 11",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "models_chunk",
+      "label": "Chunk (SQLAlchemy model)",
+      "file_type": "code",
+      "source_file": "app/models/chunk.py",
+      "source_location": "line 10",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "models_conversation",
+      "label": "Conversation (SQLAlchemy model)",
+      "file_type": "code",
+      "source_file": "app/models/conversation.py",
+      "source_location": "line 10",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "models_message",
+      "label": "Message (SQLAlchemy model)",
+      "file_type": "code",
+      "source_file": "app/models/message.py",
+      "source_location": "line 16",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "models_messagerole",
+      "label": "MessageRole (enum: user/assistant)",
+      "file_type": "code",
+      "source_file": "app/models/message.py",
+      "source_location": "line 11",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "health_router",
+      "label": "health APIRouter",
+      "file_type": "code",
+      "source_file": "app/api/health.py",
+      "source_location": "line 7",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "health_healthcheck",
+      "label": "health_check() — GET /health",
+      "file_type": "code",
+      "source_file": "app/api/health.py",
+      "source_location": "line 10",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "documents_router",
+      "label": "documents APIRouter",
+      "file_type": "code",
+      "source_file": "app/api/documents.py",
+      "source_location": "line 20",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "documents_uploaddocument",
+      "label": "upload_document() — POST /documents",
+      "file_type": "code",
+      "source_file": "app/api/documents.py",
+      "source_location": "line 79",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "documents_listdocuments",
+      "label": "list_documents() — GET /documents",
+      "file_type": "code",
+      "source_file": "app/api/documents.py",
+      "source_location": "line 130",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "documents_getdocument",
+      "label": "get_document() — GET /documents/{document_id}",
+      "file_type": "code",
+      "source_file": "app/api/documents.py",
+      "source_location": "line 136",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "documents_enqueueingest",
+      "label": "_enqueue_ingestion() — ARQ or BackgroundTasks dispatch",
+      "file_type": "code",
+      "source_file": "app/api/documents.py",
+      "source_location": "line 69",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "documents_runingestionbg",
+      "label": "_run_ingestion_bg() — background task wrapper",
+      "file_type": "code",
+      "source_file": "app/api/documents.py",
+      "source_location": "line 55",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "documents_sanitizefilename",
+      "label": "_sanitize_filename() — path traversal + char filter",
+      "file_type": "code",
+      "source_file": "app/api/documents.py",
+      "source_location": "line 48",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "documents_documentresponse",
+      "label": "DocumentResponse (Pydantic response model)",
+      "file_type": "code",
+      "source_file": "app/api/documents.py",
+      "source_location": "line 36",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "main_lifespan",
+      "target": "database_createalltables",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/main.py",
+      "source_location": "line 32",
+      "weight": 1.0
+    },
+    {
+      "source": "main_app",
+      "target": "main_lifespan",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/main.py",
+      "source_location": "line 46",
+      "weight": 1.0
+    },
+    {
+      "source": "main_app",
+      "target": "limiter_limiter",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/main.py",
+      "source_location": "line 54",
+      "weight": 1.0
+    },
+    {
+      "source": "main_app",
+      "target": "health_router",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/main.py",
+      "source_location": "line 97",
+      "weight": 1.0
+    },
+    {
+      "source": "main_app",
+      "target": "documents_router",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/main.py",
+      "source_location": "line 98",
+      "weight": 1.0
+    },
+    {
+      "source": "main_metrics",
+      "target": "security_requireapikey",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/main.py",
+      "source_location": "line 102",
+      "weight": 1.0
+    },
+    {
+      "source": "security_requireapikey",
+      "target": "config_settings",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/security.py",
+      "source_location": "line 14",
+      "weight": 1.0
+    },
+    {
+      "source": "database_engine",
+      "target": "config_settings",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 8",
+      "weight": 1.0
+    },
+    {
+      "source": "database_engine",
+      "target": "database_setwalmode",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 11",
+      "weight": 1.0
+    },
+    {
+      "source": "database_createalltables",
+      "target": "database_runmigrations",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 118",
+      "weight": 1.0
+    },
+    {
+      "source": "database_createalltables",
+      "target": "models_document",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 111",
+      "weight": 1.0
+    },
+    {
+      "source": "database_createalltables",
+      "target": "models_chunk",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 112",
+      "weight": 1.0
+    },
+    {
+      "source": "database_createalltables",
+      "target": "models_conversation",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 113",
+      "weight": 1.0
+    },
+    {
+      "source": "database_createalltables",
+      "target": "models_message",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 114",
+      "weight": 1.0
+    },
+    {
+      "source": "database_getdb",
+      "target": "database_asyncsessionlocal",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 122",
+      "weight": 1.0
+    },
+    {
+      "source": "database_runmigrations",
+      "target": "config_settings",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/database.py",
+      "source_location": "line 38",
+      "weight": 1.0
+    },
+    {
+      "source": "models_document",
+      "target": "database_base",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/document.py",
+      "source_location": "line 18",
+      "weight": 1.0
+    },
+    {
+      "source": "models_chunk",
+      "target": "database_base",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/chunk.py",
+      "source_location": "line 10",
+      "weight": 1.0
+    },
+    {
+      "source": "models_conversation",
+      "target": "database_base",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/conversation.py",
+      "source_location": "line 10",
+      "weight": 1.0
+    },
+    {
+      "source": "models_message",
+      "target": "database_base",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/message.py",
+      "source_location": "line 16",
+      "weight": 1.0
+    },
+    {
+      "source": "models_document",
+      "target": "models_chunk",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/document.py",
+      "source_location": "line 34",
+      "weight": 1.0
+    },
+    {
+      "source": "models_document",
+      "target": "models_conversation",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/document.py",
+      "source_location": "line 35",
+      "weight": 1.0
+    },
+    {
+      "source": "models_conversation",
+      "target": "models_message",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/conversation.py",
+      "source_location": "line 20",
+      "weight": 1.0
+    },
+    {
+      "source": "models_message",
+      "target": "models_messagerole",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/message.py",
+      "source_location": "line 21",
+      "weight": 1.0
+    },
+    {
+      "source": "models_document",
+      "target": "models_documentstatus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/document.py",
+      "source_location": "line 25",
+      "weight": 1.0
+    },
+    {
+      "source": "health_router",
+      "target": "health_healthcheck",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/health.py",
+      "source_location": "line 10",
+      "weight": 1.0
+    },
+    {
+      "source": "health_healthcheck",
+      "target": "config_settings",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/health.py",
+      "source_location": "line 16",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_router",
+      "target": "security_requireapikey",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 20",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_uploaddocument",
+      "target": "documents_sanitizefilename",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 113",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_uploaddocument",
+      "target": "documents_enqueueingest",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 125",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_uploaddocument",
+      "target": "database_getdb",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 83",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_listdocuments",
+      "target": "database_getdb",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 131",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_getdocument",
+      "target": "database_getdb",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 138",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_enqueueingest",
+      "target": "documents_runingestionbg",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 76",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_enqueueingest",
+      "target": "config_settings",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 70",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_router",
+      "target": "documents_uploaddocument",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 79",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_router",
+      "target": "documents_listdocuments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 130",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_router",
+      "target": "documents_getdocument",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 136",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_uploaddocument",
+      "target": "models_document",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 115",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_documentresponse",
+      "target": "models_documentstatus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 39",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_runingestionbg",
+      "target": "database_asyncsessionlocal",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 60",
+      "weight": 1.0
+    },
+    {
+      "source": "config_getsettings",
+      "target": "config_settings",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/core/config.py",
+      "source_location": "line 77",
+      "weight": 1.0
+    },
+    {
+      "source": "main_lifespan",
+      "target": "config_settings",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/main.py",
+      "source_location": "line 39",
+      "weight": 1.0
+    },
+    {
+      "source": "documents_uploaddocument",
+      "target": "config_settings",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py",
+      "source_location": "line 109",
+      "weight": 1.0
+    },
+    {
+      "source": "models_chunk",
+      "target": "models_document",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/chunk.py",
+      "source_location": "line 24",
+      "weight": 1.0
+    },
+    {
+      "source": "models_conversation",
+      "target": "models_document",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/conversation.py",
+      "source_location": "line 19",
+      "weight": 1.0
+    },
+    {
+      "source": "metrics_ingestionduration",
+      "target": "metrics_ingestionchunks",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/core/metrics.py",
+      "source_location": null,
+      "weight": 0.8
+    },
+    {
+      "source": "metrics_semanticcachehits",
+      "target": "metrics_semanticcachemisses",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "app/core/metrics.py",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "limiter_limiter",
+      "target": "security_requireapikey",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "app/main.py",
+      "source_location": null,
+      "weight": 0.7
+    },
+    {
+      "source": "documents_enqueueingest",
+      "target": "documents_runingestionbg",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "app/api/documents.py",
+      "source_location": null,
+      "weight": 0.85
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "startup_initialization_flow",
+      "label": "App Startup Initialization Flow",
+      "nodes": ["main_lifespan", "database_createalltables", "database_runmigrations"],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/main.py"
+    },
+    {
+      "id": "document_upload_pipeline",
+      "label": "Document Upload and Ingestion Pipeline",
+      "nodes": ["documents_uploaddocument", "documents_enqueueingest", "documents_runingestionbg"],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/documents.py"
+    },
+    {
+      "id": "orm_model_hierarchy",
+      "label": "SQLAlchemy ORM Model Hierarchy (Document → Chunk + Conversation → Message)",
+      "nodes": ["models_document", "models_chunk", "models_conversation"],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/models/document.py"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

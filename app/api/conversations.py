@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import time
 from datetime import datetime
@@ -72,12 +74,15 @@ class ConversationSummary(BaseModel):
 # Helpers
 # ---------------------------------------------------------------------------
 
-async def _load_history(conversation_id: str, db: AsyncSession) -> list[dict]:
-    """Return the LLM history list, with a summarised prefix when the conversation
-    is longer than settings.history_summary_threshold.
+async def _load_history(
+    conversation_id: str, db: AsyncSession
+) -> tuple[list[dict], str | None]:
+    """Return (history, summary) for the conversation.
 
-    Only *complete* messages are included — in-flight streaming replies
-    (is_complete=False) are excluded to avoid corrupting the context window.
+    history — user/assistant message dicts, most recent chat_history_limit entries.
+    summary — condensed string of older messages when the conversation is long, else None.
+    The caller merges the summary into the system prompt; history itself never contains
+    system-role dicts so the OpenAI/Groq spec (single leading system message) is honoured.
     """
     # Count total complete messages once
     count_result = await db.execute(
@@ -99,6 +104,7 @@ async def _load_history(conversation_id: str, db: AsyncSession) -> list[dict]:
     history = [{"role": m.role.value, "content": m.content} for m in recent]
 
     # Summarise older messages when the conversation is long
+    summary: str | None = None
     older_count = total - settings.chat_history_limit
     if (
         settings.history_summary_threshold > 0
@@ -117,16 +123,13 @@ async def _load_history(conversation_id: str, db: AsyncSession) -> list[dict]:
             older_hist = [{"role": m.role.value, "content": m.content} for m in older]
             try:
                 summary = await chat.summarize_history(older_hist)
-                history = [
-                    {"role": "system", "content": f"Earlier conversation summary: {summary}"}
-                ] + history
             except Exception:
                 logger.warning(
                     "history_summarization_failed",
                     extra={"conversation_id": conversation_id},
                 )
 
-    return history
+    return history, summary
 
 
 async def _run_retrieval_pipeline(
@@ -134,29 +137,33 @@ async def _run_retrieval_pipeline(
     document_id: str,
     db: AsyncSession,
     conversation_id: str,
-) -> tuple[list[str], "np.ndarray | None"]:
-    """HyDE expansion → retrieve → re-rank.  Returns (chunks, query_emb)."""
-    import numpy as np
+    query_emb=None,
+) -> tuple[list[str], object]:
+    """HyDE expansion → embed → retrieve → re-rank.  Returns (chunks, query_emb).
+
+    query_emb — pass a pre-computed embedding to skip the embed call when HyDE is
+    disabled (e.g. when the caller already embedded for a cache check).  When HyDE
+    is enabled the pipeline always re-embeds the hypothetical answer regardless.
+    """
     from app.core.metrics import (
         hyde_expansions,
         retrieval_duration,
         rerank_duration,
     )
 
-    # Optional HyDE: embed a hypothetical answer instead of the raw question
+    # Optional HyDE: embed a hypothetical answer instead of the raw question.
+    # When HyDE is off and a pre-computed embedding was supplied, reuse it.
     expanded_query: str | None = None
-    query_emb = None
     if settings.hyde_enabled:
         try:
             expanded_query = await chat.expand_query_hyde(question)
             hyde_expansions.inc()
         except Exception:
             logger.warning("hyde_expansion_failed", extra={"conversation_id": conversation_id})
-
-    # Embed the query once so it can be shared with the semantic cache lookup
-    # and passed into retrieve_chunks (avoiding a second embed call there)
-    search_text = expanded_query if expanded_query else question
-    query_emb = await retrieval.embed_query(search_text)
+        search_text = expanded_query if expanded_query else question
+        query_emb = await retrieval.embed_query(search_text)
+    elif query_emb is None:
+        query_emb = await retrieval.embed_query(question)
 
     # Retrieve
     t0 = time.perf_counter()
@@ -262,12 +269,10 @@ async def send_message(
     if conversation is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found.")
 
-    history = await _load_history(conversation_id, db)
-    chunks, query_emb = await _run_retrieval_pipeline(
-        body.question, conversation.document_id, db, conversation_id
-    )
+    history, summary = await _load_history(conversation_id, db)
 
-    # Semantic cache lookup (requires Redis)
+    # Embed query first so we can hit the semantic cache before running retrieval
+    query_emb = await retrieval.embed_query(body.question)
     sc = get_semantic_cache()
     if sc is not None and query_emb is not None:
         cached = await sc.get(query_emb, conversation.document_id)
@@ -279,9 +284,17 @@ async def send_message(
             return ChatResponse(conversation_id=conversation_id, answer=cached, from_cache=True)
         semantic_cache_misses.inc()
 
+    # Cache miss — run full retrieval, passing the pre-computed embedding so HyDE-off
+    # paths avoid a redundant embed call
+    chunks, query_emb = await _run_retrieval_pipeline(
+        body.question, conversation.document_id, db, conversation_id, query_emb=query_emb
+    )
+
     try:
         t0 = time.perf_counter()
-        answer = await chat.generate_reply(question=body.question, chunks=chunks, history=history)
+        answer = await chat.generate_reply(
+            question=body.question, chunks=chunks, history=history, summary=summary
+        )
         llm_duration.observe(time.perf_counter() - t0)
     except Exception as exc:
         logger.exception("chat_generation_failed", extra={"conversation_id": conversation_id})
@@ -316,12 +329,10 @@ async def send_message_stream(
     if conversation is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found.")
 
-    history = await _load_history(conversation_id, db)
-    chunks, query_emb = await _run_retrieval_pipeline(
-        body.question, conversation.document_id, db, conversation_id
-    )
+    history, summary = await _load_history(conversation_id, db)
 
-    # Semantic cache check — if hit, return the cached answer as a one-shot stream
+    # Embed query first so we can hit the semantic cache before running retrieval
+    query_emb = await retrieval.embed_query(body.question)
     sc = get_semantic_cache()
     if sc is not None and query_emb is not None:
         cached = await sc.get(query_emb, conversation.document_id)
@@ -332,11 +343,17 @@ async def send_message_stream(
             await db.commit()
 
             async def _cached_stream():
-                yield f"data: {cached}\n\n"
+                lines = cached.split("\n")
+                yield "".join(f"data: {line}\n" for line in lines) + "\n"
                 yield "data: [DONE]\n\n"
 
             return StreamingResponse(_cached_stream(), media_type="text/event-stream")
         semantic_cache_misses.inc()
+
+    # Cache miss — run full retrieval, passing the pre-computed embedding
+    chunks, query_emb = await _run_retrieval_pipeline(
+        body.question, conversation.document_id, db, conversation_id, query_emb=query_emb
+    )
 
     # Persist user message + placeholder assistant message (is_complete=False)
     # before streaming starts so a dropped connection never leaves a gap.
@@ -358,10 +375,11 @@ async def send_message_stream(
         t0 = time.perf_counter()
         try:
             async for token in chat.generate_reply_stream(
-                question=question, chunks=chunks, history=history
+                question=question, chunks=chunks, history=history, summary=summary
             ):
                 full_reply.append(token)
-                yield f"data: {token}\n\n"
+                lines = token.split("\n")
+                yield "".join(f"data: {line}\n" for line in lines) + "\n"
             success = True
         except Exception:
             logger.exception("chat_stream_failed", extra={"conversation_id": conversation_id})
@@ -396,12 +414,35 @@ async def get_conversation(
     conversation_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Conversation)
-        .where(Conversation.id == conversation_id)
-        .options(selectinload(Conversation.messages))
+    # Load the conversation record first (without eagerly loading all messages)
+    conv_result = await db.execute(
+        select(Conversation).where(Conversation.id == conversation_id)
     )
-    conversation = result.scalar_one_or_none()
+    conversation = conv_result.scalar_one_or_none()
     if conversation is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found.")
-    return conversation
+
+    # Separately query only complete messages — excludes abandoned streaming placeholders
+    # (is_complete=False) left behind on server restart or dropped connections.
+    msg_result = await db.execute(
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .where(Message.is_complete == True)  # noqa: E712
+        .order_by(Message.created_at)
+    )
+    messages = msg_result.scalars().all()
+
+    return ConversationResponse(
+        id=conversation.id,
+        document_id=conversation.document_id,
+        created_at=conversation.created_at,
+        messages=[
+            MessageResponse(
+                id=m.id,
+                role=m.role,
+                content=m.content,
+                created_at=m.created_at,
+            )
+            for m in messages
+        ],
+    )

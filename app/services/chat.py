@@ -22,32 +22,39 @@ def _get_client() -> AsyncGroq:
     return _client
 
 
-def _build_messages(question: str, chunks: list[str], history: list[dict]) -> list[dict]:
+def _build_messages(
+    question: str, chunks: list[str], history: list[dict], summary: str | None = None
+) -> list[dict]:
     context = "\n\n---\n\n".join(chunks) if chunks else "No relevant context found."
+    system_content = SYSTEM_PROMPT.format(context=context)
+    if summary:
+        system_content += f"\n\nEarlier conversation summary:\n{summary}"
     return [
-        {"role": "system", "content": SYSTEM_PROMPT.format(context=context)},
+        {"role": "system", "content": system_content},
         *history,
         {"role": "user", "content": question},
     ]
 
 
-async def generate_reply(question: str, chunks: list[str], history: list[dict]) -> str:
+async def generate_reply(
+    question: str, chunks: list[str], history: list[dict], summary: str | None = None
+) -> str:
     """Call Groq LLM with retrieved context and conversation history."""
     response = await _get_client().chat.completions.create(
         model=settings.chat_model,
-        messages=_build_messages(question, chunks, history),
+        messages=_build_messages(question, chunks, history, summary),
         max_tokens=1024,
     )
-    return response.choices[0].message.content
+    return response.choices[0].message.content or ""
 
 
 async def generate_reply_stream(
-    question: str, chunks: list[str], history: list[dict]
+    question: str, chunks: list[str], history: list[dict], summary: str | None = None
 ) -> AsyncGenerator[str, None]:
     """Stream Groq LLM tokens as an async generator."""
     stream = await _get_client().chat.completions.create(
         model=settings.chat_model,
-        messages=_build_messages(question, chunks, history),
+        messages=_build_messages(question, chunks, history, summary),
         max_tokens=1024,
         stream=True,
     )
@@ -79,7 +86,7 @@ async def expand_query_hyde(question: str) -> str:
         ],
         max_tokens=150,
     )
-    return response.choices[0].message.content
+    return response.choices[0].message.content or ""
 
 
 async def summarize_history(history: list[dict]) -> str:
@@ -104,4 +111,4 @@ async def summarize_history(history: list[dict]) -> str:
         ],
         max_tokens=300,
     )
-    return response.choices[0].message.content
+    return response.choices[0].message.content or ""

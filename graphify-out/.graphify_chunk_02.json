@@ -1,0 +1,1377 @@
+{
+  "nodes": [
+    {
+      "id": "conversations_router",
+      "label": "Conversations API Router",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 26",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conversations_load_history",
+      "label": "_load_history",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 77",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conversations_run_retrieval_pipeline",
+      "label": "_run_retrieval_pipeline",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 135",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conversations_send_message",
+      "label": "send_message endpoint",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 253",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conversations_send_message_stream",
+      "label": "send_message_stream endpoint",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 317",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conversations_event_stream",
+      "label": "event_stream SSE generator",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 372",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conversations_get_conversation",
+      "label": "get_conversation endpoint",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 412",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conversations_create_conversation",
+      "label": "create_conversation endpoint",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 224",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conversations_list_conversations",
+      "label": "list_conversations endpoint",
+      "file_type": "code",
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 193",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "tasks_ingest_document_task",
+      "label": "ingest_document_task ARQ task",
+      "file_type": "code",
+      "source_file": "app/workers/tasks.py",
+      "source_location": "line 14",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "tasks_worker_settings",
+      "label": "WorkerSettings ARQ config",
+      "file_type": "code",
+      "source_file": "app/workers/tasks.py",
+      "source_location": "line 26",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_ingest_document",
+      "label": "ingest_document",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 218",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_extract_segments",
+      "label": "_extract_segments",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 141",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_extract_pdf_segments",
+      "label": "_extract_pdf_segments",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 72",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_extract_docx_segments",
+      "label": "_extract_docx_segments",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 111",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_chunk_segments",
+      "label": "_chunk_segments",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 152",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_embed_chunks_late",
+      "label": "_embed_chunks_late",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 175",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_detect_pdf_heading",
+      "label": "_detect_pdf_heading",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 56",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_get_splitter",
+      "label": "_get_splitter",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 41",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ingestion_segment",
+      "label": "_Segment dataclass",
+      "file_type": "code",
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 31",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "reranker_rerank",
+      "label": "rerank",
+      "file_type": "code",
+      "source_file": "app/services/reranker.py",
+      "source_location": "line 30",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "reranker_get_ranker",
+      "label": "_get_ranker singleton",
+      "file_type": "code",
+      "source_file": "app/services/reranker.py",
+      "source_location": "line 23",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chat_generate_reply",
+      "label": "generate_reply",
+      "file_type": "code",
+      "source_file": "app/services/chat.py",
+      "source_location": "line 39",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chat_generate_reply_stream",
+      "label": "generate_reply_stream",
+      "file_type": "code",
+      "source_file": "app/services/chat.py",
+      "source_location": "line 51",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chat_expand_query_hyde",
+      "label": "expand_query_hyde",
+      "file_type": "code",
+      "source_file": "app/services/chat.py",
+      "source_location": "line 67",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chat_summarize_history",
+      "label": "summarize_history",
+      "file_type": "code",
+      "source_file": "app/services/chat.py",
+      "source_location": "line 92",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chat_build_messages",
+      "label": "_build_messages",
+      "file_type": "code",
+      "source_file": "app/services/chat.py",
+      "source_location": "line 25",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chat_get_client",
+      "label": "_get_client Groq singleton",
+      "file_type": "code",
+      "source_file": "app/services/chat.py",
+      "source_location": "line 18",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "storage_save_upload",
+      "label": "save_upload",
+      "file_type": "code",
+      "source_file": "app/services/storage.py",
+      "source_location": "line 26",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "storage_delete_file",
+      "label": "delete_file",
+      "file_type": "code",
+      "source_file": "app/services/storage.py",
+      "source_location": "line 71",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "storage_download_for_processing",
+      "label": "download_for_processing",
+      "file_type": "code",
+      "source_file": "app/services/storage.py",
+      "source_location": "line 94",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_retrieve_chunks",
+      "label": "retrieve_chunks",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 273",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_embed_query",
+      "label": "embed_query",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 264",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_invalidate_bm25",
+      "label": "invalidate_bm25",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 190",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_build_cache_entry",
+      "label": "_build_cache_entry",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 207",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_tokenize",
+      "label": "_tokenize NLTK stemmer",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 45",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_rrf",
+      "label": "_rrf Reciprocal Rank Fusion",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 241",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_format_chunk",
+      "label": "_format_chunk metadata prefix",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 249",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_lru_cache",
+      "label": "LRU retrieval cache (L1)",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 127",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_redis_cache",
+      "label": "Redis retrieval cache (L2)",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 132",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_cosine_similarities",
+      "label": "_cosine_similarities",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 235",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_load_embedding_blob",
+      "label": "_load_embedding_blob float16/float32 auto-detect",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 56",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "retrieval_cached_chunk",
+      "label": "CachedChunk dataclass",
+      "file_type": "code",
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 67",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "semantic_cache_semantic_cache",
+      "label": "SemanticCache class",
+      "file_type": "code",
+      "source_file": "app/services/semantic_cache.py",
+      "source_location": "line 23",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "semantic_cache_get_semantic_cache",
+      "label": "get_semantic_cache singleton",
+      "file_type": "code",
+      "source_file": "app/services/semantic_cache.py",
+      "source_location": "line 94",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "semantic_cache_invalidate_semantic_cache",
+      "label": "invalidate_semantic_cache",
+      "file_type": "code",
+      "source_file": "app/services/semantic_cache.py",
+      "source_location": "line 87",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "embedder_late_chunking_embedder",
+      "label": "LateChunkingEmbedder class",
+      "file_type": "code",
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 49",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "embedder_get_embedder",
+      "label": "get_embedder singleton",
+      "file_type": "code",
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 31",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "embedder_embed_query",
+      "label": "LateChunkingEmbedder.embed_query",
+      "file_type": "code",
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 114",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "embedder_embed_late",
+      "label": "LateChunkingEmbedder.embed_late",
+      "file_type": "code",
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 131",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "embedder_embed_independently",
+      "label": "LateChunkingEmbedder.embed_independently",
+      "file_type": "code",
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 121",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "embedder_mean_pool",
+      "label": "_mean_pool attention-mask pooling",
+      "file_type": "code",
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 217",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "embedder_normalize",
+      "label": "_normalize L2 normalization",
+      "file_type": "code",
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 223",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "embedder_pin_cache",
+      "label": "_pin_cache fastembed cache path",
+      "file_type": "code",
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 206",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "test_conversations_incomplete",
+      "label": "test_conversations_incomplete.py",
+      "file_type": "code",
+      "source_file": "tests/test_conversations_incomplete.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "test_sse_framing",
+      "label": "test_sse_framing.py",
+      "file_type": "code",
+      "source_file": "tests/test_sse_framing.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "test_chat",
+      "label": "test_chat.py",
+      "file_type": "code",
+      "source_file": "tests/test_chat.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "tasks_ingest_document_task",
+      "target": "ingestion_ingest_document",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/workers/tasks.py",
+      "source_location": "line 23",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message",
+      "target": "conversations_load_history",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 272",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message",
+      "target": "retrieval_embed_query",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 275",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message",
+      "target": "semantic_cache_get_semantic_cache",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 276",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message",
+      "target": "conversations_run_retrieval_pipeline",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 289",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message",
+      "target": "chat_generate_reply",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 295",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message_stream",
+      "target": "conversations_load_history",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 332",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message_stream",
+      "target": "retrieval_embed_query",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 335",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message_stream",
+      "target": "semantic_cache_get_semantic_cache",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 337",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message_stream",
+      "target": "conversations_run_retrieval_pipeline",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 354",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_send_message_stream",
+      "target": "conversations_event_stream",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 409",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_event_stream",
+      "target": "chat_generate_reply_stream",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 377",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_run_retrieval_pipeline",
+      "target": "chat_expand_query_hyde",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 159",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_run_retrieval_pipeline",
+      "target": "retrieval_embed_query",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 164",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_run_retrieval_pipeline",
+      "target": "retrieval_retrieve_chunks",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 170",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_run_retrieval_pipeline",
+      "target": "reranker_rerank",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 183",
+      "weight": 1.0
+    },
+    {
+      "source": "conversations_load_history",
+      "target": "chat_summarize_history",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py",
+      "source_location": "line 125",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_ingest_document",
+      "target": "ingestion_extract_segments",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 235",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_ingest_document",
+      "target": "ingestion_chunk_segments",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 241",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_ingest_document",
+      "target": "ingestion_embed_chunks_late",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 247",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_ingest_document",
+      "target": "embedder_get_embedder",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 245",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_ingest_document",
+      "target": "storage_download_for_processing",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 233",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_ingest_document",
+      "target": "storage_delete_file",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 273",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_ingest_document",
+      "target": "retrieval_invalidate_bm25",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 274",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_extract_segments",
+      "target": "ingestion_extract_pdf_segments",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 146",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_extract_segments",
+      "target": "ingestion_extract_docx_segments",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 148",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_extract_pdf_segments",
+      "target": "ingestion_detect_pdf_heading",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 79",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_chunk_segments",
+      "target": "ingestion_get_splitter",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 161",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_embed_chunks_late",
+      "target": "embedder_embed_late",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 203",
+      "weight": 1.0
+    },
+    {
+      "source": "ingestion_embed_chunks_late",
+      "target": "embedder_embed_independently",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/ingestion.py",
+      "source_location": "line 205",
+      "weight": 1.0
+    },
+    {
+      "source": "reranker_rerank",
+      "target": "reranker_get_ranker",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/reranker.py",
+      "source_location": "line 37",
+      "weight": 1.0
+    },
+    {
+      "source": "chat_generate_reply",
+      "target": "chat_build_messages",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/chat.py",
+      "source_location": "line 44",
+      "weight": 1.0
+    },
+    {
+      "source": "chat_generate_reply",
+      "target": "chat_get_client",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/chat.py",
+      "source_location": "line 43",
+      "weight": 1.0
+    },
+    {
+      "source": "chat_generate_reply_stream",
+      "target": "chat_build_messages",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/chat.py",
+      "source_location": "line 56",
+      "weight": 1.0
+    },
+    {
+      "source": "chat_generate_reply_stream",
+      "target": "chat_get_client",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/chat.py",
+      "source_location": "line 55",
+      "weight": 1.0
+    },
+    {
+      "source": "chat_expand_query_hyde",
+      "target": "chat_get_client",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/chat.py",
+      "source_location": "line 74",
+      "weight": 1.0
+    },
+    {
+      "source": "chat_summarize_history",
+      "target": "chat_get_client",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/chat.py",
+      "source_location": "line 98",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_retrieve_chunks",
+      "target": "retrieval_build_cache_entry",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 303",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_retrieve_chunks",
+      "target": "retrieval_rrf",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 334",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_retrieve_chunks",
+      "target": "retrieval_tokenize",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 315",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_retrieve_chunks",
+      "target": "retrieval_cosine_similarities",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 326",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_retrieve_chunks",
+      "target": "retrieval_format_chunk",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 336",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_retrieve_chunks",
+      "target": "retrieval_lru_cache",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 290",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_retrieve_chunks",
+      "target": "retrieval_redis_cache",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 292",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_build_cache_entry",
+      "target": "retrieval_load_embedding_blob",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 223",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_build_cache_entry",
+      "target": "retrieval_tokenize",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 218",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_invalidate_bm25",
+      "target": "semantic_cache_invalidate_semantic_cache",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 197",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_invalidate_bm25",
+      "target": "retrieval_lru_cache",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 192",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_embed_query",
+      "target": "embedder_get_embedder",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 266",
+      "weight": 1.0
+    },
+    {
+      "source": "retrieval_embed_query",
+      "target": "embedder_embed_query",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/retrieval.py",
+      "source_location": "line 270",
+      "weight": 1.0
+    },
+    {
+      "source": "semantic_cache_get_semantic_cache",
+      "target": "semantic_cache_semantic_cache",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/semantic_cache.py",
+      "source_location": "line 102",
+      "weight": 1.0
+    },
+    {
+      "source": "semantic_cache_invalidate_semantic_cache",
+      "target": "semantic_cache_get_semantic_cache",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/semantic_cache.py",
+      "source_location": "line 89",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_get_embedder",
+      "target": "embedder_late_chunking_embedder",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 39",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_late_chunking_embedder",
+      "target": "embedder_pin_cache",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 60",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_embed_query",
+      "target": "embedder_mean_pool",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 118",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_embed_query",
+      "target": "embedder_normalize",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 119",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_embed_independently",
+      "target": "embedder_mean_pool",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 127",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_embed_independently",
+      "target": "embedder_normalize",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 128",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_embed_late",
+      "target": "embedder_embed_independently",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 156",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_embed_late",
+      "target": "embedder_normalize",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/services/embedder.py",
+      "source_location": "line 180",
+      "weight": 1.0
+    },
+    {
+      "source": "test_conversations_incomplete",
+      "target": "conversations_get_conversation",
+      "relation": "tests",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_conversations_incomplete.py",
+      "source_location": "line 62",
+      "weight": 1.0
+    },
+    {
+      "source": "test_sse_framing",
+      "target": "conversations_event_stream",
+      "relation": "tests",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "tests/test_sse_framing.py",
+      "source_location": "line 5",
+      "weight": 0.9
+    },
+    {
+      "source": "test_chat",
+      "target": "chat_generate_reply",
+      "relation": "tests",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_chat.py",
+      "source_location": "line 29",
+      "weight": 1.0
+    },
+    {
+      "source": "test_chat",
+      "target": "chat_generate_reply_stream",
+      "relation": "tests",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_chat.py",
+      "source_location": "line 91",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_late_chunking_embedder",
+      "target": "retrieval_embed_query",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "app/services/embedder.py",
+      "source_location": null,
+      "weight": 0.7
+    },
+    {
+      "source": "ingestion_embed_chunks_late",
+      "target": "retrieval_retrieve_chunks",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "app/services/ingestion.py",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "tasks_ingest_document_task",
+      "target": "conversations_send_message",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.6,
+      "source_file": "app/workers/tasks.py",
+      "source_location": null,
+      "weight": 0.6
+    },
+    {
+      "source": "semantic_cache_semantic_cache",
+      "target": "retrieval_lru_cache",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "app/services/semantic_cache.py",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "retrieval_redis_cache",
+      "target": "semantic_cache_semantic_cache",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/services/retrieval.py",
+      "source_location": null,
+      "weight": 0.8
+    },
+    {
+      "source": "ingestion_segment",
+      "target": "retrieval_cached_chunk",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "app/services/ingestion.py",
+      "source_location": null,
+      "weight": 0.75
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "rag_pipeline",
+      "label": "Full RAG Pipeline: ingestion → retrieval → rerank → chat",
+      "nodes": [
+        "ingestion_ingest_document",
+        "retrieval_retrieve_chunks",
+        "reranker_rerank",
+        "chat_generate_reply"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py"
+    },
+    {
+      "id": "semantic_cache_integration",
+      "label": "Semantic Cache Integration: embed_query → cache lookup → retrieval bypass",
+      "nodes": [
+        "retrieval_embed_query",
+        "semantic_cache_semantic_cache",
+        "conversations_send_message"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/api/conversations.py"
+    },
+    {
+      "id": "background_ingest_paths",
+      "label": "Background Ingest: ARQ worker vs BackgroundTasks path both call ingest_document",
+      "nodes": [
+        "tasks_ingest_document_task",
+        "ingestion_ingest_document",
+        "retrieval_invalidate_bm25"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.95,
+      "source_file": "app/workers/tasks.py"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
