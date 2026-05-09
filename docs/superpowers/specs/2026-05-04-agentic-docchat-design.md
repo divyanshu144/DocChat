@@ -1,7 +1,7 @@
 # Agentic DocChat — Design Spec
 **Date:** 2026-05-04  
 **Status:** Approved  
-**Approach:** Deliberate migration (Option C) — keep what works, delete what gets replaced, add what's new
+**Approach:** Deliberate migration  — keep what works, delete what gets replaced, add what's new
 
 ---
 
