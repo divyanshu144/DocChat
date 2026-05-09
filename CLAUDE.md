@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-DocChat is a Python FastAPI application (v0.1.0) for document-based chat. Currently in early development with a basic API skeleton.
+DocChat Agent is a multi-source agentic research assistant (v2.0.0). Users ingest PDFs, YouTube videos, and web pages. A LangGraph agent (Planner → Retriever → Synthesizer → Critic) orchestrates retrieval across three ChromaDB vector collections and synthesizes answers via Groq. All LLM traces visible in LangSmith.
 
 ## Commands
 
@@ -15,24 +15,48 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the dev server
+# Run the dev server (requires ChromaDB running — see Docker below)
 uvicorn app.main:app --reload
 
-# The API docs are at http://localhost:8000/docs
+# Start full stack with Docker Compose
+docker-compose up
+
+# Run ChromaDB locally (without Docker)
+pip install chromadb
+chroma run --host localhost --port 8001 --path ./chroma_data
+
+# Run tests
+pytest tests/ -v
+
+# API docs
+http://localhost:8000/docs
 ```
 
 ## Architecture
 
-- **app/main.py** — FastAPI app entry point. Creates the app instance, registers middleware (request logging), includes routers, and defines the root endpoint.
-- **app/core/config.py** — Pydantic Settings-based configuration. Loads from environment variables or `.env` file. The `settings` singleton is imported throughout the app.
-- **app/api/** — API route modules. Each module defines an `APIRouter` that gets included in `main.py` with the `/api/v1` prefix.
-- **app/models/** and **app/services/** — Placeholder packages (empty, to be built out).
+- **app/main.py** — FastAPI app, registers health/ingest/chat routers, SQLite table creation on startup.
+- **app/core/config.py** — Pydantic Settings singleton. Extended with ChromaDB, LangSmith, YouTube settings.
+- **app/core/database.py** — Async SQLAlchemy engine (SQLite). Stores conversation history only.
+- **app/core/chroma.py** — ChromaDB HttpClient singleton + `get_collection(name)` helper.
+- **app/agent/state.py** — `AgentState` TypedDict (query, sources_to_use, retrieved_chunks, answer, critic_feedback, needs_replan, iteration).
+- **app/agent/graph.py** — Compiled LangGraph StateGraph. Entry point: `agent_graph.ainvoke(state)`.
+- **app/agent/nodes/** — Four nodes: `planner` (source selection), `retriever` (ChromaDB queries), `synthesizer` (Groq answer), `critic` (quality gate with replan loop).
+- **app/services/ingestion/pdf.py** — pymupdf + late-chunking embedder → ChromaDB `pdf_chunks`.
+- **app/services/ingestion/youtube.py** — youtube-transcript-api + pytube → ChromaDB `youtube_chunks`.
+- **app/services/ingestion/web.py** — httpx + trafilatura → ChromaDB `web_chunks`.
+- **app/services/llm.py** — AsyncGroq client. `chat_complete()` and `chat_stream()`.
+- **app/services/embedder.py** — fastembed BAAI/bge-small-en-v1.5 ONNX wrapper. Used by all ingestion services and the retriever.
+- **app/api/ingest.py** — POST /ingest/pdf, /ingest/youtube, /ingest/web. GET/DELETE /sources.
+- **app/api/chat.py** — POST /chat. Runs agent, saves history to SQLite, streams SSE answer.
+- **app/models/conversation.py** — `Conversation` + `Message` SQLAlchemy models (conversation history).
 
 ## Key Conventions
 
 - Configuration is centralized via `app.core.config.settings` — always use this rather than reading env vars directly.
 - API routes live in `app/api/` as separate router modules, included in `main.py` with `settings.api_prefix` (`/api/v1`).
 - Python 3.13 with a local `venv/` virtual environment.
+- ChromaDB must be running before starting the app (`CHROMA_HOST` + `CHROMA_PORT` env vars).
+- LangSmith tracing activates automatically when `LANGSMITH_API_KEY` is set.
 
 ## Workflow Orchestration
 

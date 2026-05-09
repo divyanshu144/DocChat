@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8000"
+    env_file: .env
+    depends_on:
+      chromadb:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./chroma_data:/chroma/chroma
+    healthcheck:
+      test: ["CMD", "bash", "-c", "< /dev/tcp/localhost/8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
