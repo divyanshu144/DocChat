@@ -1,46 +1,45 @@
-# DocChat
+# DocChat Agent
 
-A production-quality RAG (Retrieval-Augmented Generation) application built with FastAPI. Upload a PDF, DOCX, or TXT file and chat with it in real time — responses stream token-by-token directly to the browser via a single-page application.
+A multi-source agentic research assistant. Ingest PDFs, YouTube videos, and web pages into a shared vector store, then ask questions across all of them. A four-node LangGraph agent — Planner → Retriever → Synthesizer → Critic — orchestrates retrieval and generates cited answers that stream token-by-token to the browser.
 
 ---
 
 ## How it works
 
 ```
-Upload document
-      │
-      ▼
-  MIME validation + filename sanitisation
-      │
-      ▼
-  Text extraction  (pymupdf / pytesseract OCR / python-docx)
-      │  page number + section heading captured per chunk
-      ▼
-  Sentence-aware chunking  (langchain RecursiveCharacterTextSplitter)
-      │
-      ▼
-  Embedding  (fastembed · BAAI/bge-small-en-v1.5 · ONNX · float16 storage)
-      │
-      ▼
-  Stored in SQLite / PostgreSQL
-      │
-      │   At query time
-      ▼
-  Optional HyDE  →  embed hypothetical answer instead of raw question
-      │
-      ▼
-  BM25 ranking  +  Cosine similarity ranking
-        \               /
-         RRF fusion (k=60)
-              │
-              ▼
-       FlashRank cross-encoder re-rank  (ms-marco-MiniLM-L-12-v2)
-              │
-              ▼
-       Top-k chunks  →  Groq LLM  (llama-3.3-70b-versatile)
-              │
-              ▼
-       SSE stream  →  browser
+Ingest (PDF / YouTube / Web)
+        │
+        ▼
+  Text extraction
+  (pymupdf · youtube-transcript-api · trafilatura)
+        │
+        ▼
+  Chunking + Embedding
+  (fastembed · BAAI/bge-small-en-v1.5 · ONNX)
+        │
+        ▼
+  ChromaDB  ──  pdf_chunks / youtube_chunks / web_chunks
+        │
+        │   At query time
+        ▼
+  ┌─── Planner ────────────────────────────────┐
+  │  Selects which source collections to query  │
+  └────────────────────┬───────────────────────┘
+                       ▼
+  ┌─── Retriever ──────────────────────────────┐
+  │  Semantic search across selected ChromaDB   │
+  │  collections; top-k chunks returned         │
+  └────────────────────┬───────────────────────┘
+                       ▼
+  ┌─── Synthesizer ────────────────────────────┐
+  │  Groq LLM builds a cited answer from chunks │
+  │  Streamed token-by-token via SSE            │
+  └────────────────────┬───────────────────────┘
+                       ▼
+  ┌─── Critic ─────────────────────────────────┐
+  │  Quality gate — triggers replan loop if     │
+  │  answer is incomplete or unsupported        │
+  └────────────────────────────────────────────┘
 ```
 
 ---
@@ -50,45 +49,33 @@ Upload document
 | Layer | Technology |
 |---|---|
 | API framework | FastAPI |
-| Database | SQLite + aiosqlite (default) or PostgreSQL + asyncpg |
-| ORM | SQLAlchemy 2.0 async |
-| Embeddings | fastembed ONNX · `BAAI/bge-small-en-v1.5` · 384-dim · float16 storage |
-| Sparse retrieval | rank-bm25 (BM25Okapi) with NLTK stemming |
-| Dense retrieval | Cosine similarity over pre-loaded float32 embedding matrix |
-| Rank fusion | Reciprocal Rank Fusion (RRF, k=60) |
-| Re-ranking | FlashRank cross-encoder (`ms-marco-MiniLM-L-12-v2` ONNX) |
+| Agent orchestration | LangGraph (StateGraph) |
+| Vector store | ChromaDB (HTTP client) |
+| Embeddings | fastembed ONNX · `BAAI/bge-small-en-v1.5` · 384-dim |
 | LLM | Groq API · `llama-3.3-70b-versatile` |
 | Streaming | Server-Sent Events via FastAPI `StreamingResponse` |
-| Background jobs | FastAPI `BackgroundTasks` (default) or ARQ + Redis |
-| File storage | Local disk (default) or AWS S3 (aioboto3) |
-| Cache L1 | In-process LRU (cachetools, maxsize=50) |
-| Cache L2 | Redis (optional) — shared across instances, TTL 1 h |
-| Semantic cache | Redis cosine-threshold cache per document (optional) |
-| Observability | Prometheus metrics at `GET /metrics` |
-| Auth | API key header (`X-API-Key`) — optional, no-op in dev |
-| Rate limiting | slowapi · 20 req/min on LLM endpoints |
-| Frontend | Vanilla JS SPA — hash router, no framework |
+| Conversation store | SQLite + SQLAlchemy 2.0 async (WAL mode) |
+| PDF extraction | pymupdf |
+| YouTube transcripts | youtube-transcript-api · pytube |
+| Web scraping | httpx · trafilatura |
+| Observability | LangSmith (auto-enabled when `LANGSMITH_API_KEY` is set) |
+| Frontend | Vanilla JS SPA — no framework |
+| Containerisation | Docker Compose |
 
 ---
 
 ## Features
 
-- **Single-page application** — hash-based client-side router with three views (Documents, Conversations, Chat); smooth fade transitions; responsive mobile layout
-- **Hybrid retrieval** — BM25 sparse + dense semantic search fused via RRF; beats either method alone on recall
-- **Cross-encoder re-ranking** — FlashRank ONNX model narrows top-k results to the most relevant before sending to the LLM
-- **Token streaming** — LLM responses stream token-by-token to the browser via SSE; no waiting for the full reply
-- **HyDE** — optionally embeds a hypothetical answer to improve semantic search on vague queries (`HYDE_ENABLED=true`)
-- **Page & section metadata** — chunks carry their PDF page number and section heading, prefixed onto context sent to the LLM
-- **Two-layer retrieval cache** — L1 LRU keeps hot documents in-process; L2 Redis shares the cache across instances
-- **Semantic cache** — near-duplicate questions are served from Redis without hitting the LLM (`SEMANTIC_CACHE_ENABLED=true`)
-- **History summarisation** — when a conversation grows long, older messages are summarised by the LLM and compressed into a system prefix
-- **Background ingestion** — upload returns immediately; browser polls until the document is ready; moves to ARQ when `REDIS_URL` is set
-- **S3 storage** — set `S3_BUCKET` to store uploads in AWS S3; falls back to local disk automatically
-- **PostgreSQL support** — set `DATABASE_URL` to a `postgresql+asyncpg://` DSN for multi-instance deployments; connection pool tunable via env vars
-- **MIME validation** — python-magic verifies the actual file content, not just the extension
-- **Prometheus metrics** — ingestion, retrieval, re-rank, and LLM latency histograms; cache hit counters
+- **Multi-source ingestion** — drag-and-drop PDFs, paste YouTube URLs, or scrape any web page; all sources share a single chat interface
+- **Agentic retrieval** — the Planner node selects which source collections are relevant before querying; the Critic node can trigger a replan loop if the answer quality is too low
+- **Citation tags** — answers include inline `[PDF — filename]`, `[YouTube — title]`, `[Web — url]` tags rendered as colour-coded chips
+- **Source filter chips** — toggle PDF / YouTube / Web sources per query without re-ingesting
+- **Conversation folders** — create named folders to organise chats; drag-and-drop conversations into folders; open a new chat scoped to a folder with the `+` button on the folder header
+- **Session persistence** — conversations survive page refresh; the last active conversation is automatically restored from `localStorage`
+- **Token streaming** — answers appear word-by-word; a blinking cursor shows the stream is live
+- **LangSmith tracing** — every agent run produces a full trace (nodes, token counts, latencies) when `LANGSMITH_API_KEY` is set
 - **WAL mode** — SQLite Write-Ahead Logging so reads never block writes
-- **Auto migration** — new columns and indexes are added at startup without manual schema changes
+- **Auto migration** — new schema columns are added at startup without manual changes
 
 ---
 
@@ -96,121 +83,138 @@ Upload document
 
 ```
 app/
+├── agent/
+│   ├── graph.py           # Compiled LangGraph StateGraph — entry point: agent_graph.ainvoke()
+│   ├── state.py           # AgentState TypedDict
+│   └── nodes/
+│       ├── planner.py     # Source selection
+│       ├── retriever.py   # ChromaDB semantic search
+│       ├── synthesizer.py # Groq answer generation (streaming)
+│       └── critic.py      # Quality gate + replan trigger
 ├── api/
-│   ├── conversations.py   # create conv, send message (sync + SSE), rate-limited
-│   ├── documents.py       # upload (MIME check, size limit), list, get
-│   └── health.py
+│   ├── chat.py            # POST /chat — runs agent, saves history, streams SSE
+│   ├── conversations.py   # GET/PATCH /conversations — list, detail, move to folder
+│   ├── folders.py         # CRUD /folders
+│   ├── health.py
+│   └── ingest.py          # POST /ingest/{pdf,youtube,web} · GET/DELETE /sources
 ├── core/
-│   ├── config.py          # pydantic-settings — all env vars, use_s3 property
-│   ├── database.py        # engine (SQLite WAL / PostgreSQL pool), migration, get_db
-│   ├── limiter.py         # shared slowapi Limiter singleton
-│   ├── metrics.py         # Prometheus counters and histograms
-│   └── security.py        # require_api_key dependency (no-op when API_KEY unset)
+│   ├── chroma.py          # ChromaDB HttpClient singleton + get_collection()
+│   ├── config.py          # Pydantic Settings — all env vars
+│   └── database.py        # Async SQLAlchemy engine, WAL pragma, startup migration
 ├── models/
-│   ├── chunk.py           # Chunk(text, embedding BLOB, page_number, section_heading)
-│   ├── conversation.py
-│   ├── document.py        # DocumentStatus: pending → processing → ready | error
-│   └── message.py         # MessageRole, is_complete flag
+│   └── conversation.py    # Folder + Conversation + Message SQLAlchemy models
 ├── services/
-│   ├── chat.py            # Groq client, generate_reply, stream, HyDE, summarise
-│   ├── ingestion.py       # extract → chunk → embed → persist (S3-aware)
-│   ├── reranker.py        # FlashRank cross-encoder wrapper
-│   ├── retrieval.py       # two-layer cache, BM25+cosine, RRF, embed_query
-│   ├── semantic_cache.py  # Redis cosine-threshold cache, TTL, invalidation
-│   └── storage.py         # local + S3 dual backend, download_for_processing ctx mgr
+│   ├── embedder.py        # fastembed wrapper (shared by ingestion + retrieval)
+│   ├── ingestion/
+│   │   ├── pdf.py         # pymupdf → chunks → ChromaDB pdf_chunks
+│   │   ├── youtube.py     # transcript-api + pytube → ChromaDB youtube_chunks
+│   │   └── web.py         # httpx + trafilatura → ChromaDB web_chunks
+│   └── llm.py             # AsyncGroq client — chat_complete() and chat_stream()
 ├── static/
-│   ├── app.js             # SPA router, upload modal, streaming chat
+│   ├── app.js             # SPA — sidebar, folders, drag-and-drop, streaming chat
 │   ├── index.html
 │   └── styles.css
-├── workers/
-│   └── tasks.py           # ARQ ingest_document_task + WorkerSettings
-└── main.py                # app factory, middleware, slowapi, /metrics
+└── main.py                # FastAPI app factory, middleware, router registration
 ```
 
 ---
 
 ## Setup
 
-**Prerequisites:** Python 3.13, a [Groq API key](https://console.groq.com)
+### Docker Compose (recommended)
+
+**Prerequisites:** Docker Desktop, a [Groq API key](https://console.groq.com)
 
 ```bash
-# 1. Clone and enter the project
+# 1. Clone the repo
 git clone <repo-url>
 cd docchat
 
+# 2. Configure environment
+cp .env.example .env
+# Set GROQ_API_KEY=gsk_... in .env
+
+# 3. Start ChromaDB + app
+docker-compose up --build
+```
+
+Open `http://localhost:8080` for the UI, or `http://localhost:8080/docs` for API docs.
+
+ChromaDB is exposed at `http://localhost:8001` for inspection.
+
+### Local dev (without Docker)
+
+**Prerequisites:** Python 3.13, ChromaDB running locally
+
+```bash
+# 1. Start ChromaDB
+pip install chromadb
+chroma run --host localhost --port 8001 --path ./chroma_data
+
 # 2. Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
 
 # 4. Configure environment
-cp .env.example .env       # then set GROQ_API_KEY=gsk_...
+cp .env.example .env   # set GROQ_API_KEY, CHROMA_HOST=localhost, CHROMA_PORT=8001
 
 # 5. Run the dev server
 uvicorn app.main:app --reload
 ```
 
-Open `http://localhost:8000` for the UI, or `http://localhost:8000/docs` for interactive API docs.
-
-### Optional: ARQ background worker
-
-```bash
-# Requires REDIS_URL in .env
-arq app.workers.tasks.WorkerSettings
-```
-
-When `REDIS_URL` is set, document ingestion is queued to Redis and processed by this worker instead of the web process.
+Open `http://localhost:8000`.
 
 ---
 
 ## API reference
 
-### Documents
+### Ingest
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/api/v1/documents` | Upload a document (PDF, DOCX, TXT). Returns immediately with `status: pending`. |
-| `GET` | `/api/v1/documents` | List all documents, newest first. |
-| `GET` | `/api/v1/documents/{id}` | Get a single document — poll until `status: ready`. |
+| `POST` | `/api/v1/ingest/pdf` | Upload a PDF (`multipart/form-data`, field `file`). |
+| `POST` | `/api/v1/ingest/youtube` | Ingest a YouTube video (`{"url": "..."}`). |
+| `POST` | `/api/v1/ingest/web` | Scrape a web page (`{"url": "..."}`). |
+| `GET` | `/api/v1/sources` | List all ingested sources. |
+| `DELETE` | `/api/v1/sources/{source_id}` | Delete a source and its chunks from ChromaDB. |
 
-**Upload example:**
+**PDF example:**
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/documents \
-  -F "file=@report.pdf;type=application/pdf"
+curl -X POST http://localhost:8080/api/v1/ingest/pdf \
+  -F "file=@paper.pdf"
 ```
+
+**YouTube example:**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/ingest/youtube \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
+```
+
+### Chat
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/chat` | Send a query; returns an SSE stream. Pass `conversation_id` to continue a conversation; omit to start a new one. |
+
+**Request body:**
 
 ```json
 {
-  "id": "96cf2491-d952-4666-a4cc-6c5fb08162e7",
-  "filename": "report.pdf",
-  "content_type": "application/pdf",
-  "status": "pending",
-  "chunk_count": 0,
-  "error_message": null,
-  "created_at": "2026-03-03T10:38:24"
+  "query": "What are the key findings?",
+  "conversation_id": "optional-uuid",
+  "sources": ["pdf", "youtube"]
 }
 ```
 
-### Conversations
+The `sources` array filters which ChromaDB collections the agent queries. Omit to query all three.
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/v1/conversations` | List all conversations with document name and message count. |
-| `POST` | `/api/v1/conversations` | Create a conversation tied to a ready document. |
-| `GET` | `/api/v1/conversations/{id}` | Fetch a conversation with full message history. |
-| `POST` | `/api/v1/conversations/{id}/messages` | Send a message, receive a complete reply. |
-| `POST` | `/api/v1/conversations/{id}/messages/stream` | Send a message, receive a token-by-token SSE stream. |
-
-**Streaming chat example:**
-
-```bash
-curl -N -X POST http://localhost:8000/api/v1/conversations/{id}/messages/stream \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What are the key findings?"}'
-```
+**Response:** SSE stream — one token per `data:` line, `[DONE]` at end, `[ERROR]` on failure. The response header `X-Conversation-Id` carries the conversation UUID for subsequent requests.
 
 ```
 data: The
@@ -222,13 +226,27 @@ data:  findings are...
 data: [DONE]
 ```
 
-SSE events: one token per `data:` line, `[DONE]` signals end of stream, `[ERROR]` signals LLM failure.
+### Conversations
 
-### Health & Metrics
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/conversations` | List all conversations (id, title, folder_id, created_at). |
+| `GET` | `/api/v1/conversations/{id}` | Get a conversation with full message history. |
+| `PATCH` | `/api/v1/conversations/{id}` | Move to a folder (`{"folder_id": "uuid"}`) or unassign (`{"folder_id": null}`). |
+
+### Folders
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/folders` | Create a folder (`{"name": "My Project"}`). |
+| `GET` | `/api/v1/folders` | List all folders with conversation counts. |
+| `PATCH` | `/api/v1/folders/{id}` | Rename a folder (`{"name": "New Name"}`). |
+| `DELETE` | `/api/v1/folders/{id}` | Delete a folder; its conversations become uncategorised. |
+
+### Health
 
 ```
-GET /api/v1/health   →  {"status": "ok"}
-GET /metrics         →  Prometheus text format
+GET /api/v1/health  →  {"status": "ok", "version": "2.0.0"}
 ```
 
 ---
@@ -237,100 +255,35 @@ GET /metrics         →  Prometheus text format
 
 All settings load from environment variables or a `.env` file.
 
-### Core
-
 | Variable | Default | Description |
 |---|---|---|
 | `GROQ_API_KEY` | *(required)* | Groq API key |
-| `DEBUG` | `false` | Enable SQLAlchemy query logging |
-| `API_KEY` | `None` | Protect all endpoints with `X-API-Key` header (disabled in dev) |
-
-### Database
-
-| Variable | Default | Description |
-|---|---|---|
-| `DATABASE_URL` | `sqlite+aiosqlite:///./docchat.db` | SQLAlchemy async DSN — use `postgresql+asyncpg://` for production |
-| `DB_POOL_SIZE` | `10` | PostgreSQL connection pool size |
-| `DB_MAX_OVERFLOW` | `20` | PostgreSQL max overflow connections |
-
-### Storage
-
-| Variable | Default | Description |
-|---|---|---|
-| `UPLOAD_DIR` | `./uploads` | Local upload directory (ignored when S3 is configured) |
-| `MAX_UPLOAD_BYTES` | `10485760` | Maximum upload size (10 MB) |
-| `S3_BUCKET` | `None` | S3 bucket name — enables S3 storage when set |
-| `AWS_ACCESS_KEY_ID` | `None` | AWS credentials |
-| `AWS_SECRET_ACCESS_KEY` | `None` | AWS credentials |
-| `AWS_REGION` | `us-east-1` | AWS region |
-
-### Chat & Retrieval
-
-| Variable | Default | Description |
-|---|---|---|
+| `CHROMA_HOST` | `localhost` | ChromaDB host (use `chromadb` inside Docker Compose) |
+| `CHROMA_PORT` | `8001` | ChromaDB port |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./docchat.db` | SQLAlchemy async DSN |
 | `CHAT_MODEL` | `llama-3.3-70b-versatile` | Groq model ID |
-| `CHAT_HISTORY_LIMIT` | `10` | Recent messages kept in LLM context |
-| `HISTORY_SUMMARY_THRESHOLD` | `20` | Total messages before older ones are summarised |
-| `RETRIEVAL_TOP_K` | `15` | Chunks retrieved before re-ranking |
-| `RERANK_ENABLED` | `true` | Enable FlashRank cross-encoder re-ranking |
-| `RERANK_TOP_K` | `5` | Chunks kept after re-ranking |
-| `HYDE_ENABLED` | `false` | Embed a hypothetical answer for better semantic search |
 | `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | fastembed model name |
-| `EMBEDDING_DIM` | `384` | Embedding vector dimension |
-
-### Redis & Caching
-
-| Variable | Default | Description |
-|---|---|---|
-| `REDIS_URL` | `None` | Redis DSN — enables ARQ workers, retrieval L2 cache, semantic cache |
-| `SEMANTIC_CACHE_ENABLED` | `false` | Cache near-duplicate questions in Redis (requires `REDIS_URL`) |
-| `SEMANTIC_CACHE_THRESHOLD` | `0.95` | Cosine similarity threshold for cache hits |
-
----
-
-## Document lifecycle
-
-```
-pending → processing → ready
-                    ↘ error
-```
-
-- **pending** — record created, ingestion queued
-- **processing** — text being extracted, chunked, and embedded
-- **ready** — chunks stored with embeddings; available for chat
-- **error** — ingestion failed; `error_message` has details
-
-Raw upload files are deleted (from disk or S3) once ingestion completes.
+| `RETRIEVAL_TOP_K` | `5` | Chunks returned per ChromaDB collection |
+| `LANGSMITH_API_KEY` | `None` | Enables LangSmith tracing when set |
+| `LANGSMITH_PROJECT` | `docchat` | LangSmith project name |
+| `DEBUG` | `false` | Enable SQLAlchemy query logging |
 
 ---
 
 ## Database schema
 
 ```
-documents  ──< chunks         (document_id FK, indexed)
-           ──< conversations  ──< messages
+folders  ──< conversations  ──< messages
 ```
 
-`chunks.embedding` stores raw float16 bytes (`numpy.ndarray.tobytes()`); the retrieval layer auto-detects float16 vs float32 by byte length. `chunks.page_number` and `chunks.section_heading` carry source metadata prefixed onto LLM context. All columns are added at startup via the auto-migration function — no manual schema changes needed when upgrading.
+`folders` and the `folder_id` foreign key on `conversations` are added automatically at startup via an idempotent migration (`PRAGMA table_info` + `ALTER TABLE ADD COLUMN`). No manual schema changes are needed when upgrading.
 
 ---
 
-## Horizontal scaling
+## Folder & conversation organisation
 
-To run multiple instances behind a load balancer:
-
-```env
-DATABASE_URL=postgresql+asyncpg://user:pass@host/docchat
-REDIS_URL=redis://localhost:6379
-S3_BUCKET=my-docchat-bucket
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-```
-
-Then start the ARQ worker alongside each web process:
-
-```bash
-arq app.workers.tasks.WorkerSettings
-```
-
-All instances share state via PostgreSQL (documents/conversations) and Redis (retrieval cache, semantic cache, job queue).
+- **New Folder** — click the button in the sidebar, type a name, press Enter
+- **New chat in folder** — hover over a folder name; click the `+` button that appears; the next message you send creates a conversation automatically assigned to that folder
+- **Move by drag-and-drop** — drag any conversation item onto a folder header; the folder highlights with a dashed border while hovering; drop to move
+- **Move via menu** — hover over a conversation, click `⋯`, select a target folder or "Uncategorized"
+- **Delete folder** — `DELETE /api/v1/folders/{id}`; conversations are uncategorised, not deleted

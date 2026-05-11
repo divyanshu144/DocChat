@@ -35,6 +35,14 @@ async def create_all_tables() -> None:
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(_migrate)
+
+
+def _migrate(conn) -> None:
+    from sqlalchemy import text
+    cols = {row[1] for row in conn.execute(text("PRAGMA table_info(conversations)")).fetchall()}
+    if "folder_id" not in cols:
+        conn.execute(text("ALTER TABLE conversations ADD COLUMN folder_id VARCHAR REFERENCES folders(id)"))
 
 
 async def get_db():

@@ -13,6 +13,21 @@ class MessageRole(str, enum.Enum):
     assistant = "assistant"
 
 
+class Folder(Base):
+    __tablename__ = "folders"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    conversations: Mapped[list["Conversation"]] = relationship(
+        "Conversation", back_populates="folder"
+    )
+
+
 class Conversation(Base):
     __tablename__ = "conversations"
 
@@ -20,9 +35,13 @@ class Conversation(Base):
         String, primary_key=True, default=lambda: str(uuid.uuid4())
     )
     title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    folder_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("folders.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    folder: Mapped["Folder | None"] = relationship("Folder", back_populates="conversations")
     messages: Mapped[list["Message"]] = relationship(
         "Message",
         back_populates="conversation",
