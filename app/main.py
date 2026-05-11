@@ -3,13 +3,19 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.database import create_all_tables
 from app.api import health
 from app.api import ingest
 from app.api import chat
+from app.api import folders
+from app.api import conversations
 
 logger = logging.getLogger("app")
 logging.basicConfig(
@@ -66,8 +72,13 @@ async def log_requests(request: Request, call_next):
 app.include_router(health.router, prefix=settings.api_prefix, tags=["Health"])
 app.include_router(ingest.router, prefix=settings.api_prefix, tags=["Ingest"])
 app.include_router(chat.router, prefix=settings.api_prefix, tags=["Chat"])
+app.include_router(folders.router, prefix=settings.api_prefix, tags=["Folders"])
+app.include_router(conversations.router, prefix=settings.api_prefix, tags=["Conversations"])
+
+_STATIC_DIR = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "app": settings.app_name, "version": settings.version}
+    return FileResponse(_STATIC_DIR / "index.html")
