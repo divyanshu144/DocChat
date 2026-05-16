@@ -32,6 +32,8 @@ class Base(DeclarativeBase):
 
 async def create_all_tables() -> None:
     import app.models.conversation  # noqa: F401
+    import app.models.user  # noqa: F401
+    import app.models.refresh_token  # noqa: F401
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -43,6 +45,9 @@ def _migrate(conn) -> None:
     cols = {row[1] for row in conn.execute(text("PRAGMA table_info(conversations)")).fetchall()}
     if "folder_id" not in cols:
         conn.execute(text("ALTER TABLE conversations ADD COLUMN folder_id VARCHAR REFERENCES folders(id)"))
+    if "user_id" not in cols:
+        conn.execute(text("ALTER TABLE conversations ADD COLUMN user_id VARCHAR"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conversations_user_id ON conversations (user_id)"))
 
 
 async def get_db():

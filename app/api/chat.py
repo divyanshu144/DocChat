@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.database import get_db
+from app.core.deps import get_current_user
 from app.models.conversation import Conversation, Message, MessageRole
+from app.models.user import User
 from app.agent.graph import agent_graph
 from app.agent.state import AgentState
 
@@ -17,16 +19,27 @@ class ChatRequest(BaseModel):
     query: str
     conversation_id: str | None = None
     sources: list[str] | None = None
+    source_ids: list[str] | None = None  # restrict to specific ingested sources
 
 
 @router.post("/chat")
-async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
+async def chat(
+    req: ChatRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     if req.conversation_id:
-        conv = await db.get(Conversation, req.conversation_id)
+        result = await db.execute(
+            select(Conversation).where(
+                Conversation.id == req.conversation_id,
+                Conversation.user_id == current_user.id,
+            )
+        )
+        conv = result.scalar_one_or_none()
         if not conv:
             raise HTTPException(404, "Conversation not found")
     else:
-        conv = Conversation(id=str(_uuid.uuid4()), title=req.query[:100])
+        conv = Conversation(id=str(_uuid.uuid4()), title=req.query[:100], user_id=current_user.id)
         db.add(conv)
         await db.flush()
 
@@ -45,6 +58,7 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
         "query": req.query,
         "conversation_id": conv.id,
         "sources_to_use": req.sources or ["pdf", "youtube", "web"],
+        "source_ids": req.source_ids or [],
         "retrieved_chunks": [],
         "answer": "",
         "critic_feedback": "",

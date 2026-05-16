@@ -16,6 +16,7 @@ async def retriever_node(state: AgentState) -> dict:
         return {"retrieved_chunks": []}
 
     query_emb = embedder.embed_query(state["query"]).tolist()
+    source_ids = state.get("source_ids") or []
     all_chunks: list[dict] = []
 
     for source in state["sources_to_use"]:
@@ -24,11 +25,14 @@ async def retriever_node(state: AgentState) -> dict:
             continue
         try:
             collection = get_collection(collection_name)
-            results = collection.query(
-                query_embeddings=[query_emb],
-                n_results=N_RESULTS,
-                include=["documents", "metadatas", "distances"],
-            )
+            kwargs: dict = {
+                "query_embeddings": [query_emb],
+                "n_results": N_RESULTS,
+                "include": ["documents", "metadatas", "distances"],
+            }
+            if source_ids:
+                kwargs["where"] = {"source_id": {"$in": source_ids}}
+            results = collection.query(**kwargs)
             for doc, meta, dist in zip(
                 results["documents"][0],
                 results["metadatas"][0],
