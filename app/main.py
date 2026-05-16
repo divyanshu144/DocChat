@@ -11,11 +11,12 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.database import create_all_tables
+from app.api import auth
+from app.api import chat
+from app.api import conversations
+from app.api import folders
 from app.api import health
 from app.api import ingest
-from app.api import chat
-from app.api import folders
-from app.api import conversations
 
 logger = logging.getLogger("app")
 logging.basicConfig(
@@ -69,6 +70,7 @@ async def log_requests(request: Request, call_next):
         )
 
 
+app.include_router(auth.router, prefix=settings.api_prefix, tags=["Auth"])
 app.include_router(health.router, prefix=settings.api_prefix, tags=["Health"])
 app.include_router(ingest.router, prefix=settings.api_prefix, tags=["Ingest"])
 app.include_router(chat.router, prefix=settings.api_prefix, tags=["Chat"])

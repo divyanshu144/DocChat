@@ -1,6 +1,6 @@
 # DocChat Agent
 
-A multi-source agentic research assistant. Ingest PDFs, YouTube videos, and web pages into a shared vector store, then ask questions across all of them. A four-node LangGraph agent — Planner → Retriever → Synthesizer → Critic — orchestrates retrieval and generates cited answers that stream token-by-token to the browser.
+A multi-source agentic research assistant. Sign up, ingest PDFs, YouTube videos, and web pages into a shared vector store, then ask questions across all of them. A four-node LangGraph agent — Planner → Retriever → Synthesizer → Critic — orchestrates retrieval and generates cited answers that stream token-by-token to the browser.
 
 ---
 
@@ -28,7 +28,7 @@ Ingest (PDF / YouTube / Web)
                        ▼
   ┌─── Retriever ──────────────────────────────┐
   │  Semantic search across selected ChromaDB   │
-  │  collections; top-k chunks returned         │
+  │  collections; filters by source_id if set   │
   └────────────────────┬───────────────────────┘
                        ▼
   ┌─── Synthesizer ────────────────────────────┐
@@ -55,21 +55,24 @@ Ingest (PDF / YouTube / Web)
 | LLM | Groq API · `llama-3.3-70b-versatile` |
 | Streaming | Server-Sent Events via FastAPI `StreamingResponse` |
 | Conversation store | SQLite + SQLAlchemy 2.0 async (WAL mode) |
+| Auth | JWT (python-jose) + bcrypt · access + refresh tokens |
 | PDF extraction | pymupdf |
 | YouTube transcripts | youtube-transcript-api · pytube |
 | Web scraping | httpx · trafilatura |
 | Observability | LangSmith (auto-enabled when `LANGSMITH_API_KEY` is set) |
-| Frontend | Vanilla JS SPA — no framework |
+| Frontend | React 18 + Vite + TypeScript |
 | Containerisation | Docker Compose |
 
 ---
 
 ## Features
 
+- **JWT authentication** — sign up / log in with email + password; access tokens (30 min) + refresh tokens (7 days) with automatic silent refresh
 - **Multi-source ingestion** — drag-and-drop PDFs, paste YouTube URLs, or scrape any web page; all sources share a single chat interface
+- **Per-source filtering** — check individual sources in the Ingest panel to restrict retrieval to only those sources; uncheck to search all
 - **Agentic retrieval** — the Planner node selects which source collections are relevant before querying; the Critic node can trigger a replan loop if the answer quality is too low
 - **Citation tags** — answers include inline `[PDF — filename]`, `[YouTube — title]`, `[Web — url]` tags rendered as colour-coded chips
-- **Source filter chips** — toggle PDF / YouTube / Web sources per query without re-ingesting
+- **Source type filter chips** — toggle PDF / YouTube / Web collections per query without re-ingesting
 - **Conversation folders** — create named folders to organise chats; drag-and-drop conversations into folders; open a new chat scoped to a folder with the `+` button on the folder header
 - **Session persistence** — conversations survive page refresh; the last active conversation is automatically restored from `localStorage`
 - **Token streaming** — answers appear word-by-word; a blinking cursor shows the stream is live
@@ -85,13 +88,14 @@ Ingest (PDF / YouTube / Web)
 app/
 ├── agent/
 │   ├── graph.py           # Compiled LangGraph StateGraph — entry point: agent_graph.ainvoke()
-│   ├── state.py           # AgentState TypedDict
+│   ├── state.py           # AgentState TypedDict (includes source_ids filter field)
 │   └── nodes/
-│       ├── planner.py     # Source selection
-│       ├── retriever.py   # ChromaDB semantic search
+│       ├── planner.py     # Source collection selection
+│       ├── retriever.py   # ChromaDB semantic search with optional source_id filter
 │       ├── synthesizer.py # Groq answer generation (streaming)
 │       └── critic.py      # Quality gate + replan trigger
 ├── api/
+│   ├── auth.py            # POST /auth/signup, /auth/login, /auth/refresh, /auth/logout, GET /auth/me
 │   ├── chat.py            # POST /chat — runs agent, saves history, streams SSE
 │   ├── conversations.py   # GET/PATCH /conversations — list, detail, move to folder
 │   ├── folders.py         # CRUD /folders
@@ -100,9 +104,13 @@ app/
 ├── core/
 │   ├── chroma.py          # ChromaDB HttpClient singleton + get_collection()
 │   ├── config.py          # Pydantic Settings — all env vars
-│   └── database.py        # Async SQLAlchemy engine, WAL pragma, startup migration
+│   ├── database.py        # Async SQLAlchemy engine, WAL pragma, startup migration
+│   ├── deps.py            # FastAPI dependencies: get_current_user
+│   └── security.py        # JWT encode/decode, bcrypt hash/verify
 ├── models/
-│   └── conversation.py    # Folder + Conversation + Message SQLAlchemy models
+│   ├── conversation.py    # Folder + Conversation + Message SQLAlchemy models
+│   ├── user.py            # User SQLAlchemy model
+│   └── refresh_token.py   # RefreshToken SQLAlchemy model (hashed, expiry)
 ├── services/
 │   ├── embedder.py        # fastembed wrapper (shared by ingestion + retrieval)
 │   ├── ingestion/
@@ -110,11 +118,24 @@ app/
 │   │   ├── youtube.py     # transcript-api + pytube → ChromaDB youtube_chunks
 │   │   └── web.py         # httpx + trafilatura → ChromaDB web_chunks
 │   └── llm.py             # AsyncGroq client — chat_complete() and chat_stream()
-├── static/
-│   ├── app.js             # SPA — sidebar, folders, drag-and-drop, streaming chat
+├── static/                # Built React SPA (generated by `npm run build`)
 │   ├── index.html
-│   └── styles.css
+│   └── assets/
 └── main.py                # FastAPI app factory, middleware, router registration
+
+frontend/                  # React 18 + Vite + TypeScript source
+├── src/
+│   ├── api.ts             # Typed fetch wrapper; ssePost for SSE streaming
+│   ├── types.ts           # TypeScript interfaces (Source, TokenResponse, …)
+│   ├── App.tsx            # Root: auth gate, lifted state, layout
+│   ├── styles.css         # Design system — dark theme, CSS custom properties
+│   └── components/
+│       ├── AuthScreen.tsx # Login / signup form
+│       ├── Sidebar.tsx    # Folders, conversations, drag-and-drop, context menu
+│       ├── IngestPanel.tsx# Source upload, grouped list, per-source checkboxes
+│       └── ChatPanel.tsx  # SSE streaming chat with filter chips
+├── vite.config.ts         # base: '/static/', outDir: '../app/static'
+└── package.json
 ```
 
 ---
@@ -132,9 +153,12 @@ cd docchat
 
 # 2. Configure environment
 cp .env.example .env
-# Set GROQ_API_KEY=gsk_... in .env
+# Set GROQ_API_KEY=gsk_... and JWT_SECRET_KEY=<random-string> in .env
 
-# 3. Start ChromaDB + app
+# 3. Build the React frontend
+cd frontend && npm install && npm run build && cd ..
+
+# 4. Start ChromaDB + app
 docker-compose up --build
 ```
 
@@ -144,7 +168,7 @@ ChromaDB is exposed at `http://localhost:8001` for inspection.
 
 ### Local dev (without Docker)
 
-**Prerequisites:** Python 3.13, ChromaDB running locally
+**Prerequisites:** Python 3.13, Node.js 18+, ChromaDB running locally
 
 ```bash
 # 1. Start ChromaDB
@@ -155,21 +179,52 @@ chroma run --host localhost --port 8001 --path ./chroma_data
 python -m venv venv
 source venv/bin/activate
 
-# 3. Install dependencies
+# 3. Install Python dependencies
 pip install -r requirements.txt
 
-# 4. Configure environment
-cp .env.example .env   # set GROQ_API_KEY, CHROMA_HOST=localhost, CHROMA_PORT=8001
+# 4. Build the React frontend
+cd frontend && npm install && npm run build && cd ..
 
-# 5. Run the dev server
+# 5. Configure environment
+cp .env.example .env
+# Set: GROQ_API_KEY, JWT_SECRET_KEY, CHROMA_HOST=localhost, CHROMA_PORT=8001
+
+# 6. Run the dev server
 uvicorn app.main:app --reload
 ```
 
-Open `http://localhost:8000`.
+Open `http://localhost:8000` — the React SPA is served at `/`.
+
+For frontend hot-reload during development:
+
+```bash
+cd frontend && npm run dev   # runs on http://localhost:5173, proxies /api → :8000
+```
 
 ---
 
 ## API reference
+
+All endpoints (except `/api/v1/health`, `/api/v1/auth/signup`, `/api/v1/auth/login`, `/api/v1/auth/refresh`) require a Bearer token in the `Authorization` header.
+
+### Auth
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/auth/signup` | Create account (`{"email": "...", "password": "..."}`) |
+| `POST` | `/api/v1/auth/login` | Log in; returns `access_token` + `refresh_token` |
+| `POST` | `/api/v1/auth/refresh` | Exchange refresh token for new access token |
+| `POST` | `/api/v1/auth/logout` | Revoke refresh token |
+| `GET` | `/api/v1/auth/me` | Current user info |
+
+**Login example:**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "secret"}'
+# → {"access_token": "eyJ...", "refresh_token": "eyJ...", "token_type": "bearer"}
+```
 
 ### Ingest
 
@@ -185,15 +240,8 @@ Open `http://localhost:8000`.
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/ingest/pdf \
+  -H "Authorization: Bearer $TOKEN" \
   -F "file=@paper.pdf"
-```
-
-**YouTube example:**
-
-```bash
-curl -X POST http://localhost:8080/api/v1/ingest/youtube \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
 ```
 
 ### Chat
@@ -208,11 +256,13 @@ curl -X POST http://localhost:8080/api/v1/ingest/youtube \
 {
   "query": "What are the key findings?",
   "conversation_id": "optional-uuid",
-  "sources": ["pdf", "youtube"]
+  "sources": ["pdf", "youtube"],
+  "source_ids": ["abc-123", "def-456"]
 }
 ```
 
-The `sources` array filters which ChromaDB collections the agent queries. Omit to query all three.
+- `sources` — filter which ChromaDB collections the agent queries (`pdf`, `youtube`, `web`). Omit to query all three.
+- `source_ids` — restrict retrieval to specific ingested documents by their `source_id`. Omit (or pass `[]`) to search across all sources in the selected collections.
 
 **Response:** SSE stream — one token per `data:` line, `[DONE]` at end, `[ERROR]` on failure. The response header `X-Conversation-Id` carries the conversation UUID for subsequent requests.
 
@@ -258,6 +308,9 @@ All settings load from environment variables or a `.env` file.
 | Variable | Default | Description |
 |---|---|---|
 | `GROQ_API_KEY` | *(required)* | Groq API key |
+| `JWT_SECRET_KEY` | *(required)* | Secret for signing JWTs — use a long random string |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token lifetime |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime |
 | `CHROMA_HOST` | `localhost` | ChromaDB host (use `chromadb` inside Docker Compose) |
 | `CHROMA_PORT` | `8001` | ChromaDB port |
 | `DATABASE_URL` | `sqlite+aiosqlite:///./docchat.db` | SQLAlchemy async DSN |
@@ -273,10 +326,12 @@ All settings load from environment variables or a `.env` file.
 ## Database schema
 
 ```
-folders  ──< conversations  ──< messages
+users  ──< refresh_tokens
+users  ──< conversations  ──< messages
+folders  ──< conversations
 ```
 
-`folders` and the `folder_id` foreign key on `conversations` are added automatically at startup via an idempotent migration (`PRAGMA table_info` + `ALTER TABLE ADD COLUMN`). No manual schema changes are needed when upgrading.
+`folders`, `users`, `refresh_tokens`, and their foreign-key columns are added automatically at startup via idempotent migrations (`PRAGMA table_info` + `ALTER TABLE ADD COLUMN`). No manual schema changes are needed when upgrading.
 
 ---
 
