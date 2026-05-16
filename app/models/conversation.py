@@ -35,6 +35,7 @@ class Conversation(Base):
         String, primary_key=True, default=lambda: str(uuid.uuid4())
     )
     title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    user_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     folder_id: Mapped[str | None] = mapped_column(
         String, ForeignKey("folders.id", ondelete="SET NULL"), nullable=True
     )
