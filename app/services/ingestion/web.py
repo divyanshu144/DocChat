@@ -8,7 +8,9 @@ import httpx
 import trafilatura
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from app.core.chroma import get_collection
+import uuid as _uuid
+from app.core.qdrant import get_qdrant_client, get_qdrant_collection
+from qdrant_client.models import PointStruct
 from app.services.embedder import get_embedder
 
 COLLECTION = "web_chunks"
@@ -37,7 +39,7 @@ def _scrape(url: str) -> dict:
 
 
 async def ingest_web(url: str) -> str:
-    """Scrape URL, chunk, embed, and store in ChromaDB. Returns source_id."""
+    """Scrape URL, chunk, embed, and store in Qdrant. Returns source_id."""
     source_id = str(uuid.uuid4())
     loop = asyncio.get_running_loop()
     domain = urlparse(url).netloc
@@ -46,27 +48,31 @@ async def ingest_web(url: str) -> str:
     chunk_texts = _splitter.split_text(scraped["content"])
 
     embedder = get_embedder()
-    collection = get_collection(COLLECTION)
-    ids, docs, metas, embs = [], [], [], []
+    get_qdrant_collection(COLLECTION)
+    client = get_qdrant_client()
+    points: list[PointStruct] = []
     now = datetime.now(timezone.utc).isoformat()
 
     for i, text in enumerate(chunk_texts):
         if not text.strip() or not embedder:
             continue
         emb = embedder.embed_query(text)
-        ids.append(f"{source_id}_{i}")
-        docs.append(text)
-        metas.append({
-            "source_id": source_id,
-            "url": url,
-            "title": scraped["title"],
-            "domain": domain,
-            "chunk_index": i,
-            "scraped_at": now,
-        })
-        embs.append(emb.tolist())
+        point_id = str(_uuid.uuid5(_uuid.NAMESPACE_DNS, f"{source_id}_{i}"))
+        points.append(PointStruct(
+            id=point_id,
+            vector=emb.tolist(),
+            payload={
+                "text": text,
+                "source_id": source_id,
+                "url": url,
+                "title": scraped["title"],
+                "domain": domain,
+                "chunk_index": i,
+                "scraped_at": now,
+            },
+        ))
 
-    if ids:
-        collection.add(ids=ids, embeddings=embs, documents=docs, metadatas=metas)
+    if points:
+        client.upsert(collection_name=COLLECTION, points=points)
 
     return source_id

@@ -13,6 +13,8 @@ interface Props {
   conversationId: string | null;
   onConvCreated: (id: string) => void;
   selectedSourceIds: Set<string>;
+  onOpenSources: () => void;
+  selectedSourceCount: number;
 }
 
 function parseCitations(text: string): string {
@@ -26,7 +28,7 @@ function parseCitations(text: string): string {
       (_, inner: string) => `<span class="cite cite-web">${inner.trim()}</span>`);
 }
 
-export default function ChatPanel({ conversationId, onConvCreated, selectedSourceIds }: Props) {
+export default function ChatPanel({ conversationId, onConvCreated, selectedSourceIds, onOpenSources, selectedSourceCount }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -201,6 +203,15 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
               {f === 'youtube' ? 'YouTube' : f === 'pdf' ? 'PDF' : 'Web'}
             </button>
           ))}
+          <button className="sources-open-btn" onClick={onOpenSources}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M8 11V3M8 3L5 6M8 3l3 3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/>
+            </svg>
+            Sources
+            {selectedSourceCount > 0 && (
+              <span className="sources-open-badge">{selectedSourceCount}</span>
+            )}
+          </button>
         </div>
         <div className="input-row">
           <textarea

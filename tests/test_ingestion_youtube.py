@@ -28,7 +28,7 @@ def test_chunk_transcript_groups_by_duration():
 
 @pytest.mark.asyncio
 async def test_ingest_youtube_stores_chunks():
-    mock_collection = MagicMock()
+    mock_client = MagicMock()
     mock_embedder = MagicMock()
     mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
 
@@ -36,7 +36,8 @@ async def test_ingest_youtube_stores_chunks():
     fake_meta = {"title": "Lecture 1", "channel": "MIT OCW", "video_id": "abc123"}
 
     with (
-        patch("app.services.ingestion.youtube.get_collection", return_value=mock_collection),
+        patch("app.services.ingestion.youtube.get_qdrant_collection"),
+        patch("app.services.ingestion.youtube.get_qdrant_client", return_value=mock_client),
         patch("app.services.ingestion.youtube.get_embedder", return_value=mock_embedder),
         patch("app.services.ingestion.youtube._fetch_transcript", return_value=fake_transcript),
         patch("app.services.ingestion.youtube._get_video_metadata", return_value=fake_meta),
@@ -46,8 +47,11 @@ async def test_ingest_youtube_stores_chunks():
         source_id = await ingest_youtube("https://youtube.com/watch?v=abc123")
 
     assert isinstance(source_id, str) and len(source_id) == 36
-    mock_collection.add.assert_called_once()
-    meta = mock_collection.add.call_args[1]["metadatas"][0]
-    assert meta["title"] == "Lecture 1"
-    assert meta["channel"] == "MIT OCW"
-    assert meta["source_id"] == source_id
+    mock_client.upsert.assert_called_once()
+    call_kwargs = mock_client.upsert.call_args[1]
+    points = call_kwargs["points"]
+    assert len(points) == 1
+    payload = points[0].payload
+    assert payload["title"] == "Lecture 1"
+    assert payload["channel"] == "MIT OCW"
+    assert payload["source_id"] == source_id

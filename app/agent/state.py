@@ -11,3 +11,4 @@ class AgentState(TypedDict):
     critic_feedback: str
     needs_replan: bool
     iteration: int
+    grounding_passed: bool

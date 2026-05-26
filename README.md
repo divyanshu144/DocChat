@@ -1,6 +1,6 @@
 # DocChat Agent
 
-A multi-source agentic research assistant. Sign up, ingest PDFs, YouTube videos, and web pages into a shared vector store, then ask questions across all of them. A four-node LangGraph agent — Planner → Retriever → Synthesizer → Critic — orchestrates retrieval and generates cited answers that stream token-by-token to the browser.
+A multi-source agentic research assistant. Sign up, ingest PDFs, YouTube videos, and web pages into a shared vector store, then ask questions across all of them. A five-node LangGraph agent — Planner → Retriever → Synthesizer → Grounding → Critic — orchestrates retrieval and generates cited answers that stream token-by-token to the browser.
 
 ---
 
@@ -15,10 +15,10 @@ Ingest (PDF / YouTube / Web)
         │
         ▼
   Chunking + Embedding
-  (fastembed · BAAI/bge-small-en-v1.5 · ONNX)
+  (fastembed · BAAI/bge-small-en-v1.5 · ONNX · 384-dim)
         │
         ▼
-  ChromaDB  ──  pdf_chunks / youtube_chunks / web_chunks
+  Qdrant  ──  pdf_chunks / youtube_chunks / web_chunks
         │
         │   At query time
         ▼
@@ -27,13 +27,18 @@ Ingest (PDF / YouTube / Web)
   └────────────────────┬───────────────────────┘
                        ▼
   ┌─── Retriever ──────────────────────────────┐
-  │  Semantic search across selected ChromaDB   │
+  │  Semantic search across selected Qdrant     │
   │  collections; filters by source_id if set   │
   └────────────────────┬───────────────────────┘
                        ▼
   ┌─── Synthesizer ────────────────────────────┐
   │  Groq LLM builds a cited answer from chunks │
   │  Streamed token-by-token via SSE            │
+  └────────────────────┬───────────────────────┘
+                       ▼
+  ┌─── Grounding ──────────────────────────────┐
+  │  Verifies claims in the answer are backed   │
+  │  by retrieved chunks; adds source tags      │
   └────────────────────┬───────────────────────┘
                        ▼
   ┌─── Critic ─────────────────────────────────┐
@@ -50,11 +55,11 @@ Ingest (PDF / YouTube / Web)
 |---|---|
 | API framework | FastAPI |
 | Agent orchestration | LangGraph (StateGraph) |
-| Vector store | ChromaDB (HTTP client) |
+| Vector store | Qdrant (REST API · cosine HNSW index) |
 | Embeddings | fastembed ONNX · `BAAI/bge-small-en-v1.5` · 384-dim |
 | LLM | Groq API · `llama-3.3-70b-versatile` |
 | Streaming | Server-Sent Events via FastAPI `StreamingResponse` |
-| Conversation store | SQLite + SQLAlchemy 2.0 async (WAL mode) |
+| Conversation store | PostgreSQL + SQLAlchemy 2.0 async |
 | Auth | JWT (python-jose) + bcrypt · access + refresh tokens |
 | PDF extraction | pymupdf |
 | YouTube transcripts | youtube-transcript-api · pytube |
@@ -69,16 +74,15 @@ Ingest (PDF / YouTube / Web)
 
 - **JWT authentication** — sign up / log in with email + password; access tokens (30 min) + refresh tokens (7 days) with automatic silent refresh
 - **Multi-source ingestion** — drag-and-drop PDFs, paste YouTube URLs, or scrape any web page; all sources share a single chat interface
-- **Per-source filtering** — check individual sources in the Ingest panel to restrict retrieval to only those sources; uncheck to search all
-- **Agentic retrieval** — the Planner node selects which source collections are relevant before querying; the Critic node can trigger a replan loop if the answer quality is too low
+- **Sources drawer** — a slide-in panel from the right side of the screen for ingesting and selecting sources; never compresses the chat area
+- **Per-source filtering** — check individual sources in the drawer to restrict retrieval to only those sources; an orange badge on the Sources button shows how many are active
+- **Agentic retrieval** — the Planner node selects which collections are relevant before querying; the Grounding node verifies claims; the Critic node can trigger a replan loop if answer quality is too low
 - **Citation tags** — answers include inline `[PDF — filename]`, `[YouTube — title]`, `[Web — url]` tags rendered as colour-coded chips
 - **Source type filter chips** — toggle PDF / YouTube / Web collections per query without re-ingesting
 - **Conversation folders** — create named folders to organise chats; drag-and-drop conversations into folders; open a new chat scoped to a folder with the `+` button on the folder header
 - **Session persistence** — conversations survive page refresh; the last active conversation is automatically restored from `localStorage`
 - **Token streaming** — answers appear word-by-word; a blinking cursor shows the stream is live
 - **LangSmith tracing** — every agent run produces a full trace (nodes, token counts, latencies) when `LANGSMITH_API_KEY` is set
-- **WAL mode** — SQLite Write-Ahead Logging so reads never block writes
-- **Auto migration** — new schema columns are added at startup without manual changes
 
 ---
 
@@ -91,8 +95,9 @@ app/
 │   ├── state.py           # AgentState TypedDict (includes source_ids filter field)
 │   └── nodes/
 │       ├── planner.py     # Source collection selection
-│       ├── retriever.py   # ChromaDB semantic search with optional source_id filter
+│       ├── retriever.py   # Qdrant semantic search with optional source_id filter
 │       ├── synthesizer.py # Groq answer generation (streaming)
+│       ├── grounding.py   # Claim verification against retrieved chunks
 │       └── critic.py      # Quality gate + replan trigger
 ├── api/
 │   ├── auth.py            # POST /auth/signup, /auth/login, /auth/refresh, /auth/logout, GET /auth/me
@@ -102,9 +107,9 @@ app/
 │   ├── health.py
 │   └── ingest.py          # POST /ingest/{pdf,youtube,web} · GET/DELETE /sources
 ├── core/
-│   ├── chroma.py          # ChromaDB HttpClient singleton + get_collection()
+│   ├── qdrant.py          # QdrantClient singleton + get_qdrant_collection()
 │   ├── config.py          # Pydantic Settings — all env vars
-│   ├── database.py        # Async SQLAlchemy engine, WAL pragma, startup migration
+│   ├── database.py        # Async SQLAlchemy engine, startup migration, get_db
 │   ├── deps.py            # FastAPI dependencies: get_current_user
 │   └── security.py        # JWT encode/decode, bcrypt hash/verify
 ├── models/
@@ -114,9 +119,9 @@ app/
 ├── services/
 │   ├── embedder.py        # fastembed wrapper (shared by ingestion + retrieval)
 │   ├── ingestion/
-│   │   ├── pdf.py         # pymupdf → chunks → ChromaDB pdf_chunks
-│   │   ├── youtube.py     # transcript-api + pytube → ChromaDB youtube_chunks
-│   │   └── web.py         # httpx + trafilatura → ChromaDB web_chunks
+│   │   ├── pdf.py         # pymupdf → chunks → Qdrant pdf_chunks
+│   │   ├── youtube.py     # transcript-api + pytube → Qdrant youtube_chunks
+│   │   └── web.py         # httpx + trafilatura → Qdrant web_chunks
 │   └── llm.py             # AsyncGroq client — chat_complete() and chat_stream()
 ├── static/                # Built React SPA (generated by `npm run build`)
 │   ├── index.html
@@ -127,13 +132,13 @@ frontend/                  # React 18 + Vite + TypeScript source
 ├── src/
 │   ├── api.ts             # Typed fetch wrapper; ssePost for SSE streaming
 │   ├── types.ts           # TypeScript interfaces (Source, TokenResponse, …)
-│   ├── App.tsx            # Root: auth gate, lifted state, layout
+│   ├── App.tsx            # Root: auth gate, lifted state, layout, drawer state
 │   ├── styles.css         # Design system — dark theme, CSS custom properties
 │   └── components/
-│       ├── AuthScreen.tsx # Login / signup form
-│       ├── Sidebar.tsx    # Folders, conversations, drag-and-drop, context menu
-│       ├── IngestPanel.tsx# Source upload, grouped list, per-source checkboxes
-│       └── ChatPanel.tsx  # SSE streaming chat with filter chips
+│       ├── AuthScreen.tsx   # Login / signup form
+│       ├── Sidebar.tsx      # Folders, conversations, drag-and-drop, context menu
+│       ├── SourcesDrawer.tsx# Slide-in right drawer: ingest + source selection
+│       └── ChatPanel.tsx    # SSE streaming chat with filter chips + Sources button
 ├── vite.config.ts         # base: '/static/', outDir: '../app/static'
 └── package.json
 ```
@@ -158,38 +163,44 @@ cp .env.example .env
 # 3. Build the React frontend
 cd frontend && npm install && npm run build && cd ..
 
-# 4. Start ChromaDB + app
-docker-compose up --build
+# 4. Start the full stack (app + Qdrant + PostgreSQL)
+docker compose up --build
 ```
 
 Open `http://localhost:8080` for the UI, or `http://localhost:8080/docs` for API docs.
 
-ChromaDB is exposed at `http://localhost:8001` for inspection.
+- Qdrant dashboard: `http://localhost:6333/dashboard`
+- PostgreSQL: `localhost:5432` (user/pass/db: `docchat`)
 
 ### Local dev (without Docker)
 
-**Prerequisites:** Python 3.13, Node.js 18+, ChromaDB running locally
+**Prerequisites:** Python 3.13, Node.js 18+, Qdrant and PostgreSQL running locally
 
 ```bash
-# 1. Start ChromaDB
-pip install chromadb
-chroma run --host localhost --port 8001 --path ./chroma_data
+# 1. Start Qdrant
+docker run -p 6333:6333 qdrant/qdrant
 
-# 2. Create and activate virtual environment
+# 2. Start PostgreSQL
+docker run -e POSTGRES_USER=docchat -e POSTGRES_PASSWORD=docchat \
+           -e POSTGRES_DB=docchat -p 5432:5432 postgres:16-alpine
+
+# 3. Create and activate virtual environment
 python -m venv venv
 source venv/bin/activate
 
-# 3. Install Python dependencies
+# 4. Install Python dependencies
 pip install -r requirements.txt
 
-# 4. Build the React frontend
+# 5. Build the React frontend
 cd frontend && npm install && npm run build && cd ..
 
-# 5. Configure environment
+# 6. Configure environment
 cp .env.example .env
-# Set: GROQ_API_KEY, JWT_SECRET_KEY, CHROMA_HOST=localhost, CHROMA_PORT=8001
+# Set: GROQ_API_KEY, JWT_SECRET_KEY
+# Set: QDRANT_HOST=localhost, QDRANT_PORT=6333
+# Set: DATABASE_URL=postgresql+asyncpg://docchat:docchat@localhost:5432/docchat
 
-# 6. Run the dev server
+# 7. Run the dev server
 uvicorn app.main:app --reload
 ```
 
@@ -234,7 +245,7 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 | `POST` | `/api/v1/ingest/youtube` | Ingest a YouTube video (`{"url": "..."}`). |
 | `POST` | `/api/v1/ingest/web` | Scrape a web page (`{"url": "..."}`). |
 | `GET` | `/api/v1/sources` | List all ingested sources. |
-| `DELETE` | `/api/v1/sources/{source_id}` | Delete a source and its chunks from ChromaDB. |
+| `DELETE` | `/api/v1/sources/{source_id}` | Delete a source and its chunks from Qdrant. |
 
 **PDF example:**
 
@@ -261,7 +272,7 @@ curl -X POST http://localhost:8080/api/v1/ingest/pdf \
 }
 ```
 
-- `sources` — filter which ChromaDB collections the agent queries (`pdf`, `youtube`, `web`). Omit to query all three.
+- `sources` — filter which Qdrant collections the agent queries (`pdf`, `youtube`, `web`). Omit to query all three.
 - `source_ids` — restrict retrieval to specific ingested documents by their `source_id`. Omit (or pass `[]`) to search across all sources in the selected collections.
 
 **Response:** SSE stream — one token per `data:` line, `[DONE]` at end, `[ERROR]` on failure. The response header `X-Conversation-Id` carries the conversation UUID for subsequent requests.
@@ -309,16 +320,17 @@ All settings load from environment variables or a `.env` file.
 |---|---|---|
 | `GROQ_API_KEY` | *(required)* | Groq API key |
 | `JWT_SECRET_KEY` | *(required)* | Secret for signing JWTs — use a long random string |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token lifetime |
-| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime |
-| `CHROMA_HOST` | `localhost` | ChromaDB host (use `chromadb` inside Docker Compose) |
-| `CHROMA_PORT` | `8001` | ChromaDB port |
-| `DATABASE_URL` | `sqlite+aiosqlite:///./docchat.db` | SQLAlchemy async DSN |
+| `DATABASE_URL` | `postgresql+asyncpg://docchat:docchat@localhost:5432/docchat` | SQLAlchemy async DSN |
+| `QDRANT_HOST` | `localhost` | Qdrant host (use `qdrant` inside Docker Compose) |
+| `QDRANT_PORT` | `6333` | Qdrant REST port |
 | `CHAT_MODEL` | `llama-3.3-70b-versatile` | Groq model ID |
 | `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | fastembed model name |
-| `RETRIEVAL_TOP_K` | `5` | Chunks returned per ChromaDB collection |
+| `EMBEDDING_DIM` | `384` | Vector dimension (must match the embedding model) |
+| `RETRIEVAL_MIN_SCORE` | `0.3` | Minimum cosine similarity for retrieved chunks |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token lifetime |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime |
 | `LANGSMITH_API_KEY` | `None` | Enables LangSmith tracing when set |
-| `LANGSMITH_PROJECT` | `docchat` | LangSmith project name |
+| `LANGSMITH_PROJECT` | `docchat-agent` | LangSmith project name |
 | `DEBUG` | `false` | Enable SQLAlchemy query logging |
 
 ---
@@ -331,7 +343,7 @@ users  ──< conversations  ──< messages
 folders  ──< conversations
 ```
 
-`folders`, `users`, `refresh_tokens`, and their foreign-key columns are added automatically at startup via idempotent migrations (`PRAGMA table_info` + `ALTER TABLE ADD COLUMN`). No manual schema changes are needed when upgrading.
+Schema columns are added automatically at startup via idempotent migrations (using `information_schema.columns` on PostgreSQL). No manual schema changes are needed when upgrading.
 
 ---
 
