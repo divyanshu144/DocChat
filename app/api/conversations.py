@@ -52,3 +52,15 @@ async def move_conversation(conv_id: str, body: ConversationMove, db: AsyncSessi
     conv.folder_id = body.folder_id
     await db.commit()
     return {"id": conv.id, "title": conv.title, "folder_id": conv.folder_id}
+
+
+@router.delete("/conversations/{conv_id}", status_code=204)
+async def delete_conversation(conv_id: str, db: AsyncSession = Depends(get_db)):
+    conv = await db.get(Conversation, conv_id)
+    if not conv:
+        raise HTTPException(404, "Conversation not found")
+    msgs = await db.execute(select(Message).where(Message.conversation_id == conv_id))
+    for msg in msgs.scalars().all():
+        await db.delete(msg)
+    await db.delete(conv)
+    await db.commit()

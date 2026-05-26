@@ -58,8 +58,8 @@ def test_list_conversations_returns_conversations():
         yield session
 
     app.dependency_overrides[get_db] = mock_db_with_conv
-    with TestClient(app) as c:
-        response = c.get("/api/v1/conversations")
+    c = TestClient(app)
+    response = c.get("/api/v1/conversations")
     app.dependency_overrides.clear()
 
     assert response.status_code == 200

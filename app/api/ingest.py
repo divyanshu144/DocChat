@@ -5,7 +5,8 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from app.core.chroma import get_collection
+from app.core.qdrant import get_qdrant_client, get_qdrant_collection
+from qdrant_client.models import Filter, FieldCondition, MatchValue
 from app.services.ingestion.pdf import ingest_pdf, SUPPORTED_TYPES
 from app.services.ingestion.youtube import ingest_youtube
 from app.services.ingestion.web import ingest_web
@@ -60,22 +61,34 @@ async def ingest_web_endpoint(req: UrlRequest):
 
 @router.get("/sources")
 async def list_sources():
+    client = get_qdrant_client()
     sources = []
     for name in ("pdf_chunks", "youtube_chunks", "web_chunks"):
         try:
-            col = get_collection(name)
-            results = col.get(include=["metadatas"])
+            get_qdrant_collection(name)
             seen_ids: set[str] = set()
-            for meta in results["metadatas"]:
-                sid = meta.get("source_id")
-                if sid and sid not in seen_ids:
-                    seen_ids.add(sid)
-                    sources.append({
-                        "source_id": sid,
-                        "source_type": name.replace("_chunks", ""),
-                        **{k: v for k, v in meta.items()
-                           if k in ("filename", "title", "url", "ingested_at", "scraped_at")},
-                    })
+            offset = None
+            while True:
+                records, offset = client.scroll(
+                    collection_name=name,
+                    with_payload=True,
+                    with_vectors=False,
+                    limit=100,
+                    offset=offset,
+                )
+                for rec in records:
+                    payload = rec.payload or {}
+                    sid = payload.get("source_id")
+                    if sid and sid not in seen_ids:
+                        seen_ids.add(sid)
+                        sources.append({
+                            "source_id": sid,
+                            "source_type": name.replace("_chunks", ""),
+                            **{k: v for k, v in payload.items()
+                               if k in ("filename", "title", "url", "ingested_at", "scraped_at")},
+                        })
+                if offset is None:
+                    break
         except Exception:
             pass
     return {"sources": sources}
@@ -83,13 +96,15 @@ async def list_sources():
 
 @router.delete("/sources/{source_id}")
 async def delete_source(source_id: str):
+    client = get_qdrant_client()
     deleted = False
+    source_filter = Filter(must=[FieldCondition(key="source_id", match=MatchValue(value=source_id))])
     for name in ("pdf_chunks", "youtube_chunks", "web_chunks"):
         try:
-            col = get_collection(name)
-            results = col.get(where={"source_id": source_id}, include=[])
-            if results["ids"]:
-                col.delete(ids=results["ids"])
+            get_qdrant_collection(name)
+            count = client.count(collection_name=name, count_filter=source_filter, exact=True).count
+            if count > 0:
+                client.delete(collection_name=name, points_selector=source_filter)
                 deleted = True
         except Exception:
             pass

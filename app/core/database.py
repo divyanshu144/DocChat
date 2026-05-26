@@ -42,7 +42,14 @@ async def create_all_tables() -> None:
 
 def _migrate(conn) -> None:
     from sqlalchemy import text
-    cols = {row[1] for row in conn.execute(text("PRAGMA table_info(conversations)")).fetchall()}
+    if conn.dialect.name == "sqlite":
+        cols = {row[1] for row in conn.execute(text("PRAGMA table_info(conversations)")).fetchall()}
+    else:
+        rows = conn.execute(text(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_schema = 'public' AND table_name = 'conversations'"
+        )).fetchall()
+        cols = {row[0] for row in rows}
     if "folder_id" not in cols:
         conn.execute(text("ALTER TABLE conversations ADD COLUMN folder_id VARCHAR REFERENCES folders(id)"))
     if "user_id" not in cols:

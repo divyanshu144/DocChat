@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     debug: bool = False
 
     api_prefix: str = "/api/v1"
-    database_url: str = f"sqlite+aiosqlite:///{_PROJECT_ROOT / 'docchat.db'}"
+    # Override via DATABASE_URL in .env for production
+    database_url: str = "postgresql+asyncpg://docchat:docchat@localhost:5432/docchat"
 
     # LLM
     groq_api_key: str = ""
@@ -24,9 +25,16 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     embedding_dim: int = 384
 
-    # ChromaDB
+    # ChromaDB — kept for backward compatibility (app/core/chroma.py still references these)
     chroma_host: str = "localhost"
     chroma_port: int = 8001
+
+    # Qdrant
+    qdrant_host: str = "localhost"
+    qdrant_port: int = 6333
+
+    # Retrieval quality gate — chunks below this cosine similarity score are dropped
+    retrieval_min_score: float = 0.3
 
     # LangSmith observability
     langsmith_api_key: str = ""

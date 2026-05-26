@@ -3,7 +3,9 @@ import asyncio
 from datetime import datetime, timezone
 from urllib.parse import urlparse, parse_qs
 
-from app.core.chroma import get_collection
+import uuid as _uuid
+from app.core.qdrant import get_qdrant_client, get_qdrant_collection
+from qdrant_client.models import PointStruct
 from app.services.embedder import get_embedder
 
 COLLECTION = "youtube_chunks"
@@ -74,7 +76,7 @@ def _chunk_transcript(transcript: list[dict]) -> list[dict]:
 
 
 async def ingest_youtube(url: str) -> str:
-    """Fetch YouTube transcript, chunk, embed, and store in ChromaDB. Returns source_id."""
+    """Fetch YouTube transcript, chunk, embed, and store in Qdrant. Returns source_id."""
     source_id = str(uuid.uuid4())
     loop = asyncio.get_running_loop()
     video_id = _extract_video_id(url)
@@ -86,30 +88,34 @@ async def ingest_youtube(url: str) -> str:
 
     chunks = _chunk_transcript(transcript)
     embedder = get_embedder()
-    collection = get_collection(COLLECTION)
-    ids, docs, metas, embs = [], [], [], []
+    get_qdrant_collection(COLLECTION)
+    client = get_qdrant_client()
+    points: list[PointStruct] = []
     now = datetime.now(timezone.utc).isoformat()
 
     for i, chunk in enumerate(chunks):
         if not embedder:
             continue
         emb = embedder.embed_query(chunk["text"])
-        ids.append(f"{source_id}_{i}")
-        docs.append(chunk["text"])
-        metas.append({
-            "source_id": source_id,
-            "video_id": meta["video_id"],
-            "video_url": url,
-            "title": meta["title"],
-            "channel": meta["channel"],
-            "timestamp_start": chunk["timestamp_start"],
-            "timestamp_end": chunk["timestamp_end"],
-            "chunk_index": i,
-            "ingested_at": now,
-        })
-        embs.append(emb.tolist())
+        point_id = str(_uuid.uuid5(_uuid.NAMESPACE_DNS, f"{source_id}_{i}"))
+        points.append(PointStruct(
+            id=point_id,
+            vector=emb.tolist(),
+            payload={
+                "text": chunk["text"],
+                "source_id": source_id,
+                "video_id": meta["video_id"],
+                "video_url": url,
+                "title": meta["title"],
+                "channel": meta["channel"],
+                "timestamp_start": chunk["timestamp_start"],
+                "timestamp_end": chunk["timestamp_end"],
+                "chunk_index": i,
+                "ingested_at": now,
+            },
+        ))
 
-    if ids:
-        collection.add(ids=ids, embeddings=embs, documents=docs, metadatas=metas)
+    if points:
+        client.upsert(collection_name=COLLECTION, points=points)
 
     return source_id
