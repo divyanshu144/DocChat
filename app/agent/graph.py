@@ -5,6 +5,7 @@ from app.agent.state import AgentState
 from app.agent.nodes.planner import planner_node
 from app.agent.nodes.retriever import retriever_node
 from app.agent.nodes.synthesizer import synthesizer_node
+from app.agent.nodes.grounding import grounding_node
 from app.agent.nodes.critic import critic_node
 from app.core.config import settings
 
@@ -29,12 +30,14 @@ def build_graph():
     g.add_node("planner", planner_node)
     g.add_node("retriever", retriever_node)
     g.add_node("synthesizer", synthesizer_node)
+    g.add_node("grounding", grounding_node)
     g.add_node("critic", critic_node)
 
     g.set_entry_point("planner")
     g.add_edge("planner", "retriever")
     g.add_edge("retriever", "synthesizer")
-    g.add_edge("synthesizer", "critic")
+    g.add_edge("synthesizer", "grounding")
+    g.add_edge("grounding", "critic")
     g.add_conditional_edges("critic", _route_critic, {"planner": "planner", END: END})
 
     return g.compile()

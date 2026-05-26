@@ -5,23 +5,43 @@ services:
       - "8080:8000"
     env_file: .env
     environment:
-      - CHROMA_HOST=chromadb
-      - CHROMA_PORT=8000
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - DATABASE_URL=postgresql+asyncpg://docchat:docchat@postgres:5432/docchat
     depends_on:
-      chromadb:
+      qdrant:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     volumes:
       - ./data:/app/data
       - ./app:/app/app
 
-  chromadb:
-    image: chromadb/chroma:latest
+  qdrant:
+    image: qdrant/qdrant:latest
     ports:
-      - "8001:8000"
+      - "6333:6333"
+      - "6334:6334"
     volumes:
-      - ./chroma_data:/chroma/chroma
+      - ./qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "bash", "-c", "< /dev/tcp/localhost/8000"]
+      test: ["CMD-SHELL", "bash -c '< /dev/tcp/localhost/6333' 2>/dev/null || wget -qO- http://localhost:6333/healthz > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: docchat
+      POSTGRES_PASSWORD: docchat
+      POSTGRES_DB: docchat
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docchat"]
       interval: 10s
       timeout: 5s
       retries: 5

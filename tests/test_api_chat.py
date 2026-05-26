@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 def client():
     from app.main import app
     from app.core.database import get_db
+    from app.core.deps import get_current_user
 
     async def mock_db():
         session = MagicMock()
@@ -19,7 +20,15 @@ def client():
         session.execute = AsyncMock(return_value=result_mock)
         yield session
 
+    fake_user = MagicMock()
+    fake_user.id = "user-test-id"
+    fake_user.is_active = True
+
+    async def mock_current_user():
+        return fake_user
+
     app.dependency_overrides[get_db] = mock_db
+    app.dependency_overrides[get_current_user] = mock_current_user
     yield TestClient(app)
     app.dependency_overrides.clear()
 

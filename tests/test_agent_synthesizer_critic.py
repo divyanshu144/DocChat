@@ -8,18 +8,20 @@ def _make_state(**kwargs) -> AgentState:
         "query": "What is attention?",
         "conversation_id": "conv-1",
         "sources_to_use": ["pdf"],
+        "source_ids": [],
         "retrieved_chunks": [
             {
                 "text": "Attention allows models to focus on relevant parts.",
                 "metadata": {"filename": "paper.pdf", "page_number": 3},
                 "source_type": "pdf",
-                "distance": 0.1,
+                "score": 0.9,
             }
         ],
         "answer": "",
         "critic_feedback": "",
         "needs_replan": False,
         "iteration": 0,
+        "grounding_passed": False,
     }
     base.update(kwargs)
     return base

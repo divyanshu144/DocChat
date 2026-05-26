@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from app.core.chroma import get_collection
+import uuid as _uuid
+from app.core.qdrant import get_qdrant_client, get_qdrant_collection
+from qdrant_client.models import PointStruct
 from app.services.embedder import get_embedder
 
 COLLECTION = "pdf_chunks"
@@ -165,26 +167,30 @@ async def ingest_pdf(file_path: "str | Path", filename: str, content_type: str) 
     else:
         embeddings = [None] * len(raw_chunks)
 
-    collection = get_collection(COLLECTION)
-    ids, docs, metas, embs = [], [], [], []
+    get_qdrant_collection(COLLECTION)
+    client = get_qdrant_client()
+    points: list[PointStruct] = []
     now = datetime.now(timezone.utc).isoformat()
 
     for i, (chunk, emb) in enumerate(zip(raw_chunks, embeddings)):
         if emb is None:
             continue
-        ids.append(f"{source_id}_{i}")
-        docs.append(chunk["text"])
-        metas.append({
-            "source_id": source_id,
-            "filename": filename,
-            "page_number": chunk.get("page_number") or 0,
-            "section_heading": chunk.get("section_heading") or "",
-            "chunk_index": i,
-            "ingested_at": now,
-        })
-        embs.append(emb.tolist())
+        point_id = str(_uuid.uuid5(_uuid.NAMESPACE_DNS, f"{source_id}_{i}"))
+        points.append(PointStruct(
+            id=point_id,
+            vector=emb.tolist(),
+            payload={
+                "text": chunk["text"],
+                "source_id": source_id,
+                "filename": filename,
+                "page_number": chunk.get("page_number") or 0,
+                "section_heading": chunk.get("section_heading") or "",
+                "chunk_index": i,
+                "ingested_at": now,
+            },
+        ))
 
-    if ids:
-        collection.add(ids=ids, embeddings=embs, documents=docs, metadatas=metas)
+    if points:
+        client.upsert(collection_name=COLLECTION, points=points)
 
     return source_id

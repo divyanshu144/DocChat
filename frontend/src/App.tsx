@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { clearTokens, hasToken } from './api';
 import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
-import IngestPanel from './components/IngestPanel';
+import SourcesDrawer from './components/SourcesDrawer';
 import ChatPanel from './components/ChatPanel';
 
 const LS_EMAIL = 'docchat_email';
@@ -17,6 +17,7 @@ export default function App() {
   const [health, setHealth] = useState<Health>('unknown');
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [selectedSourceIds, setSelectedSourceIds] = useState<Set<string>>(new Set());
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +68,13 @@ export default function App() {
     setSidebarRefresh(n => n + 1);
   }
 
+  function handleConvDeleted(id: string) {
+    if (convId === id) {
+      setConvId(null);
+      localStorage.removeItem(LS_CONV);
+    }
+  }
+
   if (!authed) return <AuthScreen onAuth={handleAuth} />;
 
   return (
@@ -76,19 +84,24 @@ export default function App() {
         onSelectConv={selectConv}
         onNewChat={newChat}
         onLogout={handleLogout}
+        onConvDeleted={handleConvDeleted}
         email={email}
         health={health}
         refreshTrigger={sidebarRefresh}
       />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <IngestPanel
-          selectedIds={selectedSourceIds}
-          onSelectionChange={setSelectedSourceIds}
-        />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative', overflow: 'hidden' }}>
         <ChatPanel
           conversationId={convId}
           onConvCreated={handleConvCreated}
           selectedSourceIds={selectedSourceIds}
+          onOpenSources={() => setDrawerOpen(true)}
+          selectedSourceCount={selectedSourceIds.size}
+        />
+        <SourcesDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          selectedIds={selectedSourceIds}
+          onSelectionChange={setSelectedSourceIds}
         />
       </div>
     </div>

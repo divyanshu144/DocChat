@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { apiJson } from '../api';
+import { apiFetch, apiJson } from '../api';
 import type { Conversation, Folder } from '../types';
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
   onSelectConv: (id: string) => void;
   onNewChat: (folderId?: string) => void;
   onLogout: () => void;
+  onConvDeleted: (id: string) => void;
   email: string;
   health: 'ok' | 'fail' | 'unknown';
   refreshTrigger: number;
@@ -18,7 +19,7 @@ interface CtxMenu {
   y: number;
 }
 
-export default function Sidebar({ activeConvId, onSelectConv, onNewChat, onLogout, email, health, refreshTrigger }: Props) {
+export default function Sidebar({ activeConvId, onSelectConv, onNewChat, onLogout, onConvDeleted, email, health, refreshTrigger }: Props) {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set());
@@ -58,6 +59,13 @@ export default function Sidebar({ activeConvId, onSelectConv, onNewChat, onLogou
     }).catch(() => null);
     load();
     setCtxMenu(null);
+  }
+
+  async function deleteConversation(convId: string) {
+    await apiFetch(`/conversations/${convId}`, { method: 'DELETE' }).catch(() => null);
+    setCtxMenu(null);
+    onConvDeleted(convId);
+    load();
   }
 
   function toggleFolder(id: string) {
@@ -223,6 +231,10 @@ export default function Sidebar({ activeConvId, onSelectConv, onNewChat, onLogou
               onClick={() => moveToFolder(ctxMenu.convId, f.id)}
             >{f.name}</button>
           ))}
+          <div className="ctx-menu-divider" />
+          <button className="ctx-menu-item ctx-menu-delete" onClick={() => deleteConversation(ctxMenu.convId)}>
+            Delete chat
+          </button>
         </div>
       )}
     </aside>
