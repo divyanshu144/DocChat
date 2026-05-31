@@ -6,7 +6,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=str(_PROJECT_ROOT / ".env"))
+    model_config = SettingsConfigDict(env_file=str(_PROJECT_ROOT / ".env"), extra="ignore")
 
     app_name: str = "DocChat Agent"
     version: str = "2.0.0"
@@ -24,10 +24,6 @@ class Settings(BaseSettings):
     # Embeddings
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     embedding_dim: int = 384
-
-    # ChromaDB — kept for backward compatibility (app/core/chroma.py still references these)
-    chroma_host: str = "localhost"
-    chroma_port: int = 8001
 
     # Qdrant
     qdrant_host: str = "localhost"

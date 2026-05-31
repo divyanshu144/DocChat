@@ -11,7 +11,8 @@ You are given:
 Rules:
 - Keep sentences that are directly supported by the context, even if paraphrased.
 - Keep meta-sentences like "Based on the provided context..." or "I don't have enough information..."
-- Keep all citation markers like [PDF — ...], [YouTube — ...], [Web — ...].
+- Keep the final "Sources:" section and citation markers like [PDF — ...], [YouTube — ...], [Web — ...].
+- Do not move citations into the answer body; citations should remain at the end.
 - DROP sentences that make factual claims not found anywhere in the context.
 - Output ONLY the cleaned answer text. No explanations. No preamble.
 

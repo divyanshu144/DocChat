@@ -12,7 +12,7 @@ class FakeSegment:
 
 
 @pytest.mark.asyncio
-async def test_ingest_pdf_stores_chunks_in_chromadb():
+async def test_ingest_pdf_stores_chunks_in_qdrant():
     mock_client = MagicMock()
     mock_embedder = MagicMock()
     mock_embedder.embed_late.return_value = [np.array([0.1] * 384, dtype="float32")]

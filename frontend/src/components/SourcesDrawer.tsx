@@ -132,13 +132,13 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
               {selectedIds.size} selected
             </span>
           )}
-          <button className="drawer-close" onClick={onClose} title="Close (Esc)">×</button>
+          <button type="button" className="drawer-close" onClick={onClose} title="Close (Esc)">×</button>
         </div>
 
         <div className="drawer-body">
           <div className="tab-strip">
             {(['pdf', 'youtube', 'web'] as const).map(t => (
-              <button key={t} className={`tab ${activeTab === t ? 'active' : ''}`} onClick={() => setActiveTab(t)}>
+              <button type="button" key={t} className={`tab ${activeTab === t ? 'active' : ''}`} onClick={() => setActiveTab(t)}>
                 {TYPE_LABEL[t]}
               </button>
             ))}
@@ -191,7 +191,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
                   onChange={e => setYtUrl(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && ytUrl) ingestUrl('youtube', ytUrl); }}
                 />
-                <button className="pill-btn" onClick={() => ytUrl && ingestUrl('youtube', ytUrl)}>Go</button>
+                <button type="button" className="pill-btn" onClick={() => ytUrl && ingestUrl('youtube', ytUrl)}>Go</button>
               </div>
               {ytFeedback && <div className={`ingest-feedback ${ytFeedback.cls}`}>{ytFeedback.msg}</div>}
             </div>
@@ -208,7 +208,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
                   onChange={e => setWebUrl(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && webUrl) ingestUrl('web', webUrl); }}
                 />
-                <button className="pill-btn" onClick={() => webUrl && ingestUrl('web', webUrl)}>Go</button>
+                <button type="button" className="pill-btn" onClick={() => webUrl && ingestUrl('web', webUrl)}>Go</button>
               </div>
               {webFeedback && <div className={`ingest-feedback ${webFeedback.cls}`}>{webFeedback.msg}</div>}
             </div>
@@ -235,7 +235,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
                         <div className="source-title">{sourceLabel(s)}</div>
                         <div className="source-when">{formatWhen(s)}</div>
                       </div>
-                      <button className="source-delete" onClick={() => deleteSource(s.source_id)}>×</button>
+                      <button type="button" className="source-delete" onClick={() => deleteSource(s.source_id)}>×</button>
                     </div>
                   ))}
                 </div>
@@ -244,7 +244,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
           </div>
 
           {selectedIds.size > 0 && (
-            <button className="clear-selection-btn" onClick={() => onSelectionChange(new Set())}>
+            <button type="button" className="clear-selection-btn" onClick={() => onSelectionChange(new Set())}>
               Clear selection — search all
             </button>
           )}

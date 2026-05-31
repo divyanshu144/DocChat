@@ -46,8 +46,8 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
   }, [conversationId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamText]);
+    messagesEndRef.current?.scrollIntoView({ behavior: streaming ? 'auto' : 'smooth' });
+  }, [messages, streamText, streaming]);
 
   async function loadHistory(id: string) {
     try {
@@ -130,10 +130,23 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
   }
 
   const showWelcome = messages.length === 0 && !streaming;
+  const promptHints = [
+    'Explain multi-head attention',
+    'Summarise key findings',
+    'Compare sources',
+  ];
+
+  function usePrompt(text: string) {
+    setInput(text);
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+      autoResize();
+    });
+  }
 
   return (
-    <main className="chat-panel">
-      <div className="messages">
+    <main className={`chat-panel ${showWelcome ? 'chat-empty' : ''}`}>
+      <div className={`messages ${showWelcome ? 'messages-empty' : ''}`}>
         {showWelcome && (
           <div className="welcome">
             <svg className="welcome-gem" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -143,9 +156,11 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
             <h1 className="welcome-title">Research Assistant</h1>
             <p className="welcome-sub">Ingest documents, videos, or web pages — then ask anything.</p>
             <div className="welcome-hints">
-              <span className="hint-chip">Explain multi-head attention</span>
-              <span className="hint-chip">Summarise key findings</span>
-              <span className="hint-chip">Compare sources</span>
+              {promptHints.map(hint => (
+                <button key={hint} type="button" className="hint-chip" onClick={() => usePrompt(hint)}>
+                  {hint}
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -195,6 +210,7 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
           <span className="filter-label">Search:</span>
           {(['pdf', 'youtube', 'web'] as const).map(f => (
             <button
+              type="button"
               key={f}
               className={`filter-chip ${activeFilters.has(f) ? 'active' : ''}`}
               onClick={() => toggleFilter(f)}
@@ -203,7 +219,11 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
               {f === 'youtube' ? 'YouTube' : f === 'pdf' ? 'PDF' : 'Web'}
             </button>
           ))}
-          <button className="sources-open-btn" onClick={onOpenSources}>
+          <button
+            type="button"
+            className="sources-open-btn"
+            onClick={e => { e.preventDefault(); onOpenSources(); }}
+          >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M8 11V3M8 3L5 6M8 3l3 3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/>
             </svg>
@@ -227,6 +247,7 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
             disabled={streaming}
           />
           <button
+            type="button"
             className="send-btn"
             onClick={sendMessage}
             disabled={streaming || !input.trim()}

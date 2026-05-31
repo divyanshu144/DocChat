@@ -1,0 +1,109 @@
+{
+  "generated_at": "2026-05-28T21:53:01.844673+00:00",
+  "description": "Formal pipeline eval over the real LangGraph planner, synthesizer, grounding, and critic nodes with deterministic synthetic retrieval fixtures.",
+  "cases": 2,
+  "passed": 2,
+  "failed": 0,
+  "comparison": {
+    "baseline": {
+      "cases": 2,
+      "passed": 2,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "mean_latency_ms": 882.7249999999999,
+      "p50_latency_ms": 882.7249999999999,
+      "p95_latency_ms": 940.0414999999999
+    },
+    "optimized": {
+      "cases": 2,
+      "passed": 2,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "mean_latency_ms": 792.19,
+      "p50_latency_ms": 792.19,
+      "p95_latency_ms": 867.799
+    },
+    "absolute_lift": 0.0,
+    "relative_lift": 0.0
+  },
+  "baseline_results": [
+    {
+      "label": "embedding_model_and_dimension_1",
+      "passed": true,
+      "latency_ms": 946.41,
+      "retrieved_chunks": 4,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf"
+      ],
+      "planned_sources": [
+        "pdf",
+        "web"
+      ],
+      "answer": "DocChat uses the BAAI/bge-small-en-v1.5 embedding model, and the embeddings are 384-dimensional float32 vectors.\n\nSources: [PDF \u2014 architecture.pdf p.2]"
+    },
+    {
+      "label": "embedding_model_and_dimension_2",
+      "passed": true,
+      "latency_ms": 819.04,
+      "retrieved_chunks": 4,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf"
+      ],
+      "planned_sources": [
+        "pdf",
+        "web"
+      ],
+      "answer": "The embedding model used by DocChat is BAAI/bge-small-en-v1.5, and its vector size is 384-dimensional float32 vectors.\nSources: [PDF \u2014 architecture.pdf p.2]"
+    }
+  ],
+  "results": [
+    {
+      "label": "embedding_model_and_dimension_1",
+      "passed": true,
+      "latency_ms": 708.18,
+      "retrieved_chunks": 4,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf"
+      ],
+      "planned_sources": [
+        "pdf",
+        "web"
+      ],
+      "answer": "DocChat uses the BAAI/bge-small-en-v1.5 embedding model, and the embeddings are 384-dimensional float32 vectors.\nSources: [PDF \u2014 architecture.pdf p.2]"
+    },
+    {
+      "label": "embedding_model_and_dimension_2",
+      "passed": true,
+      "latency_ms": 876.2,
+      "retrieved_chunks": 4,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf"
+      ],
+      "planned_sources": [
+        "pdf",
+        "web"
+      ],
+      "answer": "DocChat's embedding model is the BAAI/bge-small-en-v1.5 model, and its vector size is 384-dimensional float32 vectors.\nSources: [PDF \u2014 architecture.pdf p.2]"
+    }
+  ]
+}

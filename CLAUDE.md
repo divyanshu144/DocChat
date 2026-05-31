@@ -6,17 +6,17 @@ and load the matching skill file before responding.
 ## Project Overview
 
 DocChat Agent (v2.0.0) — multi-source agentic research assistant. Users ingest PDFs,
-YouTube videos, and web pages. A LangGraph agent (Planner → Retriever → Synthesizer → Critic)
-orchestrates retrieval across three ChromaDB vector collections and synthesizes answers via Groq.
+YouTube videos, and web pages. A LangGraph agent (Planner → Retriever → Synthesizer →
+Grounding → Critic) orchestrates retrieval across three Qdrant vector collections and
+synthesizes cited answers via Groq.
 
 ## Commands
 
 ```bash
 source venv/bin/activate          # activate virtualenv (Python 3.13)
 pip install -r requirements.txt   # install deps
-uvicorn app.main:app --reload     # dev server (ChromaDB must be running first)
-docker-compose up                 # full stack
-chroma run --host localhost --port 8001 --path ./chroma_data  # ChromaDB standalone
+uvicorn app.main:app --reload     # dev server (Qdrant/PostgreSQL must be running)
+docker-compose up                 # full stack: app + Qdrant + PostgreSQL
 pytest tests/ -v                  # run tests
 # API docs: http://localhost:8000/docs
 ```
@@ -25,14 +25,14 @@ pytest tests/ -v                  # run tests
 
 - **app/main.py** — FastAPI app entry point; registers all routers, runs startup migrations.
 - **app/core/config.py** — Pydantic Settings singleton (`settings`). See `conventions.md`.
-- **app/core/database.py** — Async SQLAlchemy engine (SQLite). `get_db()` session dep.
-- **app/core/chroma.py** — ChromaDB HttpClient singleton. `get_collection(name)` helper.
+- **app/core/database.py** — Async SQLAlchemy engine (PostgreSQL by default). `get_db()` session dep.
+- **app/core/qdrant.py** — QdrantClient singleton. `get_qdrant_collection(name)` helper.
 - **app/agent/state.py** — `AgentState` TypedDict. See `langgraph/SKILL.md`.
 - **app/agent/graph.py** — Compiled LangGraph StateGraph. Entry: `agent_graph.ainvoke(state)`.
-- **app/agent/nodes/** — planner, retriever, synthesizer, critic. See `langgraph/SKILL.md`.
-- **app/services/ingestion/pdf.py** — pymupdf + late-chunking → ChromaDB `pdf_chunks`.
-- **app/services/ingestion/youtube.py** — transcript-api → ChromaDB `youtube_chunks`.
-- **app/services/ingestion/web.py** — httpx + trafilatura → ChromaDB `web_chunks`.
+- **app/agent/nodes/** — planner, retriever, synthesizer, grounding, critic. See `langgraph/SKILL.md`.
+- **app/services/ingestion/pdf.py** — pymupdf + late-chunking → Qdrant `pdf_chunks`.
+- **app/services/ingestion/youtube.py** — transcript-api → Qdrant `youtube_chunks`.
+- **app/services/ingestion/web.py** — httpx + trafilatura → Qdrant `web_chunks`.
 - **app/services/llm.py** — AsyncGroq client. `chat_complete()` and `chat_stream()`.
 - **app/services/embedder.py** — fastembed ONNX singleton. See `conventions.md`.
 - **app/api/ingest.py** — POST /ingest/{pdf,youtube,web}. GET/DELETE /sources.
@@ -45,7 +45,7 @@ pytest tests/ -v                  # run tests
 
 - Config: always `from app.core.config import settings` — never `os.environ`. See `conventions.md`.
 - API routes: `app/api/` modules included in `main.py` with `prefix=settings.api_prefix` (`/api/v1`).
-- Python 3.13, local `venv/`. ChromaDB must be running before app start.
+- Python 3.13, local `venv/`. Use Docker Compose for Qdrant and PostgreSQL during local work.
 
 ## Workflow Orchestration
 
@@ -85,12 +85,3 @@ pytest tests/ -v                  # run tests
 - **Simplicity First**: Make every change as simple as possible. Minimal code impact.
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
 - **Minimal Impact**: Only touch what's necessary.
-
-## graphify
-
-Knowledge graph at `graphify-out/`.
-
-- Before answering architecture questions: read `graphify-out/GRAPH_REPORT.md`.
-- If `graphify-out/wiki/index.md` exists, navigate it instead of reading raw files.
-- For cross-module questions: prefer `graphify query/path/explain` over grep.
-- After modifying code files: run `graphify update .` to keep the graph current.

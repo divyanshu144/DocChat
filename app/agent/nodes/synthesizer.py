@@ -3,7 +3,10 @@ from app.services.llm import chat_complete
 
 _SYSTEM = """\
 You are a research assistant. Answer the user's question using ONLY the provided context.
-Cite sources inline (e.g., "[PDF — paper.pdf p.3]", "[YouTube — Lecture 1 @120s]", "[Web — example.com]").
+Do not put citation markers inside the answer body.
+Put citations only at the end in a short "Sources:" section.
+List each supporting source once, using the exact source markers from the context
+(e.g., "[PDF — paper.pdf p.3]", "[YouTube — Lecture 1 @120s]", "[Web — example.com]").
 If the context doesn't contain enough information, say so clearly — do not fabricate.
 
 Context:
@@ -22,7 +25,7 @@ def _format_chunks(chunks: list[dict]) -> str:
             label = f"[YouTube — {meta.get('title', '')} @{meta.get('timestamp_start', '')}s]"
         else:
             label = f"[Web — {meta.get('url', '')}]"
-        parts.append(f"{label}\n{chunk['text']}")
+        parts.append(f"Source marker: {label}\n{chunk['text']}")
     return "\n\n---\n\n".join(parts) if parts else "No context retrieved."
 
 

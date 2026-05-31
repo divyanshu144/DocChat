@@ -37,10 +37,25 @@ async def test_synthesizer_produces_answer():
 
 
 @pytest.mark.asyncio
+async def test_synthesizer_requests_end_sources_not_inline_citations():
+    from app.agent.nodes.synthesizer import synthesizer_node
+
+    mock_llm = AsyncMock(return_value="Attention focuses on relevant parts.\n\nSources:\n- [PDF — paper.pdf p.3]")
+    with patch("app.agent.nodes.synthesizer.chat_complete", new=mock_llm):
+        await synthesizer_node(_make_state())
+
+    messages = mock_llm.await_args.args[0]
+    system_prompt = messages[0]["content"]
+    assert "Do not put citation markers inside the answer body" in system_prompt
+    assert 'short "Sources:" section' in system_prompt
+
+
+@pytest.mark.asyncio
 async def test_synthesizer_formats_pdf_citation():
     from app.agent.nodes.synthesizer import synthesizer_node, _format_chunks
     chunks = [{"text": "some text", "metadata": {"filename": "doc.pdf", "page_number": 5}, "source_type": "pdf", "distance": 0.1}]
     formatted = _format_chunks(chunks)
+    assert "Source marker:" in formatted
     assert "PDF" in formatted
     assert "doc.pdf" in formatted
     assert "p.5" in formatted

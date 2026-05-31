@@ -1,4 +1,5 @@
 from datetime import timezone
+import uuid as _uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from jose import JWTError
@@ -63,7 +64,7 @@ class UserResponse(BaseModel):
 # Endpoints
 # ---------------------------------------------------------------------------
 
-@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == body.email))
     if result.scalar_one_or_none():
@@ -78,11 +79,21 @@ async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
             detail="Password must be at least 8 characters.",
         )
 
-    user = User(email=body.email, hashed_password=hash_password(body.password))
+    user = User(id=str(_uuid.uuid4()), email=body.email, hashed_password=hash_password(body.password))
     db.add(user)
+    await db.flush()
+
+    access_token = create_access_token(user.id)
+    raw_refresh, expires_at = create_refresh_token(user.id)
+
+    db.add(RefreshToken(
+        user_id=user.id,
+        token_hash=hash_refresh_token(raw_refresh),
+        expires_at=expires_at,
+    ))
     await db.commit()
-    await db.refresh(user)
-    return user
+
+    return TokenResponse(access_token=access_token, refresh_token=raw_refresh)
 
 
 @router.post("/login", response_model=TokenResponse)

@@ -9,7 +9,7 @@ at session start via the CLAUDE.md reference.
 | Keywords | Skill file | Load when |
 |----------|-----------|-----------|
 | `agent` `graph` `node` `critic` `planner` `retriever` `synthesizer` `AgentState` `replan` `LangGraph` | `.claude/skills/langgraph/SKILL.md` | Touching the agent pipeline |
-| `ingest` `pdf` `youtube` `web` `chroma` `embed` `chunk` `collection` `source_id` | `.claude/skills/ingestion/SKILL.md` | Touching data ingestion or ChromaDB |
+| `ingest` `pdf` `youtube` `web` `qdrant` `embed` `chunk` `collection` `source_id` | `.claude/skills/ingestion/SKILL.md` | Touching data ingestion or vector storage |
 | `auth` `jwt` `token` `login` `signup` `password` `Bearer` `refresh_token` `get_current_user` `bcrypt` | `.claude/skills/auth/SKILL.md` | Touching auth, login, token issuance or validation |
 | Any implementation or debugging task | `.claude/skills/conventions.md` | Default: load unless task is clearly read-only (explaining, reviewing, answering questions) |
 

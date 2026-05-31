@@ -8,17 +8,25 @@ from datetime import datetime, timezone
 def client():
     from app.main import app
     from app.core.database import get_db
+    from app.core.deps import get_current_user
 
     async def mock_db():
         session = MagicMock()
         session.get = AsyncMock(return_value=None)
         session.commit = AsyncMock()
         result_mock = MagicMock()
+        result_mock.scalar_one_or_none.return_value = None
         result_mock.scalars.return_value.all.return_value = []
         session.execute = AsyncMock(return_value=result_mock)
         yield session
 
+    def mock_current_user():
+        user = MagicMock()
+        user.id = "user-1"
+        return user
+
     app.dependency_overrides[get_db] = mock_db
+    app.dependency_overrides[get_current_user] = mock_current_user
     yield TestClient(app)
     app.dependency_overrides.clear()
 
@@ -42,10 +50,12 @@ def test_move_conversation_404_when_not_found(client):
 def test_list_conversations_returns_conversations():
     from app.main import app
     from app.core.database import get_db
+    from app.core.deps import get_current_user
 
     conv = MagicMock()
     conv.id = "conv-1"
     conv.title = "Test Chat"
+    conv.user_id = "user-1"
     conv.folder_id = None
     conv.created_at = datetime(2026, 5, 11, tzinfo=timezone.utc)
 
@@ -57,7 +67,13 @@ def test_list_conversations_returns_conversations():
         session.execute = AsyncMock(return_value=result_mock)
         yield session
 
+    def mock_current_user():
+        user = MagicMock()
+        user.id = "user-1"
+        return user
+
     app.dependency_overrides[get_db] = mock_db_with_conv
+    app.dependency_overrides[get_current_user] = mock_current_user
     c = TestClient(app)
     response = c.get("/api/v1/conversations")
     app.dependency_overrides.clear()

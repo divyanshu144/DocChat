@@ -152,7 +152,7 @@ def _embed_chunks_late(raw_chunks: list[dict], segments: list[_Segment], embedde
 
 
 async def ingest_pdf(file_path: "str | Path", filename: str, content_type: str) -> str:
-    """Extract, chunk, embed and store document in ChromaDB. Returns source_id."""
+    """Extract, chunk, embed, and store a document in Qdrant. Returns source_id."""
     source_id = str(uuid.uuid4())
     loop = asyncio.get_running_loop()
 

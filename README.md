@@ -222,7 +222,7 @@ All endpoints (except `/api/v1/health`, `/api/v1/auth/signup`, `/api/v1/auth/log
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/api/v1/auth/signup` | Create account (`{"email": "...", "password": "..."}`) |
+| `POST` | `/api/v1/auth/signup` | Create account and return `access_token` + `refresh_token` |
 | `POST` | `/api/v1/auth/login` | Log in; returns `access_token` + `refresh_token` |
 | `POST` | `/api/v1/auth/refresh` | Exchange refresh token for new access token |
 | `POST` | `/api/v1/auth/logout` | Revoke refresh token |
