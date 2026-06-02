@@ -83,3 +83,19 @@ async def test_retriever_applies_source_id_filter():
         await retriever_node(_base_state(sources_to_use=["pdf"], source_ids=["src-123"]))
 
     assert mock_search.call_args.args[3] is not None
+
+
+@pytest.mark.asyncio
+async def test_retriever_does_not_write_to_stdout(capsys):
+    """No print() calls should survive in retriever_node — they corrupt the MCP stdio channel."""
+    mock_embedder = MagicMock()
+    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+
+    with (
+        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[])),
+        patch("app.agent.nodes.retriever.get_embedder", return_value=mock_embedder),
+    ):
+        await retriever_node(_base_state())
+
+    captured = capsys.readouterr()
+    assert captured.out == "", f"unexpected stdout from retriever_node: {captured.out!r}"

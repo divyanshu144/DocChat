@@ -45,7 +45,7 @@ async def retriever_node(state: AgentState) -> dict:
         else None
     )
 
-    print(f"[RETRIEVER] query={state['query']!r} sources={state['sources_to_use']} source_ids={source_ids}")
+    logger.debug("[RETRIEVER] query=%r sources=%s source_ids=%s", state["query"], state["sources_to_use"], source_ids)
 
     all_chunks: list[dict] = []
     for source in state["sources_to_use"]:
@@ -54,7 +54,7 @@ async def retriever_node(state: AgentState) -> dict:
             continue
         try:
             hits = await _search(collection_name, query_emb, N_RESULTS, qdrant_filter)
-            print(f"[RETRIEVER] {collection_name} → {len(hits)} hits")
+            logger.debug("[RETRIEVER] %s → %d hits", collection_name, len(hits))
             for hit in hits:
                 payload = dict(hit.get("payload") or {})
                 all_chunks.append({
@@ -64,9 +64,7 @@ async def retriever_node(state: AgentState) -> dict:
                     "score": hit.get("score", 0.0),
                 })
         except Exception as exc:
-            import traceback
-            print(f"[RETRIEVER ERROR] collection={collection_name} error={exc}")
-            traceback.print_exc()
+            logger.exception("[RETRIEVER ERROR] collection=%s error=%s", collection_name, exc)
 
     seen: set[str] = set()
     unique: list[dict] = []
