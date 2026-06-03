@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+logging.basicConfig(stream=sys.stderr, level=logging.INFO, force=True)
 logger = logging.getLogger(__name__)
 
 mcp = FastMCP("docchat")
@@ -69,21 +69,21 @@ async def ingest_document(
         source_id = await ingest_pdf(
             file_path=location, filename=resolved_name, content_type=content_type
         )
+        return json.dumps({"source_id": source_id, "source_type": source_type, "name": resolved_name})
 
-    elif source_type == "youtube":
+    if source_type == "youtube":
         from app.services.ingestion.youtube import ingest_youtube
         resolved_name = name or location
         source_id = await ingest_youtube(url=location)
+        return json.dumps({"source_id": source_id, "source_type": source_type, "name": resolved_name})
 
-    elif source_type == "web":
+    if source_type == "web":
         from app.services.ingestion.web import ingest_web
         resolved_name = name or location
         source_id = await ingest_web(url=location)
+        return json.dumps({"source_id": source_id, "source_type": source_type, "name": resolved_name})
 
-    else:
-        raise ValueError(f"Unknown source_type: {source_type!r}")
-
-    return json.dumps({"source_id": source_id, "source_type": source_type, "name": resolved_name})
+    raise ValueError(f"Unknown source_type: {source_type!r}")
 
 
 @mcp.tool()
@@ -128,8 +128,11 @@ async def list_documents() -> str:
                 if next_offset is None:
                     break
                 offset = next_offset
-        except UnexpectedResponse:
-            logger.debug("Collection %s does not exist yet, skipping", collection_name)
+        except UnexpectedResponse as exc:
+            if getattr(exc, "status_code", None) == 404:
+                logger.debug("Collection %s does not exist yet, skipping", collection_name)
+            else:
+                raise
 
     return json.dumps(list(seen.values()))
 
