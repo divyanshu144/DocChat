@@ -57,6 +57,7 @@ async def chat(
     initial_state: AgentState = {
         "query": req.query,
         "conversation_id": conv.id,
+        "conversation_history": history,
         "sources_to_use": req.sources or ["pdf", "youtube", "web"],
         "source_ids": req.source_ids or [],
         "retrieved_chunks": [],
@@ -64,6 +65,7 @@ async def chat(
         "critic_feedback": "",
         "needs_replan": False,
         "iteration": 0,
+        "grounding_passed": False,
     }
 
     final_state = await agent_graph.ainvoke(initial_state)

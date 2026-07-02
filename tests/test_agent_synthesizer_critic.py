@@ -7,6 +7,7 @@ def _make_state(**kwargs) -> AgentState:
     base: AgentState = {
         "query": "What is attention?",
         "conversation_id": "conv-1",
+        "conversation_history": [],
         "sources_to_use": ["pdf"],
         "source_ids": [],
         "retrieved_chunks": [

@@ -26,6 +26,7 @@ async def test_graph_runs_full_pipeline():
         initial_state: AgentState = {
             "query": "What is attention?",
             "conversation_id": "conv-1",
+            "conversation_history": [],
             "sources_to_use": ["pdf", "youtube", "web"],
             "source_ids": [],
             "retrieved_chunks": [],

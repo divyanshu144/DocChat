@@ -9,6 +9,9 @@ List each supporting source once, using the exact source markers from the contex
 (e.g., "[PDF — paper.pdf p.3]", "[YouTube — Lecture 1 @120s]", "[Web — example.com]").
 If the context doesn't contain enough information, say so clearly — do not fabricate.
 
+Conversation history (oldest to newest, last 10 messages):
+{conversation_history}
+
 Context:
 {context}
 """
@@ -29,10 +32,26 @@ def _format_chunks(chunks: list[dict]) -> str:
     return "\n\n---\n\n".join(parts) if parts else "No context retrieved."
 
 
+def _format_history(history: list[dict]) -> str:
+    if not history:
+        return "none"
+    return "\n".join(
+        f"{item.get('role', 'unknown')}: {item.get('content', '')}"
+        for item in history
+        if item.get("content")
+    ) or "none"
+
+
 async def synthesizer_node(state: AgentState) -> dict:
     context = _format_chunks(state["retrieved_chunks"])
     messages = [
-        {"role": "system", "content": _SYSTEM.format(context=context)},
+        {
+            "role": "system",
+            "content": _SYSTEM.format(
+                context=context,
+                conversation_history=_format_history(state.get("conversation_history", [])),
+            ),
+        },
         {"role": "user", "content": state["query"]},
     ]
     answer = await chat_complete(messages, max_tokens=1024)

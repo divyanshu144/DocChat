@@ -28,6 +28,7 @@ async def query_documents(
     state: AgentState = {
         "query": query,
         "conversation_id": "",
+        "conversation_history": [],
         "sources_to_use": ["pdf", "youtube", "web"],
         "source_ids": source_ids or [],
         "retrieved_chunks": [],

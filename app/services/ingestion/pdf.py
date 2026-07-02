@@ -1,5 +1,5 @@
 import asyncio
-import uuid
+import hashlib
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +18,20 @@ SUPPORTED_TYPES = {
     "text/plain",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }
+
+
+def _file_sha256(file_path: "str | Path") -> str:
+    digest = hashlib.sha256()
+    with Path(file_path).open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _source_id_from_content_hash(content_hash: str) -> str:
+    # Idempotency scope: exact file bytes only. Byte-different exports or edits
+    # intentionally get a new source_id; old chunks are not version-cleaned here.
+    return str(_uuid.uuid5(_uuid.NAMESPACE_URL, f"docchat:pdf:{content_hash}"))
 
 
 @dataclass
@@ -153,8 +167,9 @@ def _embed_chunks_late(raw_chunks: list[dict], segments: list[_Segment], embedde
 
 async def ingest_pdf(file_path: "str | Path", filename: str, content_type: str) -> str:
     """Extract, chunk, embed, and store a document in Qdrant. Returns source_id."""
-    source_id = str(uuid.uuid4())
     loop = asyncio.get_running_loop()
+    content_hash = await loop.run_in_executor(None, _file_sha256, file_path)
+    source_id = _source_id_from_content_hash(content_hash)
 
     segments = await loop.run_in_executor(None, _extract_segments, file_path, content_type)
     raw_chunks = await loop.run_in_executor(None, _chunk_segments, segments)

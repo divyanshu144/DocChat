@@ -42,7 +42,7 @@ async function tryRefresh(): Promise<boolean> {
     });
     if (!r.ok) return false;
     const d: TokenResponse = await r.json();
-    setTokens(d.access_token);
+    setTokens(d.access_token, d.refresh_token);
     return true;
   } catch {
     return false;

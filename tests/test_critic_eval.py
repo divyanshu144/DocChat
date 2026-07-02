@@ -13,6 +13,7 @@ async def test_critic_eval(case):
         "answer": case.answer,
         "iteration": 0,           # must be 0 — critic short-circuits at >= 2 without LLM call
         "conversation_id": "",
+        "conversation_history": [],
         "sources_to_use": ["pdf"],
         "source_ids": [],
         "retrieved_chunks": [],

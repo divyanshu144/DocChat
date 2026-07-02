@@ -20,13 +20,26 @@ Rules:
 - sources_to_use must contain at least one value
 
 Query: {query}
+Conversation history (oldest to newest, last 10 messages):
+{conversation_history}
 Critic feedback: {critic_feedback}
 """
+
+
+def _format_history(history: list[dict]) -> str:
+    if not history:
+        return "none"
+    return "\n".join(
+        f"{item.get('role', 'unknown')}: {item.get('content', '')}"
+        for item in history
+        if item.get("content")
+    ) or "none"
 
 
 async def planner_node(state: AgentState) -> dict:
     prompt = _PROMPT.format(
         query=state["query"],
+        conversation_history=_format_history(state.get("conversation_history", [])),
         critic_feedback=state.get("critic_feedback") or "none",
     )
     response = await chat_complete([{"role": "user", "content": prompt}], max_tokens=200)

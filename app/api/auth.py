@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import datetime, timezone
 import uuid as _uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -45,11 +45,6 @@ class TokenResponse(BaseModel):
 
 class RefreshRequest(BaseModel):
     refresh_token: str
-
-
-class AccessTokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
 
 
 class UserResponse(BaseModel):
@@ -126,7 +121,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     return TokenResponse(access_token=access_token, refresh_token=raw_refresh)
 
 
-@router.post("/refresh", response_model=AccessTokenResponse)
+@router.post("/refresh", response_model=TokenResponse)
 async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
     credentials_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -154,7 +149,6 @@ async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
     if stored is None or stored.revoked:
         raise credentials_exc
 
-    from datetime import datetime
     if stored.expires_at.replace(tzinfo=timezone.utc) < datetime.now(tz=timezone.utc):
         raise credentials_exc
 
@@ -162,7 +156,17 @@ async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
     if user is None or not user.is_active:
         raise credentials_exc
 
-    return AccessTokenResponse(access_token=create_access_token(user.id))
+    stored.revoked = True
+    access_token = create_access_token(user.id)
+    raw_refresh, expires_at = create_refresh_token(user.id)
+    db.add(RefreshToken(
+        user_id=user.id,
+        token_hash=hash_refresh_token(raw_refresh),
+        expires_at=expires_at,
+    ))
+    await db.commit()
+
+    return TokenResponse(access_token=access_token, refresh_token=raw_refresh)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
