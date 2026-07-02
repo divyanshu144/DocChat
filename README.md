@@ -167,10 +167,10 @@ cd frontend && npm install && npm run build && cd ..
 docker compose up --build
 ```
 
-Open `http://localhost:8080` for the UI, or `http://localhost:8080/docs` for API docs.
+Open `http://localhost:8081` for the UI, or `http://localhost:8081/docs` for API docs.
 
 - Qdrant dashboard: `http://localhost:6333/dashboard`
-- PostgreSQL: `localhost:5432` (user/pass/db: `docchat`)
+- PostgreSQL: `localhost:5433` from the host, `postgres:5432` inside Compose (user/pass/db: `docchat`)
 
 ### Local dev (without Docker)
 
