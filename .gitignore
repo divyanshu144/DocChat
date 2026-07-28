@@ -11,6 +11,7 @@ uploads/
 
 # Container data volumes (bind-mounted by docker-compose)
 postgres_data/
+qdrant_data/
 .claude/
 
 # Frontend
