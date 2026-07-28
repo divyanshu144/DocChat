@@ -1,145 +1,150 @@
 # DocChat — Session Handoff
 
 **Branch:** `feat/chat-folders`
-**Last session:** 2026-05-28/29
-**Status:** Active development
+**Last updated:** 2026-07-28
+**Status:** Active development — one manual step pending (see Next Action)
 
 ---
 
-## What Is Done
+## Current State
 
-### 1. Chat Folders (feat/chat-folders) — Code Complete, Not Committed
-The entire chat-folders feature is implemented in the working tree but uncommitted. The plan at `docs/superpowers/plans/2026-05-11-chat-folders.md` shows 5/42 tasks checked, but the code is shipped. Files in working tree:
+### Shipped and committed
 
-- `app/models/conversation.py` — `Folder` model, `folder_id` FK on `Conversation`
-- `app/api/folders.py` — full CRUD (create, list, rename, delete)
-- `app/api/conversations.py` — list, detail, move-to-folder
-- `app/api/auth.py` — JWT signup/login/refresh/logout/me
-- `frontend/` — full React 18 + Vite + TypeScript SPA
-  - Sidebar with folder tree, drag-and-drop, context menu
-  - SourcesDrawer (right panel, ingest + source selection)
-  - ChatPanel with SSE streaming and filter chips
-- `app/static/index.html` — updated SPA entry point
+- **Chat folders** — `Folder` model, `app/api/folders.py` CRUD, `app/api/conversations.py`
+  (list/detail/move), full React 18 + Vite + TS SPA in `frontend/`. Committed.
+- **Auth** — JWT signup/login/refresh/logout/me with bcrypt and refresh-token rotation.
+- **MCP stdio server** — `app/mcp_server.py` exposing `query_documents`, `ingest_document`,
+  `list_documents`. Spec + plan in `docs/superpowers/`. Committed `bcbb640`…`a281bcb`.
+- **Chat history reaches the agent** (`98b030e`) — `conversation_history` is now on
+  `AgentState`; planner and synthesizer format the last 10 messages into their prompts.
+- **Ingestion idempotency** (`98b030e`) — deterministic `uuid5` source IDs from content
+  hash (PDF) / canonical URL (web) / video ID (YouTube).
+- **Docker fixes** — dependency ranges loosened (`dd8043b`), host ports moved to
+  8081/5433 to avoid local conflicts (`a1cb13d`).
 
-**Nothing is committed.** All changes are unstaged.
+### Repo hygiene (2026-07-28)
+
+- `postgres_data/` and `qdrant_data/` removed from git and gitignored. Both still exist
+  on disk and are still bind-mounted by `docker-compose.yml` — local DBs are unaffected.
+- Branch history rewritten with `git filter-repo` to purge those blobs. Verified
+  tree-identical to the pre-rewrite tip (`e963dce…`), all 30 commits preserved.
+  Old tip `c874b73` → new tip `bee1cf6`.
+- Ruff added as the lint gate (`pyproject.toml`), currently clean.
+- `tasks/` scaffolding created; `CLAUDE.md` now documents the session files and DoD.
 
 ---
 
-### 2. Critic Eval Harness — Layer B (Regression Guard) — COMPLETE ✓
+## Next Action (immediately actionable)
 
-**Files created:**
-- `eval/__init__.py`
-- `eval/cases.py` — `CriticCase` frozen dataclass + `CASES` (8 labeled cases)
-- `tests/test_critic_eval.py` — parametrized real-LLM guard, `@pytest.mark.eval`
-- `pytest.ini` — `eval` marker registered
+**1. Force-push the rewritten branch.** Blocked for the agent by the
+`pre-tool-use.sh` guard — run manually:
 
-**Run with:**
 ```bash
-pytest -m eval -v          # real Groq LLM, hits API
-pytest -m "not eval" -v    # normal suite, skips eval
+git push --force-with-lease=feat/chat-folders:a1cb13d89388248b35f74963c2c9a580c921dc0d \
+         origin feat/chat-folders
 ```
 
-**Last result:** 8/8 PASS
+**2. Then reclaim disk** (only after the push succeeds):
 
-**One finding logged:** `correct_admits_gaps` ("I cannot answer from context") flipped — critic rates it `poor` because its prompt defines "good" as "addresses the full query." This case was moved to `BENCHMARK_CASES` (Layer A). It reveals a real design tension: the critic can't distinguish appropriate "no context" from a poor answer.
+```bash
+git branch -D backup/pre-filter-repo
+git fetch --prune && git reflog expire --expire=now --all && git gc --prune=now --aggressive
+```
 
-**Spec:** `docs/superpowers/specs/2026-05-28-critic-eval-harness-design.md`
-**Plan:** `docs/superpowers/plans/2026-05-28-critic-eval-harness.md`
+Expect `.git` 48M → ~5M. **`backup/pre-filter-repo` is the only rollback path — keep it
+until the push lands.** Roll back with `git reset --hard backup/pre-filter-repo`.
 
 ---
 
-### 3. Critic Accuracy Benchmark — Layer A (Diagnostic Script) — SPEC DONE, NOT BUILT
+## Open Work
 
-**Status:** Spec written and approved. Brainstorming complete. Implementation plan NOT written. Code NOT written.
+### Critic Accuracy Benchmark — Layer A — SPEC DONE, NOT BUILT
 
-**What it is:** A standalone `python eval/benchmark.py` script (not pytest) that runs 5 ambiguous edge cases against the real Groq LLM and prints precision/recall/F1 on "poor" detection.
+Verified still unbuilt: `eval/benchmark.py` does not exist, `BENCHMARK_CASES` appears
+0 times in `eval/cases.py`.
 
-**What needs to be built:**
-1. Add `BENCHMARK_CASES` list to `eval/cases.py` (5 cases — see spec)
-2. Create `eval/benchmark.py` — `run_case()`, `_compute_metrics()`, `main()`
-
-**5 BENCHMARK_CASES to add to `eval/cases.py`:**
+Standalone `python eval/benchmark.py` (not pytest) running 5 ambiguous edge cases against
+real Groq, printing precision/recall/F1 on "poor" detection.
 
 | Label | Expected | Why borderline |
 |---|---|---|
 | `correct_admits_gaps` | good | Critic over-fires on "I don't know from context" |
-| `hedged_but_correct` | good | Correct facts but uncertainty language triggers critic |
-| `partially_addresses_multipart` | poor | Strategy answered but specific numbers omitted |
-| `correct_but_terse` | good | One-sentence correct answer, critic may want depth |
+| `hedged_but_correct` | good | Correct facts, uncertainty language trips the critic |
+| `partially_addresses_multipart` | poor | Strategy answered, specific numbers omitted |
+| `correct_but_terse` | good | One-sentence correct answer; critic may want depth |
 | `admits_gaps_with_partial_answer` | good | Half answered + honest gap admission |
 
-**IMPORTANT framing (baked into the spec):**
-- N=5 is a seed dataset, not a statistically meaningful benchmark. A single flip = 33pt precision swing.
-- Dataset is stacked toward the critic's known failure mode (over-firing on hedged/partial answers).
-- Output labels metrics as `Precision (edge cases)` not just `Precision`.
-- Footer note: "Expand to 20–30 cases before quoting these numbers externally."
+Framing baked into the spec: N=5 is a seed dataset, not a benchmark — one flip = 33pt
+precision swing. Label output `Precision (edge cases)`. Footer: "Expand to 20–30 cases
+before quoting externally."
 
 **Spec:** `docs/superpowers/specs/2026-05-28-critic-benchmark-design.md`
+**To continue:** invoke `writing-plans` on the spec, then implement.
 
-**To continue:** invoke `writing-plans` skill with the spec, then implement.
+### Other
 
----
-
-## Open Question: Resume/Interview Bullet
-
-Draft in discussion:
-> "Architected a 5-node LangGraph pipeline (Planner, Retriever, Synthesizer, Grounding, Critic) with bounded critic-feedback retry loops — an evaluator-optimizer pattern that measurably lifted weak-answer quality on a [X]-question eval set."
-
-**The gap:** "Measurably lifted" requires a before/after measurement that hasn't been done. The eval harness measures *critic accuracy*, not *end-to-end quality lift*.
-
-**Two options:**
-1. **Use today (safe):** "...built a 13-case regression and diagnostic harness to validate critic accuracy" — honest, no lift claim needed.
-2. **Use after one experiment:** Run 20 "poor" queries with critic loop disabled vs enabled, count improvements. Then `[X]` = that count and the lift claim is honest.
+- **Fix the FastAPI↔Starlette clash** — 16 tests fail at collection. Pin a compatible
+  pair and rebuild the venv. This also fixes the broken-path venv (see below).
+- **Chat-folders plan checkboxes** — `2026-05-11-chat-folders.md` shows 5/42 checked
+  though the code shipped. Check off or archive.
+- **`scripts/` lint debt** — 22 findings, currently excluded in `pyproject.toml`.
+- **Ingestion has no version cleanup** — re-ingesting a shorter document orphans tail
+  chunks.
 
 ---
 
-## What To Do Next (In Order)
-
-1. **Commit all uncommitted work** — the working tree has months of work unstaged
-2. **Build Layer A** — invoke `writing-plans` on `2026-05-28-critic-benchmark-design.md`, implement `BENCHMARK_CASES` + `eval/benchmark.py`, run it
-3. **Decide on resume bullet** — either use the safe version now or run the quality-lift experiment
-4. **Update chat-folders plan checkboxes** — `2026-05-11-chat-folders.md` shows 5/42 checked but code is shipped; either check them off or archive the plan
-
----
-
-## Key Files Reference
-
-```
-eval/
-├── __init__.py
-└── cases.py              ← CASES (8, guard) + BENCHMARK_CASES (5, to add)
-
-tests/
-└── test_critic_eval.py   ← regression guard
-
-docs/superpowers/
-├── specs/
-│   ├── 2026-05-28-critic-eval-harness-design.md    ← Layer B spec
-│   └── 2026-05-28-critic-benchmark-design.md        ← Layer A spec (approved)
-└── plans/
-    ├── 2026-05-11-chat-folders.md                   ← folders plan (code done, boxes unchecked)
-    └── 2026-05-28-critic-eval-harness.md            ← Layer B plan (complete)
-```
-
----
-
-## Running Things
+## Verification Baseline
 
 ```bash
-source venv/bin/activate
+venv/bin/python -m ruff check .              # clean — must stay clean
+venv/bin/python -m pytest -m "not eval" -q   # 45 passed, 4 failed, 12 errors
+```
 
-# Normal test suite (no LLM calls)
-pytest -m "not eval" -v
+The 4 failures + 12 errors are all `TypeError: Router.__init__() got an unexpected
+keyword argument 'on_startup'` — a FastAPI/Starlette version clash introduced when
+`dd8043b` loosened the pins. **Not application bugs.** Diff against this baseline before
+concluding you caused a regression.
 
-# Critic regression guard (real Groq API)
-pytest -m eval -v
+**`source venv/bin/activate` is broken** — the venv was built at
+`/Users/divyanshu/Desktop/FDE_Projects/docchat` and the project moved. Activation
+silently resolves to anaconda; `venv/bin/pip` and `venv/bin/pytest` fail with
+`bad interpreter`. Use `venv/bin/python -m <tool>`. Full detail in `tasks/lessons.md`.
 
-# Critic benchmark diagnostic (once built)
-python eval/benchmark.py
+---
 
-# Dev server
-uvicorn app.main:app --reload
+## In-Flight Files
 
-# Full stack
-docker compose up --build
+None — working tree is clean apart from this documentation work.
+
+---
+
+## Open Questions
+
+**Resume/interview bullet.** Draft:
+
+> "Architected a 5-node LangGraph pipeline (Planner, Retriever, Synthesizer, Grounding,
+> Critic) with bounded critic-feedback retry loops — an evaluator-optimizer pattern that
+> measurably lifted weak-answer quality on a [X]-question eval set."
+
+The gap: "measurably lifted" needs a before/after measurement nobody has run. The eval
+harness measures *critic accuracy*, not *end-to-end quality lift*. Either:
+
+1. **Safe today:** "...built a 13-case regression and diagnostic harness to validate
+   critic accuracy" — honest, no lift claim.
+2. **After one experiment:** run 20 "poor" queries with the critic loop disabled vs.
+   enabled, count improvements; `[X]` becomes that count and the claim is honest.
+
+---
+
+## Key Files
+
+```
+app/agent/           planner · retriever · synthesizer · grounding · critic
+app/api/             auth · chat · ingest · folders · conversations
+app/services/        ingestion/{pdf,youtube,web}.py · llm.py · embedder.py
+eval/cases.py        CASES (8, regression guard) + BENCHMARK_CASES (5, to add)
+tasks/               todo.md · lessons.md · agent_memory.md
+docs/superpowers/    specs/ · plans/
+pyproject.toml       ruff config
+RESOLVER.md          keyword → skill routing table
 ```
