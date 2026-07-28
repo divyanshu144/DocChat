@@ -46,7 +46,7 @@ async def ingest_youtube_endpoint(req: UrlRequest):
     try:
         source_id = await ingest_youtube(req.url)
     except Exception as exc:
-        raise HTTPException(400, str(exc))
+        raise HTTPException(400, str(exc)) from exc
     return IngestResponse(source_id=source_id, message=f"Ingested YouTube: {req.url}")
 
 
@@ -55,7 +55,7 @@ async def ingest_web_endpoint(req: UrlRequest):
     try:
         source_id = await ingest_web(req.url)
     except Exception as exc:
-        raise HTTPException(400, str(exc))
+        raise HTTPException(400, str(exc)) from exc
     return IngestResponse(source_id=source_id, message=f"Ingested web: {req.url}")
 
 

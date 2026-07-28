@@ -187,7 +187,7 @@ async def ingest_pdf(file_path: "str | Path", filename: str, content_type: str) 
     points: list[PointStruct] = []
     now = datetime.now(timezone.utc).isoformat()
 
-    for i, (chunk, emb) in enumerate(zip(raw_chunks, embeddings)):
+    for i, (chunk, emb) in enumerate(zip(raw_chunks, embeddings, strict=True)):
         if emb is None:
             continue
         point_id = str(_uuid.uuid5(_uuid.NAMESPACE_DNS, f"{source_id}_{i}"))

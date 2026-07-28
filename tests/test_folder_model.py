@@ -1,4 +1,3 @@
-import pytest
 from sqlalchemy import inspect
 from app.models.conversation import Folder, Conversation
 

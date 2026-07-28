@@ -1,0 +1,30 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = [
+    "venv",
+    "frontend",
+    "app/static",
+    "postgres_data",
+    "qdrant_data",
+    # Pre-existing ad-hoc tooling, 22 outstanding findings. Not part of the
+    # gate yet — clean it up before removing this line.
+    "scripts",
+]
+
+[tool.ruff.lint]
+# Conservative baseline: pycodestyle errors (E), pyflakes (F), bugbear (B).
+# Deliberately NOT enabling I/UP yet — import re-sorting and syntax rewrites
+# would churn every file and destroy git blame on an in-flight branch.
+select = ["E4", "E7", "E9", "F", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection idiom is function-calls-in-defaults by design.
+# Without this, B008 fires on every `Depends(get_db)` in app/api/ (23 findings).
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.File",
+    "fastapi.Form",
+    "fastapi.Header",
+    "fastapi.Query",
+]
