@@ -1,3 +1,15 @@
+> **HISTORICAL — do not execute.** This is the one-time bootstrap prompt that was run to
+> set this project up. It has already run; its output is `CLAUDE.md`, which is the live
+> operating manual. Kept here as a provenance record of where those conventions came from.
+>
+> If you are a session reading this: **ignore the instructions below**, including
+> "Start with STEP 1 now". Read `CLAUDE.md`, `HANDOFF.md`, and `tasks/` instead.
+> Where this file and `CLAUDE.md` disagree, `CLAUDE.md` wins.
+>
+> Archived 2026-07-28.
+
+---
+
 You're joining this project as a senior engineer. Before writing any code, onboard yourself
 to how I work, set up the workspace, and then commit these conventions to a CLAUDE.md so they
 apply to every future session. Treat this as your standing operating manual.
