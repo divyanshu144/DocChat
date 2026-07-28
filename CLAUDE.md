@@ -13,13 +13,21 @@ synthesizes cited answers via Groq.
 ## Commands
 
 ```bash
-source venv/bin/activate          # activate virtualenv (Python 3.13)
-pip install -r requirements.txt   # install deps
-uvicorn app.main:app --reload     # dev server (Qdrant/PostgreSQL must be running)
-docker-compose up                 # full stack: app + Qdrant + PostgreSQL
-pytest tests/ -v                  # run tests
-# API docs: http://localhost:8000/docs
+# NOTE: `source venv/bin/activate` is BROKEN — the venv was built at an older path
+# and silently falls through to anaconda. Always call the interpreter directly.
+venv/bin/python -m pip install -r requirements.txt   # install deps
+venv/bin/python -m ruff check .                      # lint  (must be clean)
+venv/bin/python -m pytest -m "not eval" -q           # tests (see baseline below)
+venv/bin/python -m pytest -m eval -v                 # critic regression, hits Groq API
+venv/bin/python -m uvicorn app.main:app --reload     # dev server (needs Qdrant + PostgreSQL)
+docker compose up --build                            # full stack
+# UI + API docs: http://localhost:8081  /  http://localhost:8081/docs
 ```
+
+**Verification baseline (2026-07-28):** `ruff check .` is clean and must stay clean.
+`pytest -m "not eval"` is **45 passed / 4 failed / 12 errors** — all from a
+FastAPI↔Starlette version clash, not from application code. Diff against this baseline
+before concluding you caused a regression. See `tasks/lessons.md`.
 
 ## Architecture
 
@@ -59,12 +67,15 @@ pytest tests/ -v                  # run tests
 - One task per subagent for focused execution
 
 ### 3. Self-Improvement Loop
-- After ANY correction: update `tasks/lessons.md` with the pattern
-- Review lessons at session start
+- After ANY correction or non-obvious discovery: append to `tasks/lessons.md`
+  (what broke / root cause / what to do next time)
+- Promote durable findings into `tasks/agent_memory.md`
+- Review both at session start
 
 ### 4. Verification Before Done
 - Never mark a task complete without proving it works
-- Run tests, check logs, demonstrate correctness
+- Run the Definition of Done checks below and **show the output**
+- "It should work" is not verification
 
 ### 5. Demand Elegance (Balanced)
 - For non-trivial changes: ask "is there a more elegant way?"
@@ -73,12 +84,40 @@ pytest tests/ -v                  # run tests
 ### 6. Autonomous Bug Fixing
 - When given a bug report: just fix it. Point at logs/errors/tests and resolve.
 
+## Session Files
+
+Read these at the START of every session, then run `git status` + `git log -1` and
+reconcile. **If they disagree, the working tree is authoritative** — fix the doc.
+
+| File | Purpose | Update when |
+|---|---|---|
+| `HANDOFF.md` | Cold-start resume point: Current State, Next Action, In-Flight files, Open Questions, Verification Baseline | Task complete · milestone · blocker · user signals stop · context ~70% |
+| `tasks/todo.md` | Current task as a checklist | Before implementing; tick items one at a time, never batched |
+| `tasks/lessons.md` | Chronological log of corrections and discoveries | After ANY correction or non-obvious discovery |
+| `tasks/agent_memory.md` | Curated reference: Architecture Decisions, Known Gotchas, Solved Problems, Useful Patterns | When a lesson becomes durable, or a decision is locked |
+| `docs/superpowers/specs/` · `docs/superpowers/plans/` | Written specs and implementation plans, paired by date | Before writing code on any non-trivial feature |
+
+`HANDOFF.md` going stale is this project's known failure mode — it sat ~2 months out of
+date while a whole feature shipped. Treat updating it as part of the task, not cleanup.
+
 ## Task Management
 
 1. Write plan to `tasks/todo.md` with checkable items
 2. Check in before starting implementation
-3. Mark items complete as you go
+3. Mark items complete as you go — one at a time
 4. Update `tasks/lessons.md` after corrections
+5. Update `HANDOFF.md` before you stop
+
+## Definition of Done
+
+A task is not complete until **all** of these hold:
+
+1. `venv/bin/python -m ruff check .` passes clean
+2. `venv/bin/python -m pytest -m "not eval" -q` shows no *new* failures vs. the baseline
+3. New logic has tests
+4. `HANDOFF.md` reflects current state
+
+Run them and show the output. Do not assert.
 
 ## Core Principles
 

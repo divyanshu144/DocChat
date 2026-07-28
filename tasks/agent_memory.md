@@ -1,0 +1,60 @@
+# Agent Memory
+
+Durable structured reference. Unlike `lessons.md` (chronological log), this is the
+curated current-truth view. **Locked decisions are honoured even if the code suggests
+otherwise** — if the code disagrees with a locked decision, that's a bug to raise, not
+a licence to change the decision.
+
+---
+
+## Architecture Decisions
+
+| Decision | Status | Rationale |
+|---|---|---|
+| Three separate Qdrant collections (`pdf_chunks`, `youtube_chunks`, `web_chunks`) rather than one with a `type` filter | **Locked** | Different payload schemas per source; per-source retrieval tuning |
+| Agent is a LangGraph `StateGraph`, not hand-rolled orchestration | **Locked** | Bounded critic-feedback retry loop needs explicit state machine |
+| Config only via `from app.core.config import settings` — never `os.environ` | **Locked** | Single Pydantic Settings source of truth |
+| Deterministic `uuid5` source IDs (content hash / canonical URL / video ID) | **Locked** (2026-07-02) | Re-ingesting the same input must be idempotent |
+| Ruff gate covers `app/`, `tests/`, `eval/` — `scripts/` excluded | Provisional | `scripts/` has 22 outstanding findings; clean before removing the exclusion |
+| `ruff format` NOT enforced | Provisional | Would reformat 44 files and destroy blame on an in-flight branch |
+
+---
+
+## Known Gotchas
+
+- **The venv is path-broken.** `source venv/bin/activate` silently falls through to
+  anaconda. Always `venv/bin/python -m <tool>`. See [lessons](lessons.md#2026-07-28--source-venvbinactivate-silently-does-nothing).
+- **Test baseline is not green.** 45 passed / 4 failed / 12 errors from a
+  FastAPI↔Starlette clash. Diff against this baseline, don't assume you broke it.
+- **SQLAlchemy forward refs need `TYPE_CHECKING` imports.** `Mapped["User"]` resolves at
+  runtime via the registry, but ruff F821 flags it without a `TYPE_CHECKING` import.
+- **B008 fires on every FastAPI `Depends()`.** Configured away via
+  `extend-immutable-calls` in `pyproject.toml` — do not "fix" the endpoints instead.
+- **Ingestion is upsert-only.** Re-ingesting a *shorter* document leaves orphaned
+  tail chunks; there is no version cleanup.
+- **`git push --force` is blocked** by `~/.claude/hooks/pre-tool-use.sh`. The user runs
+  force-pushes manually; don't try to route around the guard.
+
+---
+
+## Solved Problems
+
+- **Follow-up questions lost context** → `conversation_history` was loaded in `chat.py`
+  but never placed on `AgentState`. Fixed in `98b030e`; planner and synthesizer now
+  format the last 10 messages into their prompts.
+- **Refresh tokens didn't rotate** → `/auth/refresh` returned only an access token.
+  Fixed in `98b030e`: old token revoked, new pair issued, frontend stores both.
+- **Duplicate chunks on re-ingest** → `uuid4()` per ingest. Fixed in `98b030e` with
+  `uuid5` derived from stable content identity.
+
+---
+
+## Useful Patterns
+
+- **Verification baseline diffing:** before claiming a regression, `git stash` and re-run
+  to establish what was already failing.
+- **Spec → plan → implement:** specs and plans are paired by date in
+  `docs/superpowers/{specs,plans}/`. Write both before code on any non-trivial feature.
+- **Late chunking (PDF):** `_embed_chunks_late` embeds chunks with full-segment context
+  and always returns exactly `len(raw_chunks)` entries — the `zip(..., strict=True)` in
+  `ingest_pdf` documents that invariant.
