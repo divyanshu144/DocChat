@@ -23,8 +23,12 @@ a licence to change the decision.
 
 ## Known Gotchas
 
-- **The suite is fully green** — 61 passed, 0 failed. There are no known-failing tests,
+- **The suite is fully green** — 73 passed, 0 failed. There are no known-failing tests,
   so any red is yours. (Was 45/4/12 before the 2026-07-28 venv rebuild.)
+- **The critic cannot approve a correct "I can't answer from this context."** Its prompt
+  defines good as "addresses the full query", so appropriate gap-admission scores poor.
+  Measured by `eval/benchmark.py`: precision 0.33, recall 1.00 on edge cases — it
+  over-fires, it does not miss. Fixing it is a prompt change needing its own spec.
 - **`mcp` is capped below 2.0.** `app/mcp_server.py` uses `mcp.server.fastmcp.FastMCP`,
   removed in mcp 2.x. Lifting the cap requires rewriting that module.
 - **Rebuild the venv before trusting `requirements.txt`.** A long-lived venv hid two

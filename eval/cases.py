@@ -101,3 +101,72 @@ CASES: list[CriticCase] = [
         reason="Answer directly contradicts itself on the core question — self-contradictory answers cannot adequately address a query",
     ),
 ]
+
+
+# ---------------------------------------------------------------------------
+# Layer A — ambiguous edge cases for eval/benchmark.py
+#
+# Deliberately borderline: these sit near the critic's decision boundary and
+# would flap if asserted binomially, so they are NEVER imported by the Layer B
+# regression guard. `CASES` and `BENCHMARK_CASES` stay independent.
+#
+# Skewed 4 good / 1 poor on purpose — the critic's known failure mode is
+# over-firing "poor" on hedged or partial answers, so most ambiguous cases land
+# in the false-positive region.
+# ---------------------------------------------------------------------------
+
+BENCHMARK_CASES: list[CriticCase] = [
+    CriticCase(
+        label="correct_admits_gaps",
+        query="What is the internal training loss curve for BAAI/bge-small-en-v1.5?",
+        answer=(
+            "The provided context does not contain information about the training loss curve "
+            "for BAAI/bge-small-en-v1.5. I cannot answer this question from the available sources."
+        ),
+        expected="good",
+        reason="Appropriate acknowledgement of missing context — borderline because critic reads "
+               "'doesn't address query' as poor, but human expert reads it as correct RAG behavior",
+    ),
+    CriticCase(
+        label="hedged_but_correct",
+        query="What database does DocChat use to store conversations?",
+        answer=(
+            "DocChat appears to use PostgreSQL for storing conversations, though this may depend "
+            "on the specific deployment configuration. The system likely uses an async SQLAlchemy "
+            "connection, but I'm not entirely certain of the exact setup."
+        ),
+        expected="good",
+        reason="Directionally correct (PostgreSQL + SQLAlchemy) but hedged — critic may flag as "
+               "vague despite the factual content being present",
+    ),
+    CriticCase(
+        label="partially_addresses_multipart",
+        query="What chunking strategy does DocChat use for PDFs and what are the chunk size and overlap?",
+        answer=(
+            "DocChat uses LangChain's RecursiveCharacterTextSplitter, which splits text recursively "
+            "using paragraph breaks, line breaks, and sentence boundaries as separators."
+        ),
+        expected="poor",
+        reason="Correctly describes the strategy but omits the specific numbers explicitly asked "
+               "for — borderline because the strategy part IS answered",
+    ),
+    CriticCase(
+        label="correct_but_terse",
+        query="What LLM does DocChat use for generating answers?",
+        answer="DocChat uses the Groq API with the llama-3.3-70b-versatile model.",
+        expected="good",
+        reason="One sentence, directly correct — borderline because critic may expect elaboration "
+               "or flag brevity as insufficient",
+    ),
+    CriticCase(
+        label="admits_gaps_with_partial_answer",
+        query="What are the access token and refresh token expiry times in DocChat?",
+        answer=(
+            "Access tokens expire after 30 minutes. I don't have information about the refresh "
+            "token expiry time in the available context."
+        ),
+        expected="good",
+        reason="First part answered correctly, second part honestly acknowledged as missing — "
+               "borderline because the query is only half-answered",
+    ),
+]

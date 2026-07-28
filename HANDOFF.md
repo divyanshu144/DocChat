@@ -50,34 +50,46 @@
 
 ## Next Action (immediately actionable)
 
-Nothing blocking. Highest-value next task is the Layer A critic benchmark below.
+Nothing blocking. Layer A shipped 2026-07-28 and surfaced a concrete finding — the
+critic cannot represent a correct "I can't answer from this context" as good. The
+highest-value next task is the critic prompt fix described under Critic Eval below;
+it changes agent behaviour, so write a spec first.
+
+---
+
+## Critic Eval — Both Layers Complete
+
+- **Layer B (regression guard)** — `tests/test_critic_eval.py`, 8 cases, `@pytest.mark.eval`.
+- **Layer A (diagnostic)** — `eval/benchmark.py` + `BENCHMARK_CASES`, built 2026-07-28.
+
+```bash
+python eval/benchmark.py     # needs GROQ_API_KEY; always exits 0
+```
+
+**First real run — 3/5 correct.** TP=1 FP=2 FN=0 TN=2 → precision 0.33, recall 1.00,
+F1 0.50. Exactly the profile the spec predicted.
+
+Both failures were the two gap-admitting cases (`correct_admits_gaps`,
+`admits_gaps_with_partial_answer`), with the critic's own feedback confirming why:
+
+> "The answer does not provide any specific information about the internal training loss
+> curve … only stating that it is not available in the provided context."
+
+This **empirically confirms the design tension** first noted when Layer B was built: the
+critic's prompt defines "good" as *"addresses the full query"*, so a correct "I cannot
+answer from this context" is structurally unrepresentable as good. Recall 1.00 with
+precision 0.33 is the signature of a critic that over-fires rather than one that misses.
+
+Read the numbers as **edge-case precision only** — N=5, stacked toward the known failure
+mode. Expand to 20–30 cases before quoting externally.
+
+**Next step if pursuing this:** the fix is a prompt change to `app/agent/nodes/critic.py`
+carving out appropriate gap-admission from "poor", then re-running both layers. That is a
+behaviour change to the agent, so it wants its own spec.
 
 ---
 
 ## Open Work
-
-### Critic Accuracy Benchmark — Layer A — SPEC DONE, NOT BUILT
-
-Verified still unbuilt: `eval/benchmark.py` does not exist, `BENCHMARK_CASES` appears
-0 times in `eval/cases.py`.
-
-Standalone `python eval/benchmark.py` (not pytest) running 5 ambiguous edge cases against
-real Groq, printing precision/recall/F1 on "poor" detection.
-
-| Label | Expected | Why borderline |
-|---|---|---|
-| `correct_admits_gaps` | good | Critic over-fires on "I don't know from context" |
-| `hedged_but_correct` | good | Correct facts, uncertainty language trips the critic |
-| `partially_addresses_multipart` | poor | Strategy answered, specific numbers omitted |
-| `correct_but_terse` | good | One-sentence correct answer; critic may want depth |
-| `admits_gaps_with_partial_answer` | good | Half answered + honest gap admission |
-
-Framing baked into the spec: N=5 is a seed dataset, not a benchmark — one flip = 33pt
-precision swing. Label output `Precision (edge cases)`. Footer: "Expand to 20–30 cases
-before quoting externally."
-
-**Spec:** `docs/superpowers/specs/2026-05-28-critic-benchmark-design.md`
-**To continue:** invoke `writing-plans` on the spec, then implement.
 
 ### Other
 
@@ -94,7 +106,7 @@ before quoting externally."
 ```bash
 source venv/bin/activate
 ruff check .                # clean
-pytest -m "not eval" -q     # 61 passed, 0 failed
+pytest -m "not eval" -q     # 73 passed, 0 failed
 ```
 
 **Both gates are green.** There are no known-failing tests, so any red is a real
@@ -132,7 +144,8 @@ harness measures *critic accuracy*, not *end-to-end quality lift*. Either:
 app/agent/           planner · retriever · synthesizer · grounding · critic
 app/api/             auth · chat · ingest · folders · conversations
 app/services/        ingestion/{pdf,youtube,web}.py · llm.py · embedder.py
-eval/cases.py        CASES (8, regression guard) + BENCHMARK_CASES (5, to add)
+eval/cases.py        CASES (8, regression guard) + BENCHMARK_CASES (5, diagnostic)
+eval/benchmark.py    Layer A diagnostic — python eval/benchmark.py
 tasks/               todo.md · lessons.md · agent_memory.md
 docs/superpowers/    specs/ · plans/
 pyproject.toml       ruff config
