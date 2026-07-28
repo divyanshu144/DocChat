@@ -1,8 +1,8 @@
 # DocChat — Session Handoff
 
-**Branch:** `feat/chat-folders`
+**Branch:** `feat/chat-folders` (pushed, in sync with `origin`)
 **Last updated:** 2026-07-28
-**Status:** Active development — one manual step pending (see Next Action)
+**Status:** Active development — green build, no blockers
 
 ---
 
@@ -26,33 +26,31 @@
 
 - `postgres_data/` and `qdrant_data/` removed from git and gitignored. Both still exist
   on disk and are still bind-mounted by `docker-compose.yml` — local DBs are unaffected.
-- Branch history rewritten with `git filter-repo` to purge those blobs. Verified
-  tree-identical to the pre-rewrite tip (`e963dce…`), all 30 commits preserved.
-  Old tip `c874b73` → new tip `bee1cf6`.
-- Ruff added as the lint gate (`pyproject.toml`), currently clean.
+- Branch history rewritten with `git filter-repo` to purge those blobs, force-pushed,
+  and garbage-collected. Verified tree-identical to the pre-rewrite tip (`e963dce…`),
+  all 30 commits preserved. `.git` went **48M → 6.8M**; `git fsck` clean; all 6 sibling
+  worktrees still valid. The `backup/pre-filter-repo` rollback branch has been deleted —
+  the old history is gone for good.
+- Ruff added as the lint gate (`pyproject.toml`), clean.
 - `tasks/` scaffolding created; `CLAUDE.md` now documents the session files and DoD.
+
+### Environment rebuilt (2026-07-28)
+
+- **venv rebuilt from scratch.** It had been created at the project's old
+  `FDE_Projects` path, so `activate` silently fell through to anaconda. `activate`,
+  `pip`, `pytest` and `ruff` all resolve correctly now.
+- **FastAPI↔Starlette clash fixed.** The venv held `fastapi 0.104.1` against
+  `starlette 1.2.1`; a clean resolve gave `fastapi 0.140.13` + `starlette 1.3.1`.
+- **Two broken requirements found and fixed** — `mcp` capped `<2.0.0` (2.x removed
+  `mcp.server.fastmcp.FastMCP`), and `aiosqlite` declared for the first time despite
+  two test modules depending on it.
+- Suite went **45 passed / 4 failed / 12 errors → 61 passed, 0 failed.**
 
 ---
 
 ## Next Action (immediately actionable)
 
-**1. Force-push the rewritten branch.** Blocked for the agent by the
-`pre-tool-use.sh` guard — run manually:
-
-```bash
-git push --force-with-lease=feat/chat-folders:a1cb13d89388248b35f74963c2c9a580c921dc0d \
-         origin feat/chat-folders
-```
-
-**2. Then reclaim disk** (only after the push succeeds):
-
-```bash
-git branch -D backup/pre-filter-repo
-git fetch --prune && git reflog expire --expire=now --all && git gc --prune=now --aggressive
-```
-
-Expect `.git` 48M → ~5M. **`backup/pre-filter-repo` is the only rollback path — keep it
-until the push lands.** Roll back with `git reset --hard backup/pre-filter-repo`.
+Nothing blocking. Highest-value next task is the Layer A critic benchmark below.
 
 ---
 
@@ -83,8 +81,6 @@ before quoting externally."
 
 ### Other
 
-- **Fix the FastAPI↔Starlette clash** — 16 tests fail at collection. Pin a compatible
-  pair and rebuild the venv. This also fixes the broken-path venv (see below).
 - **Chat-folders plan checkboxes** — `2026-05-11-chat-folders.md` shows 5/42 checked
   though the code shipped. Check off or archive.
 - **`scripts/` lint debt** — 22 findings, currently excluded in `pyproject.toml`.
@@ -96,19 +92,13 @@ before quoting externally."
 ## Verification Baseline
 
 ```bash
-venv/bin/python -m ruff check .              # clean — must stay clean
-venv/bin/python -m pytest -m "not eval" -q   # 45 passed, 4 failed, 12 errors
+source venv/bin/activate
+ruff check .                # clean
+pytest -m "not eval" -q     # 61 passed, 0 failed
 ```
 
-The 4 failures + 12 errors are all `TypeError: Router.__init__() got an unexpected
-keyword argument 'on_startup'` — a FastAPI/Starlette version clash introduced when
-`dd8043b` loosened the pins. **Not application bugs.** Diff against this baseline before
-concluding you caused a regression.
-
-**`source venv/bin/activate` is broken** — the venv was built at
-`/Users/divyanshu/Desktop/FDE_Projects/docchat` and the project moved. Activation
-silently resolves to anaconda; `venv/bin/pip` and `venv/bin/pytest` fail with
-`bad interpreter`. Use `venv/bin/python -m <tool>`. Full detail in `tasks/lessons.md`.
+**Both gates are green.** There are no known-failing tests, so any red is a real
+regression — don't dismiss one as pre-existing without diffing against a stash.
 
 ---
 

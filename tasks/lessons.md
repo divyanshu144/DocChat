@@ -5,6 +5,20 @@ Format: **what broke** / **root cause** / **what to do next time**.
 
 ---
 
+## 2026-07-28 — RESOLVED: venv rebuilt, dependency clash fixed, suite fully green
+
+Both issues below were fixed later the same day by rebuilding the venv from scratch
+(`python3.13 -m venv venv` + `pip install -r requirements.txt`). Kept for the reasoning.
+
+Resolution: `fastapi 0.104.1` → `0.140.13` against `starlette 1.3.1`, and a corrected
+`activate` path. Baseline went **45 passed / 4 failed / 12 errors → 61 passed, 0 failed**.
+
+The rebuild also surfaced two undeclared/mis-declared dependencies that a fresh
+`pip install -r requirements.txt` would always have got wrong — see the entry at the
+bottom of this file.
+
+---
+
 ## 2026-07-28 — `source venv/bin/activate` silently does nothing
 
 **What broke:** Ran `source venv/bin/activate && pytest`. Tests failed with
@@ -52,3 +66,25 @@ permanently noisy and `.git` had grown to 47M.
 
 **What to do next time:** Any new bind-mount target in `docker-compose.yml` gets a
 `.gitignore` entry in the same commit that introduces it.
+
+---
+
+## 2026-07-28 — A long-lived venv was hiding two broken requirements
+
+**What broke:** Rebuilding the venv from `requirements.txt` produced a suite that failed
+in two *new* ways the old venv never showed: `No module named 'mcp.server.fastmcp'`, then
+`No module named 'aiosqlite'`.
+
+**Root cause:** The old venv had accumulated correct-by-accident packages over months.
+`requirements.txt` was wrong in two places and nobody noticed because nobody reinstalled:
+
+1. `mcp>=1.27.0` was unbounded, so a clean resolve pulled `mcp 2.0.0`, which removed
+   `mcp.server.fastmcp.FastMCP` — the API `app/mcp_server.py` is written against.
+2. `aiosqlite` was never declared at all, despite `tests/test_models.py` and
+   `tests/test_api_auth.py` both using `sqlite+aiosqlite:///:memory:`. It was present in
+   the old venv as a leftover.
+
+**What to do next time:** A passing suite in a long-lived venv is not evidence that
+`requirements.txt` is correct — it only proves *that machine* works. Rebuild from a clean
+venv before trusting the dependency list, and cap any dependency whose major version
+would break an API the code calls directly.

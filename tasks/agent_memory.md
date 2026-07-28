@@ -17,15 +17,18 @@ a licence to change the decision.
 | Deterministic `uuid5` source IDs (content hash / canonical URL / video ID) | **Locked** (2026-07-02) | Re-ingesting the same input must be idempotent |
 | Ruff gate covers `app/`, `tests/`, `eval/` — `scripts/` excluded | Provisional | `scripts/` has 22 outstanding findings; clean before removing the exclusion |
 | `ruff format` NOT enforced | Provisional | Would reformat 44 files and destroy blame on an in-flight branch |
+| `mcp` pinned `<2.0.0` | **Locked** (2026-07-28) | `mcp.server.fastmcp.FastMCP` was removed in 2.x; unpinning silently breaks the MCP server |
 
 ---
 
 ## Known Gotchas
 
-- **The venv is path-broken.** `source venv/bin/activate` silently falls through to
-  anaconda. Always `venv/bin/python -m <tool>`. See [lessons](lessons.md#2026-07-28--source-venvbinactivate-silently-does-nothing).
-- **Test baseline is not green.** 45 passed / 4 failed / 12 errors from a
-  FastAPI↔Starlette clash. Diff against this baseline, don't assume you broke it.
+- **The suite is fully green** — 61 passed, 0 failed. There are no known-failing tests,
+  so any red is yours. (Was 45/4/12 before the 2026-07-28 venv rebuild.)
+- **`mcp` is capped below 2.0.** `app/mcp_server.py` uses `mcp.server.fastmcp.FastMCP`,
+  removed in mcp 2.x. Lifting the cap requires rewriting that module.
+- **Rebuild the venv before trusting `requirements.txt`.** A long-lived venv hid two
+  broken requirements for months. See [lessons](lessons.md).
 - **SQLAlchemy forward refs need `TYPE_CHECKING` imports.** `Mapped["User"]` resolves at
   runtime via the registry, but ruff F821 flags it without a `TYPE_CHECKING` import.
 - **B008 fires on every FastAPI `Depends()`.** Configured away via

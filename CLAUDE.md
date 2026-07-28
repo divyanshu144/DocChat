@@ -13,21 +13,20 @@ synthesizes cited answers via Groq.
 ## Commands
 
 ```bash
-# NOTE: `source venv/bin/activate` is BROKEN — the venv was built at an older path
-# and silently falls through to anaconda. Always call the interpreter directly.
-venv/bin/python -m pip install -r requirements.txt   # install deps
-venv/bin/python -m ruff check .                      # lint  (must be clean)
-venv/bin/python -m pytest -m "not eval" -q           # tests (see baseline below)
-venv/bin/python -m pytest -m eval -v                 # critic regression, hits Groq API
-venv/bin/python -m uvicorn app.main:app --reload     # dev server (needs Qdrant + PostgreSQL)
-docker compose up --build                            # full stack
+source venv/bin/activate          # Python 3.13 virtualenv
+pip install -r requirements.txt   # install deps
+ruff check .                      # lint  (must be clean)
+pytest -m "not eval" -q           # tests  (must be fully green)
+pytest -m eval -v                 # critic regression, hits the real Groq API
+uvicorn app.main:app --reload     # dev server (needs Qdrant + PostgreSQL)
+docker compose up --build         # full stack
 # UI + API docs: http://localhost:8081  /  http://localhost:8081/docs
 ```
 
-**Verification baseline (2026-07-28):** `ruff check .` is clean and must stay clean.
-`pytest -m "not eval"` is **45 passed / 4 failed / 12 errors** — all from a
-FastAPI↔Starlette version clash, not from application code. Diff against this baseline
-before concluding you caused a regression. See `tasks/lessons.md`.
+**Verification baseline (2026-07-28):** both gates are green — `ruff check .` clean,
+`pytest -m "not eval"` **61 passed, 0 failed**. There are no known-failing tests, so
+*any* red is a real regression you introduced. Do not rationalise a failure as
+pre-existing without diffing against a stash.
 
 ## Architecture
 
@@ -112,8 +111,8 @@ date while a whole feature shipped. Treat updating it as part of the task, not c
 
 A task is not complete until **all** of these hold:
 
-1. `venv/bin/python -m ruff check .` passes clean
-2. `venv/bin/python -m pytest -m "not eval" -q` shows no *new* failures vs. the baseline
+1. `ruff check .` passes clean
+2. `pytest -m "not eval" -q` is fully green — 61 passed, 0 failed
 3. New logic has tests
 4. `HANDOFF.md` reflects current state
 
