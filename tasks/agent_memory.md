@@ -27,8 +27,14 @@ a licence to change the decision.
   so any red is yours. (Was 45/4/12 before the 2026-07-28 venv rebuild.)
 - **The critic cannot approve a correct "I can't answer from this context."** Its prompt
   defines good as "addresses the full query", so appropriate gap-admission scores poor.
-  Measured by `eval/benchmark.py`: precision 0.33, recall 1.00 on edge cases — it
+  Measured by `eval/benchmark.py`: recall 1.00, precision 0.25–0.33 on edge cases — it
   over-fires, it does not miss. Fixing it is a prompt change needing its own spec.
+- **`eval/benchmark.py` is NOT reproducible run-to-run.** Nothing sets `temperature`, so
+  every node samples at the provider default. Back-to-back runs of the identical build
+  scored 3/5 (P=0.33) then 2/5 (P=0.25). At N=5 one flip moves precision ~8 points, so
+  **a single run cannot support an A/B comparison between models or providers.** Pin
+  `temperature=0` for the classification nodes (critic, planner) before comparing
+  anything, and average several runs.
 - **`mcp` is capped below 2.0.** `app/mcp_server.py` uses `mcp.server.fastmcp.FastMCP`,
   removed in mcp 2.x. Lifting the cap requires rewriting that module.
 - **Rebuild the venv before trusting `requirements.txt`.** A long-lived venv hid two

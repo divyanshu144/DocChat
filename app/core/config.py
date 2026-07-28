@@ -1,5 +1,7 @@
 from pathlib import Path
 from functools import lru_cache
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -17,8 +19,16 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://docchat:docchat@localhost:5432/docchat"
 
     # LLM
+    # Which backend `app.services.llm` talks to. Per-provider model names are kept
+    # separate so switching providers is a one-variable change, not two.
+    llm_provider: Literal["groq", "mistral"] = "groq"
+
     groq_api_key: str = ""
-    chat_model: str = "llama-3.3-70b-versatile"
+    chat_model: str = "llama-3.3-70b-versatile"   # used when llm_provider="groq"
+
+    mistral_api_key: str = ""
+    mistral_chat_model: str = "mistral-small-latest"  # used when llm_provider="mistral"
+
     chat_history_limit: int = 10
 
     # Embeddings

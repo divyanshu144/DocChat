@@ -89,6 +89,40 @@ behaviour change to the agent, so it wants its own spec.
 
 ---
 
+## LLM Provider Seam (2026-07-29)
+
+`app/services/llm.py` is now provider-agnostic. Switching backends is a config change:
+
+```bash
+LLM_PROVIDER=groq       # default; uses CHAT_MODEL + GROQ_API_KEY
+LLM_PROVIDER=mistral    # uses MISTRAL_CHAT_MODEL + MISTRAL_API_KEY
+```
+
+Per-provider model names are separate settings, so switching provider is one variable,
+not two. SDKs are imported lazily — an unused provider's package is never loaded. The
+agent nodes are untouched; they still call `chat_complete` / `chat_stream`.
+
+**Purpose:** run the same eval suite against two backends and compare. Groq remains the
+production default; nothing changes until `LLM_PROVIDER` is set.
+
+**Mistral path is verified structurally, not live** — client construction and method
+surface are asserted against the real SDK (mistralai 2.8.0), but no request has been made
+against the Mistral API. Set `MISTRAL_API_KEY` and run `python eval/benchmark.py` to
+exercise it for real.
+
+### Blocker for any A/B comparison
+
+Nothing sets `temperature`, so every node samples at the provider default.
+Two back-to-back runs of the *identical* build scored 3/5 (P=0.33) then 2/5 (P=0.25).
+At N=5 a single flip moves precision ~8 points — **the noise currently exceeds the
+signal you'd be measuring.** Before comparing providers or a fine-tuned model:
+
+1. Pin `temperature=0` for the classification nodes (critic, planner).
+2. Average several runs rather than trusting one.
+3. Expand the dataset — N=5 is a seed, as the spec says.
+
+---
+
 ## Open Work
 
 ### Other

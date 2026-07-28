@@ -5,28 +5,32 @@ not batched. Clear this file when a task ships; history lives in git, not here.
 
 ---
 
-## Critic Accuracy Benchmark (Layer A) — SHIPPED 2026-07-28
+## LLM provider seam — SHIPPED 2026-07-29
 
-Spec: `docs/superpowers/specs/2026-05-28-critic-benchmark-design.md` (approved)
-Plan: spec was implementation-ready — functions, metrics and report format all
-specified, so no separate plan file was written.
+Step 1 of the Mistral fine-tuning track. Goal is A/B-ability, not migration:
+Groq stays the production default.
 
-- [x] Add `BENCHMARK_CASES: list[CriticCase]` to `eval/cases.py` (5 cases, below `CASES`)
-- [x] Create `eval/benchmark.py` — `run_case()`, `_compute_metrics()`, `main()`
-- [x] Metrics: positive class is `"poor"`; N/A on zero denominators
-- [x] Report matches the spec's format, `[FAIL]` lines carry critic feedback
-- [x] Exits 0 regardless of score — verified exit code 0
+- [x] `llm_provider` setting (`Literal["groq","mistral"]`, defaults to groq)
+- [x] Per-provider model settings so switching provider is one variable, not two
+- [x] `_build_client` with lazy SDK imports — unused provider's package never loads
+- [x] Client cache keyed by provider so flipping at runtime rebuilds
+- [x] `_text()` normaliser — Mistral content can be typed chunks, not just `str`
+- [x] Mistral coded against the *real* SDK surface (inspected mistralai 2.8.0), not a guess
+- [x] Tests: dispatch, model selection, cache rebuild, unknown provider, normalisation
 - [x] Verify: `ruff check .` clean
-- [x] Verify: `pytest -m "not eval" -q` → 73 passed (61 + 12 new metric tests)
-- [x] Verify: ran `python eval/benchmark.py` against real Groq — 3/5, P=0.33 R=1.00 F1=0.50
-- [x] Update `HANDOFF.md` — Layer A moved out of Open Work
-
-**Deviation from spec:** added `tests/test_benchmark_metrics.py` (not in the spec).
-The DoD requires new logic to have tests and `_compute_metrics` is pure, so it is
-cheap to cover and would otherwise only ever be exercised by a paid LLM run.
+- [x] Verify: `pytest -m "not eval" -q` → 87 passed (73 + 14 new)
+- [x] Verify: both clients construct against real SDKs; live Groq run through new seam
 
 ---
 
-## Current Task
+## Next Task — blocking the A/B
 
-_None active._
+The seam alone does not enable a provider comparison. `eval/benchmark.py` is not
+reproducible: nothing sets `temperature`, and identical builds scored 3/5 then 2/5.
+
+- [ ] Pin `temperature=0` for the classification nodes (critic, planner)
+- [ ] Re-run the benchmark several times; confirm it is now stable
+- [ ] Only then compare Groq vs Mistral
+
+Leaving the synthesizer's temperature alone is probably right — determinism matters
+for classification, less so for prose. Worth a deliberate decision, not a default.
