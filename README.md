@@ -86,6 +86,32 @@ Ingest (PDF / YouTube / Web)
 
 ---
 
+## Evaluation posture
+
+This project is built to be judged on more than a happy-path demo:
+
+| Criterion | Evidence in the repo |
+|---|---|
+| Working document Q&A | End-to-end ingestion, vector search, cited synthesis, source filters, persisted conversations, and SSE streaming. |
+| Trust and product UX | Inline citation chips, per-answer citation coverage, active corpus/collection scope in the composer, source drawer, folders, and conversation continuity. |
+| Engineering quality | FastAPI/LangGraph module boundaries, typed React components, JWT refresh flow, Docker Compose, Qdrant/PostgreSQL separation, ruff + pytest gates, and benchmark/eval scripts. |
+| Observability | LangSmith tracing when configured, health endpoint, structured eval output, and source/citation state visible in the UI. |
+
+Current local verification baseline:
+
+```bash
+venv/bin/python -m ruff check .
+venv/bin/python -m pytest -m "not eval" -q   # 109 passed, 8 deselected
+```
+
+The critic benchmark is intentionally separate because it hits the live LLM:
+
+```bash
+venv/bin/python eval/benchmark.py
+```
+
+---
+
 ## Project structure
 
 ```
@@ -318,12 +344,17 @@ All settings load from environment variables or a `.env` file.
 
 | Variable | Default | Description |
 |---|---|---|
-| `GROQ_API_KEY` | *(required)* | Groq API key |
+| `LLM_PROVIDER` | `groq` | Chat provider: `groq`, `openai`, or `mistral` |
+| `FALLBACK_LLM_PROVIDER` | `openai` | Cross-provider fallback for retryable Groq failures; requires `OPENAI_API_KEY` |
+| `GROQ_API_KEY` | *(required for Groq)* | Groq API key |
+| `OPENAI_API_KEY` | *(required for OpenAI)* | OpenAI API key |
 | `JWT_SECRET_KEY` | *(required)* | Secret for signing JWTs — use a long random string |
 | `DATABASE_URL` | `postgresql+asyncpg://docchat:docchat@localhost:5432/docchat` | SQLAlchemy async DSN |
 | `QDRANT_HOST` | `localhost` | Qdrant host (use `qdrant` inside Docker Compose) |
 | `QDRANT_PORT` | `6333` | Qdrant REST port |
 | `CHAT_MODEL` | `llama-3.3-70b-versatile` | Groq model ID |
+| `GROQ_FALLBACK_CHAT_MODEL` | *(empty)* | Optional same-provider Groq fallback before cross-provider fallback |
+| `OPENAI_CHAT_MODEL` | `gpt-5.6-luna` | OpenAI model ID |
 | `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | fastembed model name |
 | `EMBEDDING_DIM` | `384` | Vector dimension (must match the embedding model) |
 | `RETRIEVAL_MIN_SCORE` | `0.3` | Minimum cosine similarity for retrieved chunks |

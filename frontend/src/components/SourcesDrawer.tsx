@@ -9,6 +9,15 @@ interface Props {
   onSelectionChange: (ids: Set<string>) => void;
 }
 
+interface IngestJob {
+  job_id: string;
+  status: 'queued' | 'running' | 'done' | 'error';
+  phase: string;
+  message: string;
+  source_id?: string | null;
+  error?: string | null;
+}
+
 function formatWhen(s: Source): string {
   const raw = s.ingested_at ?? s.scraped_at;
   if (!raw) return '';
@@ -60,17 +69,38 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
   }
 
   async function ingestPdf(file: File) {
-    setPdfFeedback({ msg: 'Ingesting…', cls: 'busy' });
+    setPdfFeedback({ msg: `Queued ${file.name}`, cls: 'busy' });
     const fd = new FormData();
     fd.append('file', file);
     try {
-      const res = await apiFetch('/ingest/pdf', { method: 'POST', body: fd });
-      const d = await res.json() as { message?: string; detail?: string };
-      if (res.ok) {
-        setPdfFeedback({ msg: d.message ?? 'Ingested successfully', cls: 'ok' });
-        loadSources();
-      } else {
+      const res = await apiFetch('/ingest/pdf/jobs', { method: 'POST', body: fd });
+      const d = await res.json() as IngestJob & { detail?: string };
+      if (!res.ok) {
         setPdfFeedback({ msg: d.detail ?? 'Error', cls: 'err' });
+        return;
+      }
+
+      let done = false;
+      while (!done) {
+        await new Promise(resolve => setTimeout(resolve, 700));
+        const statusRes = await apiFetch(`/ingest/jobs/${d.job_id}`);
+        const job = await statusRes.json() as IngestJob & { detail?: string };
+        if (!statusRes.ok) {
+          setPdfFeedback({ msg: job.detail ?? 'Could not read ingest status', cls: 'err' });
+          return;
+        }
+
+        if (job.status === 'done') {
+          setPdfFeedback({ msg: job.message || 'Ingested successfully', cls: 'ok' });
+          done = true;
+          loadSources();
+        } else if (job.status === 'error') {
+          setPdfFeedback({ msg: job.error || job.message || 'Ingest failed', cls: 'err' });
+          done = true;
+        } else {
+          const phase = job.phase ? `${job.phase}: ` : '';
+          setPdfFeedback({ msg: `${phase}${job.message}`, cls: 'busy' });
+        }
       }
     } catch {
       setPdfFeedback({ msg: 'Network error', cls: 'err' });

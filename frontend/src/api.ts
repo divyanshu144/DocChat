@@ -77,8 +77,12 @@ export async function apiJson<T>(path: string, options: RequestInit = {}): Promi
 
 export interface SseResult {
   conversationId: string | null;
-  stream: AsyncGenerator<string>;
+  stream: AsyncGenerator<SseEvent>;
 }
+
+export type SseEvent =
+  | { type: 'status'; data: string }
+  | { type: 'token'; data: string };
 
 export async function ssePost(path: string, body: unknown): Promise<SseResult> {
   const res = await apiFetch(path, {
@@ -92,10 +96,11 @@ export async function ssePost(path: string, body: unknown): Promise<SseResult> {
   }
   const conversationId = res.headers.get('X-Conversation-Id');
 
-  async function* readStream(): AsyncGenerator<string> {
+  async function* readStream(): AsyncGenerator<SseEvent> {
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
     let buf = '';
+    let eventType = 'token';
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -103,12 +108,22 @@ export async function ssePost(path: string, body: unknown): Promise<SseResult> {
       const lines = buf.split('\n');
       buf = lines.pop() ?? '';
       for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim();
+          continue;
+        }
         if (line.startsWith('data: ')) {
           const data = line.slice(6);          // keep trailing space — it's the word separator
           const trimmed = data.trimEnd();
           if (trimmed === '[DONE]') return;
+          if (eventType === 'error') throw new Error(trimmed || 'Stream error');
           if (trimmed === '[ERROR]') throw new Error('Stream error');
-          yield data;
+          if (eventType === 'status') {
+            yield { type: 'status', data: trimmed };
+          } else {
+            yield { type: 'token', data };
+          }
+          eventType = 'token';
         }
       }
     }

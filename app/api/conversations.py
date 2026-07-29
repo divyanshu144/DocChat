@@ -57,7 +57,9 @@ async def get_conversation(
 ):
     conv = await _get_owned_conversation(conv_id, db, current_user)
     msgs_result = await db.execute(
-        select(Message).where(Message.conversation_id == conv_id).order_by(Message.created_at)
+        select(Message)
+        .where(Message.conversation_id == conv_id)
+        .order_by(Message.created_at, Message.id)
     )
     msgs = msgs_result.scalars().all()
     return {
@@ -66,7 +68,7 @@ async def get_conversation(
         "folder_id": conv.folder_id,
         "created_at": conv.created_at,
         "messages": [
-            {"role": m.role.value, "content": m.content, "created_at": m.created_at}
+            {"id": m.id, "role": m.role.value, "content": m.content, "created_at": m.created_at}
             for m in msgs
         ],
     }

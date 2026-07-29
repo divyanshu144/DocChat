@@ -3,6 +3,7 @@ import hashlib
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Callable
 
 import uuid as _uuid
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
@@ -165,23 +166,41 @@ def _embed_chunks_late(raw_chunks: list[dict], segments: list[_Segment], embedde
     return results
 
 
-async def ingest_pdf(file_path: "str | Path", filename: str, content_type: str) -> str:
+ProgressCallback = Callable[[str, str], None]
+
+
+async def ingest_pdf(
+    file_path: "str | Path",
+    filename: str,
+    content_type: str,
+    progress: ProgressCallback | None = None,
+) -> str:
     """Extract, chunk, embed, and store a document in Qdrant. Returns source_id."""
     loop = asyncio.get_running_loop()
+    if progress:
+        progress("hashing", "Reading file")
     content_hash = await loop.run_in_executor(None, _file_sha256, file_path)
     source_id = _source_id_from_content_hash(content_hash)
 
+    if progress:
+        progress("extracting", "Extracting text")
     segments = await loop.run_in_executor(None, _extract_segments, file_path, content_type)
+    if progress:
+        progress("chunking", f"Chunking {len(segments)} segments")
     raw_chunks = await loop.run_in_executor(None, _chunk_segments, segments)
 
     embedder = get_embedder()
     if embedder:
+        if progress:
+            progress("embedding", f"Embedding {len(raw_chunks)} chunks")
         embeddings = await loop.run_in_executor(
             None, _embed_chunks_late, raw_chunks, segments, embedder
         )
     else:
         embeddings = [None] * len(raw_chunks)
 
+    if progress:
+        progress("indexing", "Indexing chunks")
     get_qdrant_collection(COLLECTION)
     client = get_qdrant_client()
     points: list[PointStruct] = []

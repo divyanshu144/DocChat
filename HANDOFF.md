@@ -1,8 +1,8 @@
 # DocChat — Session Handoff
 
-**Branch:** `feat/chat-folders` (pushed, in sync with `origin`)
-**Last updated:** 2026-07-28
-**Status:** Active development — green build, no blockers
+**Branch:** `feat/openai-sse-chat-quality`
+**Last updated:** 2026-07-29
+**Status:** Active development — green build, ready to push
 
 ---
 
@@ -21,6 +21,33 @@
   hash (PDF) / canonical URL (web) / video ID (YouTube).
 - **Docker fixes** — dependency ranges loosened (`dd8043b`), host ports moved to
   8081/5433 to avoid local conflicts (`a1cb13d`).
+
+### Built in this branch (2026-07-29)
+
+- **OpenAI primary provider** — `LLM_PROVIDER=openai` is supported through
+  `app/services/llm.py` using the existing `httpx` dependency. OpenAI chat and SSE
+  streaming both use `OPENAI_CHAT_MODEL` (`gpt-5.6-luna` default) and
+  `OPENAI_API_KEY`.
+- **Groq fallback safety** — Groq can use an optional same-provider
+  `GROQ_FALLBACK_CHAT_MODEL`; when unset, retryable Groq failures can fall back to
+  OpenAI if `FALLBACK_LLM_PROVIDER=openai` and `OPENAI_API_KEY` are configured.
+- **SSE chat progress** — `/api/v1/chat` emits status events for planner/retriever/
+  synthesizer/grounding/critic, then token events for the final answer.
+- **No blank assistant messages** — chat preserves the last non-empty graph answer and
+  refuses to save/stream empty assistant content. The frontend also avoids appending an
+  empty bubble if a stream ends without tokens.
+- **Grounding guard** — if the verifier returns meta-failure text like "I don't have an
+  answer to clean", the original draft is preserved instead of showing that bad cleanup.
+- **Better answer shape** — synthesizer/grounding prompts now ask for concise,
+  structured prose with citations at the end, avoiding raw Markdown dumps.
+- **Conversation continuity** — chat history ordering and optimistic local transcript
+  handling keep previous turns visible after a new streamed answer.
+- **PDF ingest progress** — async ingest jobs expose status/progress and the source
+  drawer polls them instead of blocking silently.
+- **UI fixes** — message pane scrolling/clipping fixed; response rendering now handles
+  basic headings, lists, bold/code, and citation chips.
+- **Benchmark diagnostics** — F1 now distinguishes defined zero from undefined, and the
+  benchmark keeps per-case error rows while exiting 0 as documented.
 
 ### Repo hygiene (2026-07-28)
 
@@ -94,16 +121,21 @@ behaviour change to the agent, so it wants its own spec.
 `app/services/llm.py` is now provider-agnostic. Switching backends is a config change:
 
 ```bash
-LLM_PROVIDER=groq       # default; uses CHAT_MODEL + GROQ_API_KEY
+LLM_PROVIDER=groq       # uses CHAT_MODEL + optional Groq fallback + GROQ_API_KEY
+LLM_PROVIDER=openai     # active local path; uses OPENAI_CHAT_MODEL + OPENAI_API_KEY
 LLM_PROVIDER=mistral    # uses MISTRAL_CHAT_MODEL + MISTRAL_API_KEY
 ```
 
 Per-provider model names are separate settings, so switching provider is one variable,
 not two. SDKs are imported lazily — an unused provider's package is never loaded. The
 agent nodes are untouched; they still call `chat_complete` / `chat_stream`.
+Groq can retry retryable chat failures against `GROQ_FALLBACK_CHAT_MODEL` when that
+same-provider fallback is set. If the Groq path still fails with a retryable error and
+`OPENAI_API_KEY` is configured, it falls back to the OpenAI provider using
+`OPENAI_CHAT_MODEL` (`gpt-5.6-luna` by default).
 
-**Purpose:** run the same eval suite against two backends and compare. Groq remains the
-production default; nothing changes until `LLM_PROVIDER` is set.
+**Purpose:** run the same eval suite against multiple backends and compare. Local `.env`
+currently uses OpenAI primary; `.env` is ignored and not committed.
 
 **Mistral path is verified structurally, not live** — client construction and method
 surface are asserted against the real SDK (mistralai 2.8.0), but no request has been made
@@ -140,7 +172,7 @@ signal you'd be measuring.** Before comparing providers or a fine-tuned model:
 ```bash
 source venv/bin/activate
 ruff check .                # clean
-pytest -m "not eval" -q     # 73 passed, 0 failed
+pytest -m "not eval" -q     # 109 passed, 0 failed
 ```
 
 **Both gates are green.** There are no known-failing tests, so any red is a real
@@ -150,7 +182,9 @@ regression — don't dismiss one as pre-existing without diffing against a stash
 
 ## In-Flight Files
 
-None — working tree is clean apart from this documentation work.
+The branch contains app, frontend, static bundle, tests, and docs changes for the
+2026-07-29 OpenAI/SSE/ingest-progress/chat-quality work. No secrets should be staged;
+`.env` is ignored.
 
 ---
 

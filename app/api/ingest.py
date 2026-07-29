@@ -1,8 +1,9 @@
 import shutil
 import tempfile
+import uuid as _uuid
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, status
 from pydantic import BaseModel
 
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
@@ -23,6 +24,75 @@ class IngestResponse(BaseModel):
     message: str
 
 
+class IngestJobResponse(BaseModel):
+    job_id: str
+    status: str
+    phase: str
+    message: str
+
+
+class IngestJobStatus(BaseModel):
+    job_id: str
+    status: str
+    phase: str
+    message: str
+    source_id: str | None = None
+    error: str | None = None
+
+
+_INGEST_JOBS: dict[str, dict] = {}
+
+
+def _set_job(
+    job_id: str,
+    *,
+    status: str,
+    phase: str,
+    message: str,
+    source_id: str | None = None,
+    error: str | None = None,
+) -> None:
+    _INGEST_JOBS[job_id] = {
+        "job_id": job_id,
+        "status": status,
+        "phase": phase,
+        "message": message,
+        "source_id": source_id,
+        "error": error,
+    }
+
+
+async def _run_pdf_ingest_job(
+    job_id: str,
+    tmp_path: str,
+    filename: str,
+    content_type: str,
+) -> None:
+    def progress(phase: str, message: str) -> None:
+        _set_job(job_id, status="running", phase=phase, message=message)
+
+    try:
+        progress("queued", "Starting ingest")
+        source_id = await ingest_pdf(tmp_path, filename, content_type, progress=progress)
+        _set_job(
+            job_id,
+            status="done",
+            phase="done",
+            message=f"Ingested {filename}",
+            source_id=source_id,
+        )
+    except Exception as exc:
+        _set_job(
+            job_id,
+            status="error",
+            phase="error",
+            message="Ingest failed",
+            error=str(exc),
+        )
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+
 @router.post("/ingest/pdf", response_model=IngestResponse)
 async def ingest_pdf_endpoint(file: UploadFile = File(...)):
     if file.content_type not in SUPPORTED_TYPES:
@@ -39,6 +109,44 @@ async def ingest_pdf_endpoint(file: UploadFile = File(...)):
         Path(tmp_path).unlink(missing_ok=True)
 
     return IngestResponse(source_id=source_id, message=f"Ingested {file.filename}")
+
+
+@router.post(
+    "/ingest/pdf/jobs",
+    response_model=IngestJobResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def start_pdf_ingest_job(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+):
+    if file.content_type not in SUPPORTED_TYPES:
+        raise HTTPException(400, f"Unsupported file type: {file.content_type}")
+
+    suffix = Path(file.filename or "upload").suffix or ".bin"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        tmp_path = tmp.name
+
+    job_id = str(_uuid.uuid4())
+    filename = file.filename or "upload"
+    _set_job(job_id, status="queued", phase="queued", message=f"Queued {filename}")
+    background_tasks.add_task(_run_pdf_ingest_job, job_id, tmp_path, filename, file.content_type)
+
+    return IngestJobResponse(
+        job_id=job_id,
+        status="queued",
+        phase="queued",
+        message=f"Queued {filename}",
+    )
+
+
+@router.get("/ingest/jobs/{job_id}", response_model=IngestJobStatus)
+async def get_ingest_job(job_id: str):
+    job = _INGEST_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(404, f"Ingest job {job_id} not found")
+    return IngestJobStatus(**job)
 
 
 @router.post("/ingest/youtube", response_model=IngestResponse)

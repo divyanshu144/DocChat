@@ -62,22 +62,28 @@ def _compute_metrics(results: list[dict]) -> dict:
     """Confusion matrix and derived metrics. Positive class is "poor".
 
     Precision/recall are None when their denominator is zero — undefined, not zero.
+    Cases without a binary verdict are excluded from the confusion matrix.
     """
-    tp = sum(1 for r in results if r["expected"] == "poor" and r["got"] == "poor")
-    fp = sum(1 for r in results if r["expected"] == "good" and r["got"] == "poor")
-    fn = sum(1 for r in results if r["expected"] == "poor" and r["got"] == "good")
-    tn = sum(1 for r in results if r["expected"] == "good" and r["got"] == "good")
+    measured = [r for r in results if r["got"] in {"poor", "good"}]
+
+    tp = sum(1 for r in measured if r["expected"] == "poor" and r["got"] == "poor")
+    fp = sum(1 for r in measured if r["expected"] == "good" and r["got"] == "poor")
+    fn = sum(1 for r in measured if r["expected"] == "poor" and r["got"] == "good")
+    tn = sum(1 for r in measured if r["expected"] == "good" and r["got"] == "good")
 
     precision = tp / (tp + fp) if (tp + fp) else None
     recall = tp / (tp + fn) if (tp + fn) else None
 
-    if precision is None or recall is None or (precision + recall) == 0:
+    if precision is None or recall is None:
         f1 = None
+    elif (precision + recall) == 0:
+        f1 = 0.0
     else:
         f1 = 2 * precision * recall / (precision + recall)
 
     return {
         "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+        "errors": len(results) - len(measured),
         "precision": precision, "recall": recall, "f1": f1,
     }
 
@@ -98,10 +104,19 @@ async def main() -> None:
     results: list[dict] = []
     for case in BENCHMARK_CASES:
         # Sequential on purpose — 5 cases at ~1s each needs no parallelism.
-        result = await run_case(case)
+        try:
+            result = await run_case(case)
+        except Exception as exc:
+            result = {
+                "label": case.label,
+                "expected": case.expected,
+                "got": "error",
+                "correct": False,
+                "feedback": f"{type(exc).__name__}: {exc}",
+            }
         results.append(result)
 
-        tag = "PASS" if result["correct"] else "FAIL"
+        tag = "ERROR" if result["got"] == "error" else ("PASS" if result["correct"] else "FAIL")
         line = (
             f"[{tag}] {result['label']:<{width}}"
             f"expected={result['expected']:<5} got={result['got']:<5}"
@@ -120,7 +135,8 @@ async def main() -> None:
     print(f"  TP (correctly flagged poor)  : {m['tp']}")
     print(f"  FP (good flagged as poor)    : {m['fp']}")
     print(f"  FN (poor missed as good)     : {m['fn']}")
-    print(f"  TN (correctly passed good)   : {m['tn']}\n")
+    print(f"  TN (correctly passed good)   : {m['tn']}")
+    print(f"  Errors (no verdict)          : {m['errors']}\n")
     print(f"  Precision (edge cases) : {_fmt(m['precision'])}   "
           "(of cases flagged poor, how many were?)")
     print(f"  Recall    (edge cases) : {_fmt(m['recall'])}   "

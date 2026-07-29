@@ -17,9 +17,17 @@ interface Props {
   selectedSourceCount: number;
 }
 
-function parseCitations(text: string): string {
+function escapeHtml(text: string): string {
   return text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderInline(text: string): string {
+  return escapeHtml(text)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\[PDF\s*[—–-]\s*([^\]]+?)\]/gi,
       (_, inner: string) => `<span class="cite cite-pdf">${inner.trim()}</span>`)
     .replace(/\[YouTube\s*[—–-]\s*([^\]]+?)\]/gi,
@@ -28,11 +36,76 @@ function parseCitations(text: string): string {
       (_, inner: string) => `<span class="cite cite-web">${inner.trim()}</span>`);
 }
 
+function normalizeMessageText(text: string): string {
+  return text
+    .replace(/\s+#{1,3}\s+/g, '\n\n')
+    .replace(/\s+\*\*([^*\n]{2,80}:)\*\*\s*/g, '\n\n$1\n')
+    .replace(/\s+(Introduction:|Summary:|Key points:|Key Points to Consider:|Will Coding be Dead\?|Future of Coding:|Conclusion:|Takeaway:|Sources:)\s*/g, '\n\n$1\n')
+    .replace(/\s+\*\s+/g, '\n- ')
+    .replace(/\s+(\d+)\.\s+(?=[A-Z])/g, '\n$1. ');
+}
+
+function renderMessageHtml(text: string): string {
+  const lines = normalizeMessageText(text).split(/\r?\n/);
+  const html: string[] = [];
+  let list: 'ul' | 'ol' | null = null;
+
+  function closeList() {
+    if (!list) return;
+    html.push(`</${list}>`);
+    list = null;
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      closeList();
+      continue;
+    }
+
+    const heading = /^#{1,3}\s+(.+)$/.exec(line);
+    if (heading) {
+      closeList();
+      html.push(`<p class="md-heading">${renderInline(heading[1])}</p>`);
+      continue;
+    }
+
+    const unordered = /^[-*]\s+(.+)$/.exec(line);
+    if (unordered) {
+      if (list !== 'ul') {
+        closeList();
+        html.push('<ul>');
+        list = 'ul';
+      }
+      html.push(`<li>${renderInline(unordered[1])}</li>`);
+      continue;
+    }
+
+    const ordered = /^\d+\.\s+(.+)$/.exec(line);
+    if (ordered) {
+      if (list !== 'ol') {
+        closeList();
+        html.push('<ol>');
+        list = 'ol';
+      }
+      html.push(`<li>${renderInline(ordered[1])}</li>`);
+      continue;
+    }
+
+    closeList();
+    html.push(`<p>${renderInline(line)}</p>`);
+  }
+
+  closeList();
+  return html.join('');
+}
+
 export default function ChatPanel({ conversationId, onConvCreated, selectedSourceIds, onOpenSources, selectedSourceCount }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState('');
+  const [streamStatus, setStreamStatus] = useState('');
   const [activeFilters, setActiveFilters] = useState<Set<SourceFilter>>(new Set(['pdf', 'youtube', 'web']));
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -88,8 +161,7 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
     }]);
     setStreaming(true);
     setStreamText('');
-
-    let finalConvId = conversationId;
+    setStreamStatus('Starting');
 
     try {
       const { conversationId: newConvId, stream } = await ssePost('/chat', {
@@ -101,20 +173,29 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
 
       if (newConvId && !conversationId) {
         // Mark that the upcoming conversationId change should NOT trigger loadHistory —
-        // we're still streaming; we'll reload from DB after the stream finishes.
+        // we're still streaming and keeping the visible transcript in local state.
         skipNextLoad.current = true;
-        finalConvId = newConvId;
         onConvCreated(newConvId);
       }
 
       let fullText = '';
-      for await (const chunk of stream) {
-        fullText += chunk;
-        setStreamText(fullText);
+      for await (const event of stream) {
+        if (event.type === 'status') {
+          setStreamStatus(event.data);
+        } else {
+          fullText += event.data;
+          setStreamText(fullText);
+        }
       }
 
-      // Stream succeeded — reload from DB (authoritative, properly formatted)
-      if (finalConvId) await loadHistory(finalConvId);
+      if (fullText.trim()) {
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: fullText,
+          created_at: new Date().toISOString(),
+        }]);
+      }
 
     } catch (err) {
       setMessages(prev => [...prev, {
@@ -126,14 +207,15 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
     } finally {
       setStreaming(false);
       setStreamText('');
+      setStreamStatus('');
     }
   }
 
   const showWelcome = messages.length === 0 && !streaming;
   const promptHints = [
-    'Explain multi-head attention',
-    'Summarise key findings',
-    'Compare sources',
+    'What changed across these sources?',
+    'Where do the sources disagree?',
+    'What should I verify next?',
   ];
 
   function usePrompt(text: string) {
@@ -180,7 +262,7 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
             <div className="msg-body">
               <div
                 className="msg-content"
-                dangerouslySetInnerHTML={{ __html: parseCitations(msg.content) }}
+                dangerouslySetInnerHTML={{ __html: renderMessageHtml(msg.content) }}
               />
             </div>
           </div>
@@ -194,10 +276,18 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
               </svg>
             </div>
             <div className="msg-body">
-              <div
-                className="msg-content"
-                dangerouslySetInnerHTML={{ __html: parseCitations(streamText) + '<span class="cursor"></span>' }}
-              />
+              {streamStatus && (
+                <div className="stream-status">
+                  <span className="spinner"></span>
+                  {streamStatus}
+                </div>
+              )}
+              {streamText && (
+                <div
+                  className="msg-content"
+                  dangerouslySetInnerHTML={{ __html: renderMessageHtml(streamText) + '<span class="cursor"></span>' }}
+                />
+              )}
             </div>
           </div>
         )}

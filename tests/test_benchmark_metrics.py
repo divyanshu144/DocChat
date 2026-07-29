@@ -52,6 +52,17 @@ def test_no_poor_cases_leaves_recall_undefined():
     assert m["f1"] is None
 
 
+def test_total_failure_reports_zero_f1_not_undefined():
+    """P=0 and R=0 is a defined zero score, not N/A."""
+    m = _compute_metrics([
+        _r("good", "poor"),
+        _r("good", "poor"),
+        _r("poor", "good"),
+    ])
+    assert (m["precision"], m["recall"], m["f1"]) == (0.0, 0.0, 0.0)
+    assert _fmt(m["f1"]).strip() == "0.00"
+
+
 def test_perfect_agreement():
     m = _compute_metrics([_r("poor", "poor"), _r("good", "good")])
     assert m["precision"] == 1.0
@@ -63,6 +74,13 @@ def test_empty_results_do_not_raise():
     m = _compute_metrics([])
     assert (m["tp"], m["fp"], m["fn"], m["tn"]) == (0, 0, 0, 0)
     assert m["precision"] is None and m["recall"] is None and m["f1"] is None
+
+
+def test_error_results_are_excluded_from_confusion_matrix():
+    m = _compute_metrics([_r("poor", "poor"), _r("good", "error")])
+    assert (m["tp"], m["fp"], m["fn"], m["tn"]) == (1, 0, 0, 0)
+    assert m["errors"] == 1
+    assert m["precision"] == 1.0
 
 
 @pytest.mark.parametrize("value,expected", [(None, "N/A"), (0.0, "0.00"), (1.0, "1.00"), (1 / 3, "0.33")])

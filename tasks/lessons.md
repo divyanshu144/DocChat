@@ -88,3 +88,17 @@ in two *new* ways the old venv never showed: `No module named 'mcp.server.fastmc
 `requirements.txt` is correct — it only proves *that machine* works. Rebuild from a clean
 venv before trusting the dependency list, and cap any dependency whose major version
 would break an API the code calls directly.
+
+---
+
+## 2026-07-29 — Diagnostic metrics must distinguish zero from undefined
+
+**What broke:** `eval/benchmark.py` reported F1 as `N/A` when precision and recall were
+both `0.0`, hiding the worst possible critic run behind an undefined-metric label.
+
+**Root cause:** The F1 guard treated `(precision + recall) == 0` like a missing
+denominator. `None` means undefined; numeric zero is a real diagnostic result.
+
+**What to do next time:** Metric helpers need explicit regression tests for both
+undefined-denominator cases and defined-zero cases. When docs cite a hard test count,
+update it in the same patch that adds tests; the latest non-eval gate is 109 passed.

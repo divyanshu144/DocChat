@@ -1,4 +1,9 @@
 import uuid as _uuid
+import logging
+from datetime import datetime, timedelta, timezone
+from collections.abc import AsyncGenerator
+from typing import cast
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -13,6 +18,15 @@ from app.agent.graph import agent_graph
 from app.agent.state import AgentState
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+_NODE_STATUS = {
+    "planner": "Planning which sources to search",
+    "retriever": "Retrieving relevant passages",
+    "synthesizer": "Drafting a grounded answer",
+    "grounding": "Checking answer against retrieved context",
+    "critic": "Reviewing answer quality",
+}
 
 
 class ChatRequest(BaseModel):
@@ -20,6 +34,43 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = None
     sources: list[str] | None = None
     source_ids: list[str] | None = None  # restrict to specific ingested sources
+
+
+def _sse(event: str, data: str) -> str:
+    return f"event: {event}\ndata: {data}\n\n"
+
+
+def _stream_error_message(exc: Exception) -> str:
+    text = str(exc)
+    if "429" in text or "rate limit" in text.lower() or "too many requests" in text.lower():
+        return "The model provider is rate-limiting requests. Wait a moment and try again."
+    return "The assistant run failed before an answer was generated."
+
+
+async def _run_agent_with_status(initial_state: AgentState) -> AsyncGenerator[tuple[str, str | AgentState], None]:
+    """Stream graph progress updates and return the final merged state as a final item."""
+    final_state: AgentState = initial_state.copy()
+    last_non_empty_answer = ""
+
+    yield "status", "Reading your question"
+    async for update in agent_graph.astream(initial_state, stream_mode="updates"):
+        if not isinstance(update, dict):
+            continue
+        for node_name, node_update in update.items():
+            if isinstance(node_update, dict):
+                answer = node_update.get("answer")
+                if isinstance(answer, str) and answer.strip():
+                    last_non_empty_answer = answer
+                final_state.update(node_update)
+                if final_state.get("answer", "").strip() == "" and last_non_empty_answer:
+                    final_state["answer"] = last_non_empty_answer
+            status_message = _NODE_STATUS.get(node_name)
+            if status_message:
+                yield "status", status_message
+
+    if final_state.get("answer", "").strip() == "" and last_non_empty_answer:
+        final_state["answer"] = last_non_empty_answer
+    yield "final", final_state
 
 
 @router.post("/chat")
@@ -46,12 +97,13 @@ async def chat(
     history_result = await db.execute(
         select(Message)
         .where(Message.conversation_id == conv.id)
-        .order_by(Message.created_at)
+        .order_by(Message.created_at.desc())
         .limit(10)
     )
+    recent_messages = list(reversed(history_result.scalars().all()))
     history = [
         {"role": m.role.value, "content": m.content}
-        for m in history_result.scalars().all()
+        for m in recent_messages
     ]
 
     initial_state: AgentState = {
@@ -68,17 +120,49 @@ async def chat(
         "grounding_passed": False,
     }
 
-    final_state = await agent_graph.ainvoke(initial_state)
-    answer = final_state["answer"]
-
-    db.add(Message(conversation_id=conv.id, role=MessageRole.user, content=req.query))
-    db.add(Message(conversation_id=conv.id, role=MessageRole.assistant, content=answer))
-    await db.commit()
-
     async def sse_stream():
+        final_state: AgentState | None = None
+        try:
+            async for kind, payload in _run_agent_with_status(initial_state):
+                if kind == "status":
+                    yield _sse("status", str(payload))
+                elif kind == "final":
+                    final_state = cast(AgentState, payload)
+        except Exception as exc:
+            logger.exception("chat_stream_failed")
+            yield _sse("error", _stream_error_message(exc))
+            return
+
+        if final_state is None:
+            yield _sse("error", "The assistant run ended without producing an answer.")
+            return
+
+        answer = final_state["answer"].strip()
+        if not answer:
+            answer = (
+                "I couldn't produce a usable answer from the retrieved context. "
+                "Try rephrasing the question or selecting a more specific source."
+            )
+
+        now = datetime.now(timezone.utc)
+        db.add(Message(
+            conversation_id=conv.id,
+            role=MessageRole.user,
+            content=req.query,
+            created_at=now,
+        ))
+        db.add(Message(
+            conversation_id=conv.id,
+            role=MessageRole.assistant,
+            content=answer,
+            created_at=now + timedelta(microseconds=1),
+        ))
+        await db.commit()
+
+        yield _sse("status", "Writing the response")
         for word in answer.split():
-            yield f"data: {word} \n\n"
-        yield "data: [DONE]\n\n"
+            yield _sse("token", f"{word} ")
+        yield _sse("done", "[DONE]")
 
     return StreamingResponse(
         sse_stream(),

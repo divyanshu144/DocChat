@@ -21,10 +21,15 @@ class Settings(BaseSettings):
     # LLM
     # Which backend `app.services.llm` talks to. Per-provider model names are kept
     # separate so switching providers is a one-variable change, not two.
-    llm_provider: Literal["groq", "mistral"] = "groq"
+    llm_provider: Literal["groq", "mistral", "openai"] = "groq"
+    fallback_llm_provider: Literal["none", "openai"] = "openai"
 
     groq_api_key: str = ""
     chat_model: str = "llama-3.3-70b-versatile"   # used when llm_provider="groq"
+    groq_fallback_chat_model: str = ""
+
+    openai_api_key: str = ""
+    openai_chat_model: str = "gpt-5.6-luna"  # used when llm_provider="openai"
 
     mistral_api_key: str = ""
     mistral_chat_model: str = "mistral-small-latest"  # used when llm_provider="mistral"

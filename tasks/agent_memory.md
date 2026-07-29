@@ -15,6 +15,8 @@ a licence to change the decision.
 | Agent is a LangGraph `StateGraph`, not hand-rolled orchestration | **Locked** | Bounded critic-feedback retry loop needs explicit state machine |
 | Config only via `from app.core.config import settings` — never `os.environ` | **Locked** | Single Pydantic Settings source of truth |
 | Deterministic `uuid5` source IDs (content hash / canonical URL / video ID) | **Locked** (2026-07-02) | Re-ingesting the same input must be idempotent |
+| OpenAI is a first-class LLM provider | **Locked** (2026-07-29) | `LLM_PROVIDER=openai` uses `OPENAI_CHAT_MODEL` + `OPENAI_API_KEY`; Groq may fall back to OpenAI only for retryable failures |
+| Never persist blank assistant answers | **Locked** (2026-07-29) | Chat must preserve the last non-empty graph answer or emit a usable fallback message |
 | Ruff gate covers `app/`, `tests/`, `eval/` — `scripts/` excluded | Provisional | `scripts/` has 22 outstanding findings; clean before removing the exclusion |
 | `ruff format` NOT enforced | Provisional | Would reformat 44 files and destroy blame on an in-flight branch |
 | `mcp` pinned `<2.0.0` | **Locked** (2026-07-28) | `mcp.server.fastmcp.FastMCP` was removed in 2.x; unpinning silently breaks the MCP server |
@@ -23,7 +25,7 @@ a licence to change the decision.
 
 ## Known Gotchas
 
-- **The suite is fully green** — 73 passed, 0 failed. There are no known-failing tests,
+- **The suite is fully green** — 109 passed, 0 failed. There are no known-failing tests,
   so any red is yours. (Was 45/4/12 before the 2026-07-28 venv rebuild.)
 - **The critic cannot approve a correct "I can't answer from this context."** Its prompt
   defines good as "addresses the full query", so appropriate gap-admission scores poor.
@@ -45,6 +47,8 @@ a licence to change the decision.
   `extend-immutable-calls` in `pyproject.toml` — do not "fix" the endpoints instead.
 - **Ingestion is upsert-only.** Re-ingesting a *shorter* document leaves orphaned
   tail chunks; there is no version cleanup.
+- **Docker Compose `restart` does not reload `.env`.** Use
+  `docker compose up -d --force-recreate app` after changing provider/env settings.
 - **`git push --force` is blocked** by `~/.claude/hooks/pre-tool-use.sh`. The user runs
   force-pushes manually; don't try to route around the guard.
 
@@ -59,6 +63,15 @@ a licence to change the decision.
   Fixed in `98b030e`: old token revoked, new pair issued, frontend stores both.
 - **Duplicate chunks on re-ingest** → `uuid4()` per ingest. Fixed in `98b030e` with
   `uuid5` derived from stable content identity.
+- **Groq 429 caused visible stream failures** → `app/services/llm.py` now supports
+  OpenAI as a provider and can fall back from Groq to OpenAI on retryable failures.
+- **PDF ingest blocked silently** → `POST /ingest/pdf/jobs` and
+  `GET /ingest/jobs/{job_id}` expose progress; the source drawer polls job status.
+- **Latest chat turn hid older content / blank answers appeared** → frontend keeps the
+  streamed transcript locally, backend orders messages by `created_at,id`, and chat
+  refuses to persist empty assistant messages.
+- **Grounding verifier returned "I don't have an answer to clean"** → guarded in
+  `app/agent/nodes/grounding.py`; the original draft is kept on verifier meta-failure.
 
 ---
 
