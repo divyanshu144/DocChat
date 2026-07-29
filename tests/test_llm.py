@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from app.services.llm import chat_complete, chat_stream
+from app.services import llm
 
 
 @pytest.mark.asyncio
@@ -11,8 +11,9 @@ async def test_chat_complete_returns_content():
     mock_client = AsyncMock()
     mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
 
-    with patch("app.services.llm._get_client", return_value=mock_client):
-        result = await chat_complete([{"role": "user", "content": "hi"}])
+    with patch.object(llm.settings, "llm_provider", "groq"), \
+         patch("app.services.llm._get_client", return_value=mock_client):
+        result = await llm.chat_complete([{"role": "user", "content": "hi"}])
 
     assert result == "hello world"
 
@@ -33,9 +34,10 @@ async def test_chat_stream_yields_tokens():
     mock_client = MagicMock()
     mock_client.chat.completions.create = AsyncMock(return_value=fake_stream())
 
-    with patch("app.services.llm._get_client", return_value=mock_client):
+    with patch.object(llm.settings, "llm_provider", "groq"), \
+         patch("app.services.llm._get_client", return_value=mock_client):
         tokens = []
-        async for token in chat_stream([{"role": "user", "content": "hi"}]):
+        async for token in llm.chat_stream([{"role": "user", "content": "hi"}]):
             tokens.append(token)
 
     assert tokens == ["hello", " world"]

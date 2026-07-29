@@ -41,9 +41,12 @@ def test_ingest_web_returns_source_id(client):
 
 
 def test_list_sources_returns_empty_on_no_data(client):
-    mock_col = MagicMock()
-    mock_col.get.return_value = {"metadatas": []}
-    with patch("app.api.ingest.get_collection", return_value=mock_col):
+    mock_client = MagicMock()
+    mock_client.scroll.return_value = ([], None)
+    with (
+        patch("app.api.ingest.get_qdrant_client", return_value=mock_client),
+        patch("app.api.ingest.get_qdrant_collection"),
+    ):
         response = client.get("/api/v1/sources")
     assert response.status_code == 200
     assert response.json()["sources"] == []

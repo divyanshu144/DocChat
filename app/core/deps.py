@@ -24,7 +24,7 @@ async def get_current_user(
     try:
         payload = decode_token(token)
     except JWTError:
-        raise exc
+        raise exc from None
 
     if payload.get("type") != "access":
         raise exc

@@ -1,4 +1,3 @@
-import uuid
 import asyncio
 from datetime import datetime, timezone
 from urllib.parse import urlparse, parse_qs
@@ -10,6 +9,12 @@ from app.services.embedder import get_embedder
 
 COLLECTION = "youtube_chunks"
 CHUNK_DURATION_SECONDS = 60
+
+
+def _source_id_for_video(video_id: str) -> str:
+    # Idempotency scope: canonical YouTube video identity. Transcript changes for
+    # the same video overwrite same-index chunks; no version tracking is done here.
+    return str(_uuid.uuid5(_uuid.NAMESPACE_URL, f"docchat:youtube:{video_id}"))
 
 
 def _extract_video_id(url: str) -> str:
@@ -77,9 +82,9 @@ def _chunk_transcript(transcript: list[dict]) -> list[dict]:
 
 async def ingest_youtube(url: str) -> str:
     """Fetch YouTube transcript, chunk, embed, and store in Qdrant. Returns source_id."""
-    source_id = str(uuid.uuid4())
     loop = asyncio.get_running_loop()
     video_id = _extract_video_id(url)
+    source_id = _source_id_for_video(video_id)
 
     meta, transcript = await asyncio.gather(
         loop.run_in_executor(None, _get_video_metadata, video_id, url),

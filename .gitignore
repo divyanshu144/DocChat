@@ -8,11 +8,15 @@ __pycache__/
 *.db-wal
 uploads/
 .DS_Store
+
+# Container data volumes (bind-mounted by docker-compose)
+postgres_data/
+qdrant_data/
 .claude/
 
 # Frontend
 frontend/node_modules/
 frontend/dist/
 
-# ChromaDB runtime data
-chroma_data/
+# Generated analysis output
+graphify-out/

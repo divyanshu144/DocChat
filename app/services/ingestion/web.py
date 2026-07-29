@@ -1,8 +1,7 @@
 import re
-import uuid
 import asyncio
 from datetime import datetime, timezone
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import httpx
 import trafilatura
@@ -27,6 +26,21 @@ _HEADERS = {
 }
 
 
+def _normalize_url(url: str) -> str:
+    parsed = urlparse(url)
+    scheme = (parsed.scheme or "https").lower()
+    netloc = parsed.netloc.lower()
+    path = parsed.path or "/"
+    query = urlencode(sorted(parse_qsl(parsed.query, keep_blank_values=True)))
+    return urlunparse((scheme, netloc, path, "", query, ""))
+
+
+def _source_id_for_url(url: str) -> str:
+    # Idempotency scope: canonical URL identity. Content changes at the same URL
+    # overwrite same-index chunks; no document-version cleanup is done here.
+    return str(_uuid.uuid5(_uuid.NAMESPACE_URL, f"docchat:web:{_normalize_url(url)}"))
+
+
 def _scrape(url: str) -> dict:
     response = httpx.get(url, timeout=30, follow_redirects=True, headers=_HEADERS)
     response.raise_for_status()
@@ -40,9 +54,10 @@ def _scrape(url: str) -> dict:
 
 async def ingest_web(url: str) -> str:
     """Scrape URL, chunk, embed, and store in Qdrant. Returns source_id."""
-    source_id = str(uuid.uuid4())
+    source_id = _source_id_for_url(url)
     loop = asyncio.get_running_loop()
-    domain = urlparse(url).netloc
+    normalized_url = _normalize_url(url)
+    domain = urlparse(normalized_url).netloc
 
     scraped = await loop.run_in_executor(None, _scrape, url)
     chunk_texts = _splitter.split_text(scraped["content"])
@@ -64,7 +79,7 @@ async def ingest_web(url: str) -> str:
             payload={
                 "text": text,
                 "source_id": source_id,
-                "url": url,
+                "url": normalized_url,
                 "title": scraped["title"],
                 "domain": domain,
                 "chunk_index": i,

@@ -1,16 +1,10 @@
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 from app.agent.state import AgentState
 
 
 @pytest.mark.asyncio
 async def test_graph_runs_full_pipeline():
-    planner_result = {"sources_to_use": ["pdf"], "query": "attention mechanisms"}
-    retriever_result = {"retrieved_chunks": [{"text": "Attention is key.", "metadata": {}, "source_type": "pdf", "score": 0.9}]}
-    synthesizer_result = {"answer": "Attention allows focus on relevant parts."}
-    grounding_result = {"answer": "Attention allows focus on relevant parts.", "grounding_passed": True}
-    critic_result = {"needs_replan": False, "iteration": 1, "critic_feedback": ""}
-
     with (
         patch("app.agent.nodes.planner.chat_complete", new=AsyncMock(
             return_value='{"sources_to_use": ["pdf"], "rewritten_query": "attention mechanisms"}')),
@@ -21,21 +15,18 @@ async def test_graph_runs_full_pipeline():
         patch("app.agent.nodes.critic.chat_complete", new=AsyncMock(
             return_value='{"quality": "good", "feedback": ""}')),
         patch("app.agent.nodes.retriever.get_embedder") as mock_emb,
-        patch("app.agent.nodes.retriever.get_qdrant_client") as mock_client,
+        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[
+            {"payload": {"text": "Attention is key."}, "score": 0.9}
+        ])),
     ):
         import numpy as np
         mock_emb.return_value.embed_query.return_value = np.array([0.1] * 384)
-
-        # Mock Qdrant client search results
-        mock_hit = MagicMock()
-        mock_hit.payload = {"text": "Attention is key."}
-        mock_hit.score = 0.9
-        mock_client.return_value.search.return_value = [mock_hit]
 
         from app.agent.graph import agent_graph
         initial_state: AgentState = {
             "query": "What is attention?",
             "conversation_id": "conv-1",
+            "conversation_history": [],
             "sources_to_use": ["pdf", "youtube", "web"],
             "source_ids": [],
             "retrieved_chunks": [],

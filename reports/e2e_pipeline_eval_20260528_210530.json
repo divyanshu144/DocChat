@@ -1,0 +1,210 @@
+{
+  "generated_at": "2026-05-28T20:05:30.310060+00:00",
+  "description": "Formal pipeline eval over the real LangGraph planner, synthesizer, grounding, and critic nodes with deterministic synthetic retrieval fixtures.",
+  "cases": 10,
+  "passed": 8,
+  "failed": 2,
+  "results": [
+    {
+      "label": "embedding_model_and_dimension",
+      "passed": true,
+      "latency_ms": 984.85,
+      "retrieved_chunks": 4,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf"
+      ],
+      "planned_sources": [
+        "web",
+        "pdf"
+      ],
+      "answer": "DocChat uses the BAAI/bge-small-en-v1.5 embedding model, and the embeddings are 384-dimensional float32 vectors.\nSources: [PDF \u2014 architecture.pdf p.2]"
+    },
+    {
+      "label": "pdf_ocr_fallback",
+      "passed": true,
+      "latency_ms": 1024.82,
+      "retrieved_chunks": 4,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf"
+      ],
+      "planned_sources": [
+        "pdf",
+        "web"
+      ],
+      "answer": "When a scanned page has no embedded text, DocChat uses pytesseract OCR as a fallback to extract the text before chunking. The initial attempt to extract text is done using PyMuPDF, also imported as fitz.\n\nSources:\n[PDF \u2014 ingestion.pdf p.4]"
+    },
+    {
+      "label": "pdf_chunking_parameters",
+      "passed": false,
+      "latency_ms": 707.18,
+      "retrieved_chunks": 4,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [
+        "recursivecharactertextsplitter | recursive character"
+      ],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf"
+      ],
+      "planned_sources": [
+        "pdf",
+        "web"
+      ],
+      "answer": "PDF ingestion uses a chunk size of 1500 characters and an overlap of 200 characters.\n\nSources:\n[PDF \u2014 ingestion.pdf p.5]"
+    },
+    {
+      "label": "youtube_transcript_library",
+      "passed": true,
+      "latency_ms": 1002.83,
+      "retrieved_chunks": 2,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "youtube"
+      ],
+      "planned_sources": [
+        "pdf",
+        "youtube",
+        "web"
+      ],
+      "answer": "YouTube ingestion fetches transcripts with youtube-transcript-api. Transcript segments are grouped into chunks of roughly 60 seconds before embedding and storage.\n\nSources:\n[YouTube \u2014 DocChat ingestion demo @120s]"
+    },
+    {
+      "label": "web_ingestion_libraries",
+      "passed": true,
+      "latency_ms": 881.71,
+      "retrieved_chunks": 2,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "web"
+      ],
+      "planned_sources": [
+        "web",
+        "pdf"
+      ],
+      "answer": "Web ingestion uses httpx for sending HTTP requests and trafilatura for extracting article content.\n\nSources:\n[Web \u2014 https://docs.example.com/web-ingestion]"
+    },
+    {
+      "label": "agent_nodes",
+      "passed": true,
+      "latency_ms": 931.66,
+      "retrieved_chunks": 4,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf"
+      ],
+      "planned_sources": [
+        "pdf",
+        "web",
+        "youtube"
+      ],
+      "answer": "The five nodes in the LangGraph agent pipeline are: \n1. Planner \n2. Retriever \n3. Synthesizer \n4. Grounding \n5. Critic\n\nSources: [PDF \u2014 agent.pdf p.7]"
+    },
+    {
+      "label": "chat_streaming_transport",
+      "passed": true,
+      "latency_ms": 709.39,
+      "retrieved_chunks": 2,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "youtube"
+      ],
+      "planned_sources": [
+        "web",
+        "youtube"
+      ],
+      "answer": "Chat responses are streamed back to the browser using Server-Sent Events, allowing users to see words arrive incrementally.\nSources: [YouTube \u2014 DocChat chat demo @240s]"
+    },
+    {
+      "label": "conversation_folders",
+      "passed": true,
+      "latency_ms": 4936.62,
+      "retrieved_chunks": 2,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "web"
+      ],
+      "planned_sources": [
+        "pdf",
+        "web"
+      ],
+      "answer": "Users can create, rename, delete, and use conversation folders to group existing conversations.\n\nSources:\n[Web \u2014 https://docs.example.com/folders]"
+    },
+    {
+      "label": "multi_source_ingestion_libraries",
+      "passed": true,
+      "latency_ms": 9442.83,
+      "retrieved_chunks": 8,
+      "grounding_passed": true,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf",
+        "youtube",
+        "web"
+      ],
+      "planned_sources": [
+        "pdf",
+        "youtube",
+        "web"
+      ],
+      "answer": "The libraries used for ingestion are as follows: \nFor PDF ingestion, PyMuPDF (also imported as fitz) and pytesseract are used. \nFor YouTube ingestion, youtube-transcript-api is used. \nFor web ingestion, httpx and trafilatura are used.\n\nSources: \n[PDF \u2014 ingestion.pdf p.4], [YouTube \u2014 DocChat ingestion demo @120s], [Web \u2014 https://docs.example.com/web-ingestion]"
+    },
+    {
+      "label": "unknown_information",
+      "passed": false,
+      "latency_ms": 6807.01,
+      "retrieved_chunks": 0,
+      "grounding_passed": false,
+      "needs_replan": false,
+      "iteration": 1,
+      "missing_terms": [
+        "retrieved source(s): pdf, youtube, web"
+      ],
+      "forbidden_hits": [],
+      "expected_sources": [
+        "pdf",
+        "youtube",
+        "web"
+      ],
+      "planned_sources": [
+        "web",
+        "pdf"
+      ],
+      "answer": "There is not enough information to determine what database migration tool DocChat uses."
+    }
+  ]
+}

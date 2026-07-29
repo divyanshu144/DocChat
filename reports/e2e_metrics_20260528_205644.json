@@ -1,0 +1,155 @@
+{
+  "generated_at": "2026-05-28T19:56:44.639641+00:00",
+  "database_url": "sqlite+aiosqlite:////var/folders/gs/6gjhnpdn0zd0p99jkjwdr0700000gn/T/docchat_e2e_77855a35a9a44a51a4971b979b17763d.db",
+  "samples": 2,
+  "chat_samples": 1,
+  "notes": [
+    "FastAPI routes, auth, SQLite persistence, and SSE framing are exercised end to end.",
+    "Agent graph and ingestion backends are mocked to isolate app/API overhead from external LLM, Qdrant, and scraping latency."
+  ],
+  "metrics": [
+    {
+      "name": "health",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 0.85,
+      "p50_ms": 0.85,
+      "p95_ms": 1.06,
+      "min_ms": 0.62,
+      "max_ms": 1.08
+    },
+    {
+      "name": "auth signup",
+      "samples": 1,
+      "passed": 1,
+      "failed": 0,
+      "mean_ms": 212.99,
+      "p50_ms": 212.99,
+      "p95_ms": 212.99,
+      "min_ms": 212.99,
+      "max_ms": 212.99
+    },
+    {
+      "name": "auth login",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 200.75,
+      "p50_ms": 200.75,
+      "p95_ms": 201.03,
+      "min_ms": 200.44,
+      "max_ms": 201.06
+    },
+    {
+      "name": "auth me",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 1.95,
+      "p50_ms": 1.95,
+      "p95_ms": 2.59,
+      "min_ms": 1.25,
+      "max_ms": 2.66
+    },
+    {
+      "name": "folders create",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 2.2,
+      "p50_ms": 2.2,
+      "p95_ms": 2.65,
+      "min_ms": 1.71,
+      "max_ms": 2.7
+    },
+    {
+      "name": "folders list",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 1.54,
+      "p50_ms": 1.54,
+      "p95_ms": 1.88,
+      "min_ms": 1.16,
+      "max_ms": 1.92
+    },
+    {
+      "name": "ingest pdf mocked",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 1.23,
+      "p50_ms": 1.23,
+      "p95_ms": 1.28,
+      "min_ms": 1.18,
+      "max_ms": 1.29
+    },
+    {
+      "name": "ingest youtube mocked",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 0.7,
+      "p50_ms": 0.7,
+      "p95_ms": 0.75,
+      "min_ms": 0.65,
+      "max_ms": 0.75
+    },
+    {
+      "name": "ingest web mocked",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 0.65,
+      "p50_ms": 0.65,
+      "p95_ms": 0.65,
+      "min_ms": 0.65,
+      "max_ms": 0.65
+    },
+    {
+      "name": "sources list mocked",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 0.78,
+      "p50_ms": 0.78,
+      "p95_ms": 0.99,
+      "min_ms": 0.54,
+      "max_ms": 1.02
+    },
+    {
+      "name": "chat SSE mocked agent",
+      "samples": 1,
+      "passed": 1,
+      "failed": 0,
+      "mean_ms": 4.27,
+      "p50_ms": 4.27,
+      "p95_ms": 4.27,
+      "min_ms": 4.27,
+      "max_ms": 4.27
+    },
+    {
+      "name": "conversations list",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 1.58,
+      "p50_ms": 1.58,
+      "p95_ms": 1.79,
+      "min_ms": 1.35,
+      "max_ms": 1.81
+    },
+    {
+      "name": "conversation detail",
+      "samples": 2,
+      "passed": 2,
+      "failed": 0,
+      "mean_ms": 1.79,
+      "p50_ms": 1.79,
+      "p95_ms": 2.04,
+      "min_ms": 1.51,
+      "max_ms": 2.06
+    }
+  ]
+}

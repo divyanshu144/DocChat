@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { clearTokens, hasToken } from './api';
+import { apiJson, clearTokens, hasToken } from './api';
 import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
 import SourcesDrawer from './components/SourcesDrawer';
@@ -18,6 +18,7 @@ export default function App() {
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [selectedSourceIds, setSelectedSourceIds] = useState<Set<string>>(new Set());
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pendingFolderId, setPendingFolderId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,25 +48,33 @@ export default function App() {
     setAuthed(false);
     setEmail('');
     setConvId(null);
+    setPendingFolderId(null);
   }
 
   function selectConv(id: string) {
     setConvId(id);
     localStorage.setItem(LS_CONV, id);
+    setPendingFolderId(null);
   }
 
   function newChat(folderId?: string) {
     setConvId(null);
     localStorage.removeItem(LS_CONV);
-    // If folderId provided, the next sent message will create conv then move it
-    // For now just clear active conv; folder assignment happens after conv creation
-    void folderId; // acknowledged, used in future enhancement
+    setPendingFolderId(folderId ?? null);
   }
 
   function handleConvCreated(id: string) {
     setConvId(id);
     localStorage.setItem(LS_CONV, id);
     setSidebarRefresh(n => n + 1);
+    if (pendingFolderId) {
+      const folderId = pendingFolderId;
+      setPendingFolderId(null);
+      void apiJson(`/conversations/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ folder_id: folderId }),
+      }).finally(() => setSidebarRefresh(n => n + 1));
+    }
   }
 
   function handleConvDeleted(id: string) {
@@ -73,6 +82,7 @@ export default function App() {
       setConvId(null);
       localStorage.removeItem(LS_CONV);
     }
+    setPendingFolderId(null);
   }
 
   if (!authed) return <AuthScreen onAuth={handleAuth} />;

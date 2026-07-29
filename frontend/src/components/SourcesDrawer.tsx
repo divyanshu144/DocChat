@@ -9,6 +9,15 @@ interface Props {
   onSelectionChange: (ids: Set<string>) => void;
 }
 
+interface IngestJob {
+  job_id: string;
+  status: 'queued' | 'running' | 'done' | 'error';
+  phase: string;
+  message: string;
+  source_id?: string | null;
+  error?: string | null;
+}
+
 function formatWhen(s: Source): string {
   const raw = s.ingested_at ?? s.scraped_at;
   if (!raw) return '';
@@ -60,17 +69,38 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
   }
 
   async function ingestPdf(file: File) {
-    setPdfFeedback({ msg: 'Ingesting…', cls: 'busy' });
+    setPdfFeedback({ msg: `Queued ${file.name}`, cls: 'busy' });
     const fd = new FormData();
     fd.append('file', file);
     try {
-      const res = await apiFetch('/ingest/pdf', { method: 'POST', body: fd });
-      const d = await res.json() as { message?: string; detail?: string };
-      if (res.ok) {
-        setPdfFeedback({ msg: d.message ?? 'Ingested successfully', cls: 'ok' });
-        loadSources();
-      } else {
+      const res = await apiFetch('/ingest/pdf/jobs', { method: 'POST', body: fd });
+      const d = await res.json() as IngestJob & { detail?: string };
+      if (!res.ok) {
         setPdfFeedback({ msg: d.detail ?? 'Error', cls: 'err' });
+        return;
+      }
+
+      let done = false;
+      while (!done) {
+        await new Promise(resolve => setTimeout(resolve, 700));
+        const statusRes = await apiFetch(`/ingest/jobs/${d.job_id}`);
+        const job = await statusRes.json() as IngestJob & { detail?: string };
+        if (!statusRes.ok) {
+          setPdfFeedback({ msg: job.detail ?? 'Could not read ingest status', cls: 'err' });
+          return;
+        }
+
+        if (job.status === 'done') {
+          setPdfFeedback({ msg: job.message || 'Ingested successfully', cls: 'ok' });
+          done = true;
+          loadSources();
+        } else if (job.status === 'error') {
+          setPdfFeedback({ msg: job.error || job.message || 'Ingest failed', cls: 'err' });
+          done = true;
+        } else {
+          const phase = job.phase ? `${job.phase}: ` : '';
+          setPdfFeedback({ msg: `${phase}${job.message}`, cls: 'busy' });
+        }
       }
     } catch {
       setPdfFeedback({ msg: 'Network error', cls: 'err' });
@@ -132,13 +162,13 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
               {selectedIds.size} selected
             </span>
           )}
-          <button className="drawer-close" onClick={onClose} title="Close (Esc)">×</button>
+          <button type="button" className="drawer-close" onClick={onClose} title="Close (Esc)">×</button>
         </div>
 
         <div className="drawer-body">
           <div className="tab-strip">
             {(['pdf', 'youtube', 'web'] as const).map(t => (
-              <button key={t} className={`tab ${activeTab === t ? 'active' : ''}`} onClick={() => setActiveTab(t)}>
+              <button type="button" key={t} className={`tab ${activeTab === t ? 'active' : ''}`} onClick={() => setActiveTab(t)}>
                 {TYPE_LABEL[t]}
               </button>
             ))}
@@ -191,7 +221,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
                   onChange={e => setYtUrl(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && ytUrl) ingestUrl('youtube', ytUrl); }}
                 />
-                <button className="pill-btn" onClick={() => ytUrl && ingestUrl('youtube', ytUrl)}>Go</button>
+                <button type="button" className="pill-btn" onClick={() => ytUrl && ingestUrl('youtube', ytUrl)}>Go</button>
               </div>
               {ytFeedback && <div className={`ingest-feedback ${ytFeedback.cls}`}>{ytFeedback.msg}</div>}
             </div>
@@ -208,7 +238,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
                   onChange={e => setWebUrl(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && webUrl) ingestUrl('web', webUrl); }}
                 />
-                <button className="pill-btn" onClick={() => webUrl && ingestUrl('web', webUrl)}>Go</button>
+                <button type="button" className="pill-btn" onClick={() => webUrl && ingestUrl('web', webUrl)}>Go</button>
               </div>
               {webFeedback && <div className={`ingest-feedback ${webFeedback.cls}`}>{webFeedback.msg}</div>}
             </div>
@@ -235,7 +265,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
                         <div className="source-title">{sourceLabel(s)}</div>
                         <div className="source-when">{formatWhen(s)}</div>
                       </div>
-                      <button className="source-delete" onClick={() => deleteSource(s.source_id)}>×</button>
+                      <button type="button" className="source-delete" onClick={() => deleteSource(s.source_id)}>×</button>
                     </div>
                   ))}
                 </div>
@@ -244,7 +274,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
           </div>
 
           {selectedIds.size > 0 && (
-            <button className="clear-selection-btn" onClick={() => onSelectionChange(new Set())}>
+            <button type="button" className="clear-selection-btn" onClick={() => onSelectionChange(new Set())}>
               Clear selection — search all
             </button>
           )}

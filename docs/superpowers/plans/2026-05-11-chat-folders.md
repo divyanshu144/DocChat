@@ -547,10 +547,10 @@ Expected: 4 PASSED.
 - [ ] **Step 6: Run full test suite to verify no regressions**
 
 ```bash
-pytest tests/ -v --ignore=tests/test_chroma.py --ignore=tests/test_agent_graph.py -x
+pytest tests/ -v --ignore=tests/test_agent_graph.py -x
 ```
 
-Expected: all passing (chroma/agent tests require live services so skip them).
+Expected: all passing (agent tests may require live services, so skip them if needed).
 
 - [ ] **Step 7: Commit**
 

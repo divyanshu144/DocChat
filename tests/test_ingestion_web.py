@@ -49,3 +49,26 @@ async def test_ingest_web_stores_chunks():
     assert payload["title"] == "AI News"
     assert payload["domain"] == "example.com"
     assert payload["source_id"] == source_id
+
+
+@pytest.mark.asyncio
+async def test_ingest_web_reupload_uses_same_source_and_point_ids_for_normalized_url():
+    mock_client = MagicMock()
+    mock_embedder = MagicMock()
+    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+    fake_scraped = {"content": "Article content about AI.", "title": "AI News"}
+
+    with (
+        patch("app.services.ingestion.web.get_qdrant_collection"),
+        patch("app.services.ingestion.web.get_qdrant_client", return_value=mock_client),
+        patch("app.services.ingestion.web.get_embedder", return_value=mock_embedder),
+        patch("app.services.ingestion.web._scrape", return_value=fake_scraped),
+    ):
+        from app.services.ingestion.web import ingest_web
+        source_id_1 = await ingest_web("https://EXAMPLE.com/article?b=2&a=1#frag")
+        point_id_1 = mock_client.upsert.call_args_list[0].kwargs["points"][0].id
+        source_id_2 = await ingest_web("https://example.com/article?a=1&b=2")
+        point_id_2 = mock_client.upsert.call_args_list[1].kwargs["points"][0].id
+
+    assert source_id_1 == source_id_2
+    assert point_id_1 == point_id_2

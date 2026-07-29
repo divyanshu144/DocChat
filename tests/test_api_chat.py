@@ -2,6 +2,8 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 
+from app.api.chat import _run_agent_with_status
+
 
 @pytest.fixture
 def client():
@@ -34,19 +36,15 @@ def client():
 
 
 def test_chat_streams_sse_answer(client):
-    final_state = {
-        "query": "What is attention?",
-        "conversation_id": "conv-123",
-        "sources_to_use": ["pdf"],
-        "retrieved_chunks": [],
-        "answer": "Attention is a mechanism.",
-        "critic_feedback": "",
-        "needs_replan": False,
-        "iteration": 1,
-    }
-
     with patch("app.api.chat.agent_graph") as mock_graph:
-        mock_graph.ainvoke = AsyncMock(return_value=final_state)
+        async def fake_astream(*_args, **_kwargs):
+            yield {"planner": {"sources_to_use": ["pdf"]}}
+            yield {"retriever": {"retrieved_chunks": []}}
+            yield {"synthesizer": {"answer": "Attention is a mechanism."}}
+            yield {"grounding": {"answer": "Attention is a mechanism.", "grounding_passed": True}}
+            yield {"critic": {"needs_replan": False, "iteration": 1}}
+
+        mock_graph.astream = fake_astream
         response = client.post(
             "/api/v1/chat",
             json={"query": "What is attention?"},
@@ -54,5 +52,71 @@ def test_chat_streams_sse_answer(client):
 
     assert response.status_code == 200
     assert "text/event-stream" in response.headers["content-type"]
+    assert "event: status" in response.text
+    assert "Planning which sources to search" in response.text
+    assert "event: token" in response.text
     assert "Attention" in response.text
     assert "[DONE]" in response.text
+
+
+def test_chat_streams_rate_limit_error_message(client):
+    with patch("app.api.chat.agent_graph") as mock_graph:
+        async def fake_astream(*_args, **_kwargs):
+            raise RuntimeError("429 Too Many Requests")
+            yield
+
+        mock_graph.astream = fake_astream
+        response = client.post(
+            "/api/v1/chat",
+            json={"query": "What is attention?"},
+        )
+
+    assert response.status_code == 200
+    assert "event: error" in response.text
+    assert "rate-limiting" in response.text
+
+
+@pytest.mark.asyncio
+async def test_agent_status_runner_preserves_last_non_empty_answer():
+    initial_state = {
+        "query": "Explain prompt chaining",
+        "conversation_id": "conv-1",
+        "conversation_history": [],
+        "sources_to_use": ["pdf"],
+        "source_ids": [],
+        "retrieved_chunks": [],
+        "answer": "",
+        "critic_feedback": "",
+        "needs_replan": False,
+        "iteration": 0,
+        "grounding_passed": False,
+    }
+
+    with patch("app.api.chat.agent_graph") as mock_graph:
+        async def fake_astream(*_args, **_kwargs):
+            yield {"synthesizer": {"answer": "Prompt chaining splits a task into steps."}}
+            yield {"grounding": {"answer": "", "grounding_passed": False}}
+
+        mock_graph.astream = fake_astream
+        events = [event async for event in _run_agent_with_status(initial_state)]
+
+    final = events[-1][1]
+    assert final["answer"] == "Prompt chaining splits a task into steps."
+
+
+def test_chat_never_streams_empty_saved_answer(client):
+    with patch("app.api.chat.agent_graph") as mock_graph:
+        async def fake_astream(*_args, **_kwargs):
+            yield {"planner": {"sources_to_use": ["pdf"]}}
+            yield {"synthesizer": {"answer": ""}}
+
+        mock_graph.astream = fake_astream
+        response = client.post(
+            "/api/v1/chat",
+            json={"query": "Explain prompt chaining"},
+        )
+
+    assert response.status_code == 200
+    assert "couldn't" in response.text
+    assert "usable" in response.text
+    assert "event: token" in response.text
