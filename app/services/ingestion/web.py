@@ -8,11 +8,12 @@ import trafilatura
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 import uuid as _uuid
+from app.core.sources import source_collection
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
 from qdrant_client.models import PointStruct
 from app.services.embedder import get_embedder
 
-COLLECTION = "web_chunks"
+COLLECTION = source_collection()
 
 _splitter = RecursiveCharacterTextSplitter(
     chunk_size=1500,
@@ -79,6 +80,7 @@ async def ingest_web(url: str) -> str:
             payload={
                 "text": text,
                 "source_id": source_id,
+                "source_type": "web",
                 "url": normalized_url,
                 "title": scraped["title"],
                 "domain": domain,

@@ -31,12 +31,16 @@ function sourceLabel(s: Source): string {
   return s.filename ?? s.title ?? s.url ?? s.source_id;
 }
 
-const TYPE_ORDER: Source['source_type'][] = ['pdf', 'youtube', 'web'];
-const TYPE_LABEL: Record<Source['source_type'], string> = {
+const TYPE_ORDER = ['pdf', 'youtube', 'web'];
+const TYPE_LABEL: Record<string, string> = {
   pdf: 'PDF',
   youtube: 'YouTube',
   web: 'Web',
 };
+
+function sourceTypeLabel(type: string): string {
+  return TYPE_LABEL[type] ?? type.replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
 
 export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionChange }: Props) {
   const [activeTab, setActiveTab] = useState<'pdf' | 'youtube' | 'web'>('pdf');
@@ -145,7 +149,11 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
     onSelectionChange(next);
   }
 
-  const grouped = TYPE_ORDER.map(type => ({
+  const orderedTypes = [
+    ...TYPE_ORDER,
+    ...Array.from(new Set(sources.map(s => s.source_type))).filter(type => !TYPE_ORDER.includes(type)),
+  ];
+  const grouped = orderedTypes.map(type => ({
     type,
     items: sources.filter(s => s.source_type === type),
   })).filter(g => g.items.length > 0);
@@ -250,7 +258,7 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
               : grouped.map(({ type, items }) => (
                 <div key={type} className="source-group">
                   <div className="source-group-header">
-                    <span className={`source-type-badge badge-${type}`}>{TYPE_LABEL[type]}</span>
+                    <span className={`source-type-badge badge-${type}`}>{sourceTypeLabel(type)}</span>
                     <span className="source-group-count">{items.length}</span>
                   </div>
                   {items.map(s => (

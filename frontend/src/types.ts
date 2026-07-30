@@ -26,7 +26,7 @@ export interface Message {
 
 export interface Source {
   source_id: string;
-  source_type: 'pdf' | 'youtube' | 'web';
+  source_type: string;
   filename?: string;
   title?: string;
   url?: string;
