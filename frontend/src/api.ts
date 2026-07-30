@@ -5,6 +5,7 @@ const LS_REFRESH = 'docchat_refresh';
 
 let _accessToken: string | null = localStorage.getItem(LS_TOKEN);
 let _refreshToken: string | null = localStorage.getItem(LS_REFRESH);
+let refreshPromise: Promise<boolean> | null = null;
 
 export function setTokens(access: string, refresh?: string) {
   _accessToken = access;
@@ -32,21 +33,30 @@ function authHeaders(): Record<string, string> {
 }
 
 async function tryRefresh(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+
   const rt = _refreshToken || localStorage.getItem(LS_REFRESH);
   if (!rt) return false;
-  try {
-    const r = await fetch('/api/v1/auth/refresh', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: rt }),
-    });
-    if (!r.ok) return false;
-    const d: TokenResponse = await r.json();
-    setTokens(d.access_token, d.refresh_token);
-    return true;
-  } catch {
-    return false;
-  }
+
+  refreshPromise = (async () => {
+    try {
+      const r = await fetch('/api/v1/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: rt }),
+      });
+      if (!r.ok) return false;
+      const d: TokenResponse = await r.json();
+      setTokens(d.access_token, d.refresh_token);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {

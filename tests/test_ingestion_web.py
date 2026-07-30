@@ -42,6 +42,7 @@ async def test_ingest_web_stores_chunks():
     assert isinstance(source_id, str) and len(source_id) == 36
     mock_client.upsert.assert_called_once()
     call_kwargs = mock_client.upsert.call_args[1]
+    assert call_kwargs["collection_name"] == "source_chunks"
     points = call_kwargs["points"]
     assert len(points) == 1
     payload = points[0].payload
@@ -49,6 +50,7 @@ async def test_ingest_web_stores_chunks():
     assert payload["title"] == "AI News"
     assert payload["domain"] == "example.com"
     assert payload["source_id"] == source_id
+    assert payload["source_type"] == "web"
 
 
 @pytest.mark.asyncio

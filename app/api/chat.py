@@ -93,6 +93,7 @@ async def chat(
         conv = Conversation(id=str(_uuid.uuid4()), title=req.query[:100], user_id=current_user.id)
         db.add(conv)
         await db.flush()
+        await db.commit()
 
     history_result = await db.execute(
         select(Message)

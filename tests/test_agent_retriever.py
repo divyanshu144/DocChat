@@ -8,7 +8,7 @@ from app.agent.nodes.retriever import retriever_node
 def _search_hit(text: str, score: float = 0.8, **payload_extra):
     return {
         "score": score,
-        "payload": {"text": text, "filename": "doc.pdf", **payload_extra},
+        "payload": {"text": text, "source_type": "pdf", "filename": "doc.pdf", **payload_extra},
     }
 
 
@@ -36,11 +36,12 @@ async def test_retriever_queries_selected_sources():
     mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
 
     with (
-        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[_search_hit("chunk text", score=0.75)])),
+        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[_search_hit("chunk text", score=0.75)])) as mock_search,
         patch("app.agent.nodes.retriever.get_embedder", return_value=mock_embedder),
     ):
         result = await retriever_node(_base_state(sources_to_use=["pdf"]))
 
+    assert mock_search.call_args.args[0] == "source_chunks"
     assert len(result["retrieved_chunks"]) == 1
     assert result["retrieved_chunks"][0]["text"] == "chunk text"
     assert result["retrieved_chunks"][0]["source_type"] == "pdf"
@@ -84,6 +85,39 @@ async def test_retriever_applies_source_id_filter():
         await retriever_node(_base_state(sources_to_use=["pdf"], source_ids=["src-123"]))
 
     assert mock_search.call_args.args[3] is not None
+
+
+@pytest.mark.asyncio
+async def test_retriever_source_id_filter_ignores_known_source_type_filter():
+    mock_embedder = MagicMock()
+    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+
+    with (
+        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[_search_hit("filtered chunk")])) as mock_search,
+        patch("app.agent.nodes.retriever.get_embedder", return_value=mock_embedder),
+    ):
+        await retriever_node(_base_state(sources_to_use=["pdf"], source_ids=["src-future"]))
+
+    dumped_filter = mock_search.call_args.args[3].model_dump(mode="json", exclude_none=True)
+    fields = [condition["key"] for condition in dumped_filter["must"]]
+    assert fields == ["source_id"]
+
+
+@pytest.mark.asyncio
+async def test_retriever_reranks_lexical_matches_above_weaker_vector_hits():
+    mock_embedder = MagicMock()
+    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+
+    with (
+        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[
+            _search_hit("generic unrelated chunk", score=0.9),
+            _search_hit("attention mechanisms explain relevant context", score=0.82),
+        ])),
+        patch("app.agent.nodes.retriever.get_embedder", return_value=mock_embedder),
+    ):
+        result = await retriever_node(_base_state())
+
+    assert result["retrieved_chunks"][0]["text"] == "attention mechanisms explain relevant context"
 
 
 @pytest.mark.asyncio

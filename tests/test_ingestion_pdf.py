@@ -38,11 +38,13 @@ async def test_ingest_pdf_stores_chunks_in_qdrant():
     assert isinstance(source_id, str) and len(source_id) == 36
     mock_client.upsert.assert_called_once()
     call_kwargs = mock_client.upsert.call_args[1]
+    assert call_kwargs["collection_name"] == "source_chunks"
     points = call_kwargs["points"]
     assert len(points) == 1
     assert points[0].payload["text"] == "Sample text"
     assert points[0].payload["filename"] == "test.pdf"
     assert points[0].payload["source_id"] == source_id
+    assert points[0].payload["source_type"] == "pdf"
 
 
 @pytest.mark.asyncio

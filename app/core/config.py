@@ -46,6 +46,7 @@ class Settings(BaseSettings):
 
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
+    context_max_chars: int = 12000
 
     # LangSmith observability
     langsmith_api_key: str = ""
