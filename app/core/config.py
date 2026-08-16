@@ -47,9 +47,16 @@ class Settings(BaseSettings):
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
 
-    # LangSmith observability
+    # LangSmith observability. Tracing needs BOTH a key and the flag; the flag
+    # exists so `LANGSMITH_TRACING=false` can silence a noisy eval or benchmark
+    # run without anyone having to pull the key out of .env and forget to restore it.
     langsmith_api_key: str = ""
     langsmith_project: str = "docchat-agent"
+    langsmith_tracing: bool = True
+    # The SDK defaults to the US host. An EU-region key authenticates ONLY against
+    # the EU host and 403s against US — which looks identical to a revoked key, so
+    # set this explicitly rather than debugging it twice.
+    langsmith_endpoint: str = ""
 
     # YouTube (optional)
     youtube_api_key: str = ""

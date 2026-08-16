@@ -14,6 +14,9 @@ import json
 
 from typing import Any, AsyncGenerator
 
+from langsmith import traceable
+from langsmith.run_helpers import get_current_run_tree
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -274,10 +277,44 @@ def _can_fallback_to_openai(exc: Exception) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Tracing
+#
+# LangGraph traces the agent nodes on its own, but every LLM call below goes
+# through a vendor SDK (AsyncGroq, Mistral) or raw httpx (OpenAI) — none of which
+# LangChain instruments. Without these decorators a trace shows five node runs
+# and not a single prompt, completion, or token count.
+# ---------------------------------------------------------------------------
+
+def _tag_run(**metadata: Any) -> None:
+    """Attach metadata to the active LangSmith run, if one exists.
+
+    Never raises. Observability must not be able to break a chat request — a
+    no-op here costs a missing label, an exception costs the user their answer.
+    """
+    try:
+        run = get_current_run_tree()
+        if run is not None:
+            run.extra.setdefault("metadata", {}).update(metadata)
+    except Exception:  # pragma: no cover - defensive only
+        logger.debug("langsmith_tag_run_failed", exc_info=True)
+
+
+def _join_stream(tokens: list[str]) -> dict:
+    """Collapse streamed tokens into one output field.
+
+    Without this the trace records the raw yield list — hundreds of fragments
+    instead of the answer the user actually saw.
+    """
+    return {"output": "".join(tokens)}
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
+@traceable(run_type="llm", name="chat_complete")
 async def chat_complete(messages: list[dict], max_tokens: int = 1024) -> str:
+    _tag_run(provider=settings.llm_provider, model=_active_model(), streaming=False)
     client = _get_client()
     if settings.llm_provider == "mistral":
         return await _mistral_complete(client, messages, max_tokens)
@@ -300,9 +337,11 @@ async def chat_complete(messages: list[dict], max_tokens: int = 1024) -> str:
     )
 
 
+@traceable(run_type="llm", name="chat_stream", reduce_fn=_join_stream)
 async def chat_stream(
     messages: list[dict], max_tokens: int = 1024
 ) -> AsyncGenerator[str, None]:
+    _tag_run(provider=settings.llm_provider, model=_active_model(), streaming=True)
     client = _get_client()
     if settings.llm_provider == "mistral":
         generator = _mistral_stream(client, messages, max_tokens)
