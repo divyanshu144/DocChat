@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
 
+    # Where the critic appends answers it rejected, as JSONL. Blank disables the
+    # sink entirely; set it to ./data/critic_rejections.jsonl to start collecting.
+    # These drafts exist nowhere else — the replan overwrites them in place.
+    critic_rejection_log: str = ""
+
     # LangSmith observability. Tracing needs BOTH a key and the flag; the flag
     # exists so `LANGSMITH_TRACING=false` can silence a noisy eval or benchmark
     # run without anyone having to pull the key out of .env and forget to restore it.
