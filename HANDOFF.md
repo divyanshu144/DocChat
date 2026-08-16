@@ -1,8 +1,8 @@
 # DocChat — Session Handoff
 
 **Branch:** `feat/openai-sse-chat-quality`
-**Last updated:** 2026-07-29
-**Status:** Active development — green build, ready to push
+**Last updated:** 2026-08-16
+**Status:** Active development — green build, all work committed, nothing in flight.
 
 ---
 
@@ -49,6 +49,66 @@
 - **Benchmark diagnostics** — F1 now distinguishes defined zero from undefined, and the
   benchmark keeps per-case error rows while exiting 0 as documented.
 
+### Built in this branch (2026-08-15 → 2026-08-16)
+
+Three independent threads, committed separately.
+
+**1. LangSmith tracing of the LLM calls**
+
+- `app/agent/graph.py` — `_configure_langsmith()` now sets the modern `LANGSMITH_*`
+  env vars (was the deprecated `LANGCHAIN_*`) and requires **both** a key and the new
+  `langsmith_tracing` flag. `langsmith_endpoint` added for EU-region keys, which 403
+  against the US host in a way that looks identical to a revoked key.
+- `app/services/llm.py` — `@traceable` on `chat_complete` / `chat_stream`, plus
+  `_tag_run()` (provider/model/streaming metadata) and `_join_stream()` (collapses
+  streamed tokens into one output instead of hundreds of fragments). LangGraph traces
+  nodes on its own but never sees the vendor SDK calls, so traces previously showed
+  five node runs and zero prompts.
+- `tests/conftest.py` — forces `LANGSMITH_TRACING=false` for the suite before anything
+  imports `app`. `settings` is a module-level singleton, so conftest is the only window.
+- `requirements.txt` — `langsmith` capped `<1.0.0`; the code calls `traceable(reduce_fn=)`
+  and `run_helpers.get_current_run_tree` directly. Floor of `0.1.0` is **unverified** —
+  it predates this code and is almost certainly too low. Installed and working: 0.10.11.
+
+**2. Critic rejection sink**
+
+- `app/agent/nodes/critic.py` — `_record_rejection()` appends each rejected draft to
+  JSONL (timestamp, query, answer, context, verdict, reason). Gated on the new
+  `critic_rejection_log` setting; blank disables it. This is the **only** capture point:
+  on replan the synthesizer overwrites `state["answer"]` in place, so a rejected draft
+  exists nowhere else, including the saved message. All failures are swallowed — a
+  broken sink costs training data, never a user's answer. `_PROMPT` → public
+  `CRITIC_PROMPT`.
+- `tests/test_critic_rejection_sink.py` — 5 tests: disabled-by-default, append-not-
+  truncate, approved-not-recorded, field shape, and unwritable-sink-never-raises.
+
+**3. Corruption generator for the critic benchmark** (2026-08-16)
+
+Spec: `docs/superpowers/specs/2026-08-15-corruption-gen-design.md`.
+
+- `eval/corruptions.py` — four pure, deterministic transforms that take a `good` answer
+  and return a `poor` one, so ground truth is inherited from the transform instead of a
+  fresh human judgement: `contradict_self` (4), `strip_specifics` (4),
+  `truncate_enumeration` (1), `off_topic_swap` (6). **15 generated cases**, N=20 total.
+- `eval/benchmark.py` — runs generated cases alongside the hand-written ones and scores
+  the two groups **separately**. Merging them would inflate the headline number and break
+  comparability with every edge-case run recorded before they existed. Adds a
+  per-transform recall breakdown.
+- `eval/cases.py` — `CriticCase.context` is now correctly documented as **authoring
+  provenance**; the previous comment implied the critic reads it.
+- `tests/test_corruptions.py` — 23 tests, weighted toward what a transform must never do.
+
+**The finding that shaped this:** `CRITIC_PROMPT` interpolates only Query and Answer —
+the critic never receives the retrieved context. So `contradict_source` (the transform
+`CriticCase.context` was originally added for) is unbuildable: the critic could not get
+such a case right at any quality level. `overclaim` and `drop_citation` were cut for the
+same reason — a fabricated version number is indistinguishable from a real one without
+the source, and a de-hedged answer reads *better*, so both would have injected
+mislabelled cases. `strip_specifics` and `off_topic_swap` replaced them.
+
+**Rule this establishes:** a corruption is sound only if a *correct* critic, given just
+the query and the answer, would call the result poor. "Degraded" is not enough.
+
 ### Repo hygiene (2026-07-28)
 
 - `postgres_data/` and `qdrant_data/` removed from git and gitignored. Both still exist
@@ -77,10 +137,17 @@
 
 ## Next Action (immediately actionable)
 
-Nothing blocking. Layer A shipped 2026-07-28 and surfaced a concrete finding — the
-critic cannot represent a correct "I can't answer from this context" as good. The
-highest-value next task is the critic prompt fix described under Critic Eval below;
-it changes agent behaviour, so write a spec first.
+Run `python eval/benchmark.py` against a real key — the generated cases have **never been
+scored by the real critic**, only by a stub during development. The per-transform
+breakdown is the thing to read: a transform caught 0/N is either a genuine critic blind
+spot or a badly designed corruption, and those need telling apart before the numbers mean
+anything.
+
+Then the highest-value task is still the critic prompt fix described under Critic Eval
+below — the critic cannot represent a correct "I can't answer from this context" as good.
+It changes agent behaviour, so write a spec first. Giving `CRITIC_PROMPT` the retrieved
+context is a closely related change that would also unlock `contradict_source`; both want
+that spec.
 
 ---
 
@@ -172,8 +239,10 @@ signal you'd be measuring.** Before comparing providers or a fine-tuned model:
 ```bash
 source venv/bin/activate
 ruff check .                # clean
-pytest -m "not eval" -q     # 109 passed, 0 failed
+pytest -m "not eval" -q     # 137 passed, 0 failed
 ```
+
+Was 109 until the critic rejection sink added 5 tests (2026-08-15).
 
 **Both gates are green.** There are no known-failing tests, so any red is a real
 regression — don't dismiss one as pre-existing without diffing against a stash.

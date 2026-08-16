@@ -9,6 +9,12 @@ class CriticCase:
     answer: str
     expected: Literal["good", "poor"]  # human-readable; test owns translation to needs_replan bool
     reason: str                        # why this label exists — survives prompt refactors
+    # Retrieved chunks the answer was meant to be grounded in — AUTHORING PROVENANCE
+    # ONLY. It never reaches the critic: `CRITIC_PROMPT` interpolates query and answer
+    # and nothing else. It exists so a human auditing a generated case in
+    # `eval/corruptions.py` can check the transform was fair. Judging a case on
+    # anything recorded here would measure a prompt field the critic does not have.
+    context: str = ""
 
 
 CASES: list[CriticCase] = [

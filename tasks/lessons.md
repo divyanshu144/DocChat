@@ -102,3 +102,69 @@ denominator. `None` means undefined; numeric zero is a real diagnostic result.
 **What to do next time:** Metric helpers need explicit regression tests for both
 undefined-denominator cases and defined-zero cases. When docs cite a hard test count,
 update it in the same patch that adds tests; the latest non-eval gate is 109 passed.
+
+---
+
+## 2026-08-15 — The test-count lesson was violated by the very next change
+
+**What broke:** The 2026-07-29 entry above ends "when docs cite a hard test count, update
+it in the same patch that adds tests." The next change added 5 tests
+(`tests/test_critic_rejection_sink.py`) and updated none of them. `CLAUDE.md` (twice),
+`HANDOFF.md`, and `tasks/agent_memory.md` all still claimed 109 while the suite ran 114.
+
+**Root cause:** Not discipline — duplication. The number is hand-copied prose in four
+files, and `CLAUDE.md` states it as a Definition-of-Done gate ("fully green — 109
+passed"), so a stale copy makes the DoD itself wrong: a correct 114-passing run reads as
+a failure against the written gate.
+
+**What to do next time:** Treat the count as one fact with four copies and grep it
+(`grep -rn "<count>" CLAUDE.md HANDOFF.md tasks/`) as part of the DoD, not from memory.
+Do not "fix" the historical copies — the checked-off line in `tasks/todo.md` and the
+dated entries here are records of what was true then, and rewriting them destroys the log.
+
+---
+
+## 2026-08-15 — A new direct dependency went in unbounded
+
+**What broke:** `app/services/llm.py` started calling `langsmith` APIs directly
+(`traceable(reduce_fn=...)`, `run_helpers.get_current_run_tree`) while `requirements.txt`
+still declared `langsmith>=0.1.0` — unbounded, and with a floor far below anything that
+has those APIs. Same shape as the `mcp>=1.27.0` break recorded 2026-07-28.
+
+**Root cause:** The package was already listed as a transitive-ish dependency of the
+LangGraph stack, so adding a *direct* code dependency on it did not feel like adding a
+dependency, and nobody revisited the constraint.
+
+**What to do next time:** Importing a package in `app/` for the first time is a
+requirements change even when the line already exists. Cap the major in the same patch.
+The floor still wants verifying — `0.1.0` is known-wrong, just not yet known-what-instead.
+
+---
+
+## 2026-08-16 — A corruption is only sound if a *correct* critic would fail it
+
+**What broke:** The corruption generator was approved with four transforms —
+`contradict_source`, `drop_citation`, `overclaim`, and an enumeration-shortening one.
+Reading `app/agent/nodes/critic.py` before writing any code killed the first three.
+
+**Root cause:** `CRITIC_PROMPT` interpolates exactly two fields, Query and Answer. The
+critic never receives the retrieved context, and `benchmark.py` reinforced it by
+hardcoding `retrieved_chunks: []`. So:
+
+- `contradict_source` — the contradiction is invisible; unwinnable at any quality level.
+- `overclaim` — a fabricated version number and a real one are indistinguishable without
+  the source. Worse, its de-hedging half makes the answer read *more* confident, so a
+  good critic rates it **better** — the case would be mislabelled, not merely hard.
+- `drop_citation` — the prompt asks only whether the answer "adequately addresses the
+  query" and says nothing about citations. The remaining prose still answers, so a
+  correct critic calls it good.
+
+Each would have emitted a `poor` label the critic was right to reject, and the benchmark
+would then have measured the critic against a lie.
+
+**What to do next time:** Before designing any auto-labelled eval case, read the judge's
+actual prompt and list the fields it receives. The bar is not "this transform degrades
+the answer" — it is **"a correct judge, given only the fields it actually gets, would
+call this result poor."** Degradation the judge cannot perceive is dataset poison, and it
+is invisible: the run still produces numbers, they are just wrong. Related: the same
+prompt gap is why the critic cannot approve a correct gap-admission, logged above.

@@ -25,8 +25,9 @@ a licence to change the decision.
 
 ## Known Gotchas
 
-- **The suite is fully green** — 109 passed, 0 failed. There are no known-failing tests,
-  so any red is yours. (Was 45/4/12 before the 2026-07-28 venv rebuild.)
+- **The suite is fully green** — 137 passed, 0 failed. There are no known-failing tests,
+  so any red is yours. (Was 45/4/12 before the 2026-07-28 venv rebuild; 109 before the
+  critic rejection sink added 5.)
 - **The critic cannot approve a correct "I can't answer from this context."** Its prompt
   defines good as "addresses the full query", so appropriate gap-admission scores poor.
   Measured by `eval/benchmark.py`: recall 1.00, precision 0.25–0.33 on edge cases — it

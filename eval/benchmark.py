@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.agent.nodes.critic import critic_node  # noqa: E402
 from app.agent.state import AgentState  # noqa: E402
 from eval.cases import BENCHMARK_CASES, CriticCase  # noqa: E402
+from eval.corruptions import generate  # noqa: E402
 
 _RULE = "─" * 53
 
@@ -40,6 +41,8 @@ async def run_case(case: CriticCase) -> dict:
         "conversation_history": [],
         "sources_to_use": ["pdf"],
         "source_ids": [],
+        # Stays empty even for cases carrying `context`: CRITIC_PROMPT interpolates
+        # only query and answer, so populating this would change nothing.
         "retrieved_chunks": [],
         "critic_feedback": "",
         "needs_replan": False,
@@ -92,18 +95,14 @@ def _fmt(metric: float | None) -> str:
     return "N/A " if metric is None else f"{metric:.2f}"
 
 
-async def main() -> None:
-    n = len(BENCHMARK_CASES)
-    print(
-        f"\nDiagnostic run — {n} ambiguous edge cases "
-        "(seed dataset, not statistically significant)\n"
-    )
-
-    width = max(len(c.label) for c in BENCHMARK_CASES) + 2
+async def _run_group(cases: list[CriticCase], heading: str) -> list[dict]:
+    """Run one group of cases, printing a line each. Never raises."""
+    print(f"\n{heading}\n")
+    width = max(len(c.label) for c in cases) + 2
 
     results: list[dict] = []
-    for case in BENCHMARK_CASES:
-        # Sequential on purpose — 5 cases at ~1s each needs no parallelism.
+    for case in cases:
+        # Sequential on purpose — a few dozen cases at ~1s each needs no parallelism.
         try:
             result = await run_case(case)
         except Exception as exc:
@@ -127,25 +126,75 @@ async def main() -> None:
             line += f' | "{result["feedback"]}"'
         print(line)
 
+    return results
+
+
+def _report(title: str, results: list[dict]) -> None:
     m = _compute_metrics(results)
     correct = sum(1 for r in results if r["correct"])
 
     print(f"\n{_RULE}")
-    print(f"{correct} / {n} correct on edge cases\n")
+    print(f"{title} — {correct} / {len(results)} correct\n")
     print(f"  TP (correctly flagged poor)  : {m['tp']}")
     print(f"  FP (good flagged as poor)    : {m['fp']}")
     print(f"  FN (poor missed as good)     : {m['fn']}")
     print(f"  TN (correctly passed good)   : {m['tn']}")
     print(f"  Errors (no verdict)          : {m['errors']}\n")
-    print(f"  Precision (edge cases) : {_fmt(m['precision'])}   "
-          "(of cases flagged poor, how many were?)")
-    print(f"  Recall    (edge cases) : {_fmt(m['recall'])}   "
-          "(of poor cases, how many were caught?)")
-    print(f"  F1        (edge cases) : {_fmt(m['f1'])}\n")
-    print(f"  Note: N={n} — expand to 20–30 cases before quoting these numbers externally.")
-    print("        Dataset is stacked toward the Critic's known failure modes (over-firing on")
-    print("        hedged/partial answers). These numbers measure edge-case precision, not")
-    print("        overall Critic quality in production.")
+    print(f"  Precision : {_fmt(m['precision'])}   (of cases flagged poor, how many were?)")
+    print(f"  Recall    : {_fmt(m['recall'])}   (of poor cases, how many were caught?)")
+    print(f"  F1        : {_fmt(m['f1'])}")
+    print(_RULE)
+
+
+def _per_transform(results: list[dict]) -> None:
+    """Recall broken out by transform.
+
+    Every generated case is labelled "poor", so this is recall and nothing else — but
+    it is the useful cut: a transform the critic misses wholesale is either a real
+    blind spot or a badly designed corruption, and the two are worth telling apart.
+    """
+    by_transform: dict[str, list[dict]] = {}
+    for r in results:
+        by_transform.setdefault(r["label"].rsplit("__", 1)[-1], []).append(r)
+
+    print("\n  Caught, by transform:")
+    for name in sorted(by_transform):
+        group = by_transform[name]
+        caught = sum(1 for r in group if r["correct"])
+        print(f"    {name:<22} {caught}/{len(group)}")
+
+
+async def main() -> None:
+    edge_cases = list(BENCHMARK_CASES)
+    generated = generate()
+
+    print(
+        f"\nDiagnostic run — {len(edge_cases)} hand-written edge cases "
+        f"+ {len(generated)} generated corruptions\n"
+    )
+
+    edge_results = await _run_group(
+        edge_cases, "Hand-written edge cases — ambiguous, near the decision boundary"
+    )
+    gen_results = await _run_group(
+        generated, "Generated corruptions — label inherited from the transform"
+    )
+
+    # Scored separately on purpose. The generated cases are mostly NOT borderline, so
+    # merging them would inflate the headline number and destroy comparability with
+    # every edge-case run recorded before they existed.
+    _report("EDGE CASES", edge_results)
+    _report("GENERATED CORRUPTIONS", gen_results)
+    _per_transform(gen_results)
+
+    print(f"\n{_RULE}")
+    print(f"  Note: edge-case N={len(edge_cases)} — still too small to quote externally.")
+    print("        That dataset is stacked toward the Critic's known failure modes")
+    print("        (over-firing on hedged/partial answers), so it measures edge-case")
+    print("        precision, not overall Critic quality in production.")
+    print("        The generated set measures the opposite end: whether obvious")
+    print("        degradations are caught at all. Neither is reproducible run-to-run")
+    print("        until temperature is pinned on the classification nodes.")
     print(_RULE)
 
 
