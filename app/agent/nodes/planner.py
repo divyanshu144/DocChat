@@ -1,5 +1,6 @@
 import json
 from app.agent.state import AgentState
+from app.core.config import settings
 from app.services.llm import chat_complete
 
 _PROMPT = """\
@@ -42,7 +43,13 @@ async def planner_node(state: AgentState) -> dict:
         conversation_history=_format_history(state.get("conversation_history", [])),
         critic_feedback=state.get("critic_feedback") or "none",
     )
-    response = await chat_complete([{"role": "user", "content": prompt}], max_tokens=200)
+    response = await chat_complete(
+        [{"role": "user", "content": prompt}],
+        max_tokens=200,
+        # Source selection is a classification, not prose — pinned for the same reason
+        # as the critic's verdict. See settings.classification_temperature.
+        temperature=settings.classification_temperature,
+    )
 
     try:
         data = json.loads(response)

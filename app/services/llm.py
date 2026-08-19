@@ -124,11 +124,34 @@ def _text(content: Any) -> str:
     return str(content)
 
 
+def _temperature_kwargs(temperature: float | None) -> dict:
+    """Send `temperature` only when a caller asked for one.
+
+    Omitting it leaves every existing call sampling at the provider default, so
+    pinning the classification nodes cannot silently change the synthesizer's prose.
+    """
+    return {} if temperature is None else {"temperature": temperature}
+
+
+def _mentions_temperature(resp: Any) -> bool:
+    """Did this 400 complain about `temperature` specifically?
+
+    Narrow on purpose: retrying a 400 we have not understood would just burn a second
+    request and return the same error.
+    """
+    try:
+        return "temperature" in json.dumps(resp.json()).lower()
+    except Exception:  # pragma: no cover - malformed error body
+        return False
+
+
 # ---------------------------------------------------------------------------
 # Groq
 # ---------------------------------------------------------------------------
 
-async def _groq_complete(client: Any, messages: list[dict], max_tokens: int) -> str:
+async def _groq_complete(
+    client: Any, messages: list[dict], max_tokens: int, temperature: float | None = None
+) -> str:
     models = _groq_models()
     for index, model in enumerate(models):
         try:
@@ -136,6 +159,7 @@ async def _groq_complete(client: Any, messages: list[dict], max_tokens: int) -> 
                 model=model,
                 messages=messages,
                 max_tokens=max_tokens,
+                **_temperature_kwargs(temperature),
             )
             return _text(resp.choices[0].message.content)
         except Exception as exc:
@@ -182,11 +206,14 @@ async def _groq_stream(
 # Mistral
 # ---------------------------------------------------------------------------
 
-async def _mistral_complete(client: Any, messages: list[dict], max_tokens: int) -> str:
+async def _mistral_complete(
+    client: Any, messages: list[dict], max_tokens: int, temperature: float | None = None
+) -> str:
     resp = await client.chat.complete_async(
         model=_active_model(),
         messages=messages,
         max_tokens=max_tokens,
+        **_temperature_kwargs(temperature),
     )
     return _text(resp.choices[0].message.content)
 
@@ -210,15 +237,35 @@ async def _mistral_stream(
 # OpenAI
 # ---------------------------------------------------------------------------
 
-async def _openai_complete(client: Any, messages: list[dict], max_tokens: int) -> str:
-    resp = await client.post(
-        "/chat/completions",
-        json={
-            "model": settings.openai_chat_model,
-            "messages": messages,
-            "max_completion_tokens": max_tokens,
-        },
-    )
+# Models that have rejected an explicit temperature. Reasoning-family models accept
+# only the default and reject every single time, so without this the retry below would
+# permanently double the request count of every classification call.
+_TEMPERATURE_UNSUPPORTED: set[str] = set()
+
+
+async def _openai_complete(
+    client: Any, messages: list[dict], max_tokens: int, temperature: float | None = None
+) -> str:
+    model = settings.openai_chat_model
+    payload: dict = {
+        "model": model,
+        "messages": messages,
+        "max_completion_tokens": max_tokens,
+    }
+    if model not in _TEMPERATURE_UNSUPPORTED:
+        payload.update(_temperature_kwargs(temperature))
+
+    resp = await client.post("/chat/completions", json=payload)
+
+    # Determinism is a nice-to-have; failing the user's request over it is not. Drop
+    # the parameter and retry rather than propagate — then remember, so the next call
+    # goes straight to the working shape.
+    if resp.status_code == 400 and "temperature" in payload and _mentions_temperature(resp):
+        _TEMPERATURE_UNSUPPORTED.add(model)
+        logger.warning("openai_rejected_temperature_retrying_without", extra={"model": model})
+        del payload["temperature"]
+        resp = await client.post("/chat/completions", json=payload)
+
     resp.raise_for_status()
     data = resp.json()
     return _text(data["choices"][0]["message"].get("content"))
@@ -248,11 +295,11 @@ async def _openai_stream(
 
 
 async def _openai_complete_with_temporary_client(
-    messages: list[dict], max_tokens: int
+    messages: list[dict], max_tokens: int, temperature: float | None = None
 ) -> str:
     client = _build_client("openai")
     try:
-        return await _openai_complete(client, messages, max_tokens)
+        return await _openai_complete(client, messages, max_tokens, temperature)
     finally:
         await client.aclose()
 
@@ -313,14 +360,27 @@ def _join_stream(tokens: list[str]) -> dict:
 # ---------------------------------------------------------------------------
 
 @traceable(run_type="llm", name="chat_complete")
-async def chat_complete(messages: list[dict], max_tokens: int = 1024) -> str:
-    _tag_run(provider=settings.llm_provider, model=_active_model(), streaming=False)
+async def chat_complete(
+    messages: list[dict], max_tokens: int = 1024, temperature: float | None = None
+) -> str:
+    """Complete a chat turn.
+
+    `temperature=None` (the default) sends no temperature at all, leaving the provider
+    default in place. Pass `0` for the classification nodes, whose output is a label
+    that should not move between runs — see `settings.classification_temperature`.
+    """
+    _tag_run(
+        provider=settings.llm_provider,
+        model=_active_model(),
+        streaming=False,
+        temperature=temperature,
+    )
     client = _get_client()
     if settings.llm_provider == "mistral":
-        return await _mistral_complete(client, messages, max_tokens)
+        return await _mistral_complete(client, messages, max_tokens, temperature)
     if settings.llm_provider == "groq":
         try:
-            return await _groq_complete(client, messages, max_tokens)
+            return await _groq_complete(client, messages, max_tokens, temperature)
         except Exception as exc:
             if not _can_fallback_to_openai(exc):
                 raise
@@ -328,9 +388,11 @@ async def chat_complete(messages: list[dict], max_tokens: int = 1024) -> str:
                 "groq_chat_failed_retrying_openai",
                 extra={"fallback_model": settings.openai_chat_model},
             )
-            return await _openai_complete_with_temporary_client(messages, max_tokens)
+            return await _openai_complete_with_temporary_client(
+                messages, max_tokens, temperature
+            )
     if settings.llm_provider == "openai":
-        return await _openai_complete(client, messages, max_tokens)
+        return await _openai_complete(client, messages, max_tokens, temperature)
     raise ValueError(
         f"Unknown llm_provider {settings.llm_provider!r}. "
         "Supported providers: 'groq', 'mistral', 'openai'."

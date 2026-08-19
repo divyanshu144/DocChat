@@ -5,8 +5,8 @@ Pure logic — no LLM, no `eval` marker, runs in the normal suite.
 
 import pytest
 
-from eval.benchmark import _compute_metrics, _fmt
-from eval.cases import BENCHMARK_CASES
+from eval.benchmark import _compute_metrics, _fmt, _report
+from eval.cases import BENCHMARK_CASES, CriticCase
 
 
 def _r(expected: str, got: str) -> dict:
@@ -94,6 +94,44 @@ def test_benchmark_dataset_shape():
     assert sum(1 for c in BENCHMARK_CASES if c.expected == "good") == 4
     assert sum(1 for c in BENCHMARK_CASES if c.expected == "poor") == 1
     assert len({c.label for c in BENCHMARK_CASES}) == 5
+
+
+def _case(label: str, expected: str) -> CriticCase:
+    return CriticCase(label=label, query="q", answer="a", expected=expected, reason="r")
+
+
+def test_report_suppresses_precision_when_every_case_is_poor(capsys):
+    """The generated corruption set is all-poor, so FP and TN are zero regardless of
+    how the critic behaves — precision is pinned at 1.00 and measures nothing. Printing
+    it beside a real recall invites reading a structural constant as a result."""
+    cases = [_case("a", "poor"), _case("b", "poor")]
+    results = [
+        {"expected": "poor", "got": "poor", "correct": True},
+        {"expected": "poor", "got": "good", "correct": False},
+    ]
+
+    _report("GENERATED", results, cases)
+    out = capsys.readouterr().out
+
+    assert "Recall    : 0.50" in out
+    assert "not defined" in out
+    assert "Precision : 1.00" not in out
+    assert "F1" not in out
+
+
+def test_report_shows_precision_when_the_group_has_good_cases(capsys):
+    cases = [_case("a", "poor"), _case("b", "good")]
+    results = [
+        {"expected": "poor", "got": "poor", "correct": True},
+        {"expected": "good", "got": "good", "correct": True},
+    ]
+
+    _report("EDGE", results, cases)
+    out = capsys.readouterr().out
+
+    assert "Precision : 1.00" in out
+    assert "F1        : 1.00" in out
+    assert "not defined" not in out
 
 
 def test_benchmark_cases_are_independent_of_regression_guard():

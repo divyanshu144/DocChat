@@ -82,6 +82,9 @@ Three independent threads, committed separately.
 - `tests/test_critic_rejection_sink.py` — 5 tests: disabled-by-default, append-not-
   truncate, approved-not-recorded, field shape, and unwritable-sink-never-raises.
 
+  **Superseded 2026-08-19** — the single-record shape described above was half a
+  training example. See the 2026-08-19 section for the paired record that replaced it.
+
 **3. Corruption generator for the critic benchmark** (2026-08-16)
 
 Spec: `docs/superpowers/specs/2026-08-15-corruption-gen-design.md`.
@@ -108,6 +111,43 @@ mislabelled cases. `strip_specifics` and `off_topic_swap` replaced them.
 
 **Rule this establishes:** a corruption is sound only if a *correct* critic, given just
 the query and the answer, would call the result poor. "Degraded" is not enough.
+
+### Built in this branch (2026-08-19) — fine-tuning readiness
+
+Spec: `docs/superpowers/specs/2026-08-19-critic-gap-admission-design.md`.
+
+Everything below exists to make a future training corpus trustworthy. Order was forced:
+the critic is the labeller, so its bias had to be fixed *before* collection starts.
+
+**Critic gap-admission fixed — the long-standing blind spot is closed.**
+`CRITIC_PROMPT` now judges in two ordered steps: step 1 rejects self-contradiction,
+vagueness and off-topic outright ("nothing excuses these"); step 2 applies a
+disclosure test to *missing information only* — an answer that names what the context
+lacks is good. Measured: Layer A edge cases **4/5 → 5/5, precision 0.50 → 1.00, recall
+held at 1.00**; generated corruptions held at 15/15; Layer B 8/8.
+
+**Sink now writes complete training pairs.** The old record was the rejected draft
+alone — half an example, useless for supervised fine-tuning (wants the preferred output)
+and for preference training (wants both sides). `pending_rejection` now rides the state
+from the rejecting pass to the pass that knows the replacement, and one record is written
+carrying `rejection_id`, `conversation_id`, both answers, and the reason. Incomplete
+pairs are dropped rather than written as halves to be filtered later.
+
+**`temperature` threaded through the provider seam**, pinned to 0 for the classification
+nodes (critic, planner) via `settings.classification_temperature`. The synthesizer is
+deliberately left sampling. Omitting the argument sends no temperature at all, so every
+pre-existing caller is unchanged.
+
+**Test-infrastructure bug fixed that had made `pytest -m eval` useless.**
+`app.services.llm` caches one client per provider and its connection pool binds to the
+event loop that created it; pytest-asyncio gives each test a fresh loop, so 4 of 8 eval
+cases failed with `RuntimeError: Event loop is closed` — confirmed pre-existing by
+stashing. `tests/conftest.py` now resets the cache per test. **Layer B went 4 failed/4
+passed → 8 passed.** One failure that looked like a real critic disagreement was a
+symptom of this.
+
+**`_report` no longer prints precision/F1 for an all-poor group** — FP and TN are zero by
+construction there, so precision was pinned at 1.00 and measured nothing.
 
 ### Repo hygiene (2026-07-28)
 
@@ -137,17 +177,26 @@ the query and the answer, would call the result poor. "Degraded" is not enough.
 
 ## Next Action (immediately actionable)
 
-Run `python eval/benchmark.py` against a real key — the generated cases have **never been
-scored by the real critic**, only by a stub during development. The per-transform
-breakdown is the thing to read: a transform caught 0/N is either a genuine critic blind
-spot or a badly designed corruption, and those need telling apart before the numbers mean
-anything.
+**Enable the sink and let data accumulate.** Set `CRITIC_REJECTION_LOG=./data/critic_rejections.jsonl`.
+The three reasons to wait are gone: records are now complete pairs, they carry a
+correlation ID, and the labeller no longer punishes honest gap-admission. Nothing has
+been collected yet — the file does not exist.
 
-Then the highest-value task is still the critic prompt fix described under Critic Eval
-below — the critic cannot represent a correct "I can't answer from this context" as good.
-It changes agent behaviour, so write a spec first. Giving `CRITIC_PROMPT` the retrieved
-context is a closely related change that would also unlock `contradict_source`; both want
-that spec.
+**Two things to know before trusting any number from a collection run:**
+
+1. **`gpt-5.6-luna` rejects `temperature=0`** — "Only the default (1) value is
+   supported." The pin is silently dropped and the model samples, so verdicts still move
+   between runs. Verified: on `LLM_PROVIDER=groq` with `qwen/qwen3.6-27b` two runs were
+   byte-identical across all 20 verdicts; on gpt-5.6-luna they disagreed. Reproducible
+   eval needs a model that accepts the parameter.
+2. **Groq's default model was dead.** `llama-3.3-70b-versatile` is decommissioned and
+   404s; the Groq path failed entirely on defaults. Now `openai/gpt-oss-120b`. Note
+   `qwen/qwen3.6-27b` rates *everything* good (recall 0.00) — it is useless as a critic
+   and only served as a determinism testbed.
+
+After that, the open behaviour change is **giving `CRITIC_PROMPT` the retrieved
+context**. It would let the critic verify a claimed gap is real rather than taking the
+answer's word for it, and unlocks the `contradict_source` corruption. Wants its own spec.
 
 ---
 
@@ -177,9 +226,11 @@ precision 0.33 is the signature of a critic that over-fires rather than one that
 Read the numbers as **edge-case precision only** — N=5, stacked toward the known failure
 mode. Expand to 20–30 cases before quoting externally.
 
-**Next step if pursuing this:** the fix is a prompt change to `app/agent/nodes/critic.py`
-carving out appropriate gap-admission from "poor", then re-running both layers. That is a
-behaviour change to the agent, so it wants its own spec.
+**FIXED 2026-08-19.** The two-step prompt rewrite closed this. Edge cases now 5/5,
+precision 1.00, recall still 1.00; generated corruptions 15/15; Layer B 8/8. The history
+above is kept because it is the measurement that justified the change — see
+`docs/superpowers/specs/2026-08-19-critic-gap-admission-design.md`, including the first
+draft that fixed the edge cases but broke the corruption set.
 
 ---
 
@@ -211,6 +262,11 @@ exercise it for real.
 
 ### Blocker for any A/B comparison
 
+**Partly resolved 2026-08-19 — now a model constraint, not a code one.** The
+classification nodes ask for `temperature=0`, but a model that rejects it is served at
+its default anyway (see Next Action). Pick a model that accepts the parameter before
+comparing anything. The original finding, which motivated the work:
+
 Nothing sets `temperature`, so every node samples at the provider default.
 Two back-to-back runs of the *identical* build scored 3/5 (P=0.33) then 2/5 (P=0.25).
 At N=5 a single flip moves precision ~8 points — **the noise currently exceeds the
@@ -239,7 +295,7 @@ signal you'd be measuring.** Before comparing providers or a fine-tuned model:
 ```bash
 source venv/bin/activate
 ruff check .                # clean
-pytest -m "not eval" -q     # 137 passed, 0 failed
+pytest -m "not eval" -q     # 153 passed, 0 failed
 ```
 
 Was 109 until the critic rejection sink added 5 tests (2026-08-15).

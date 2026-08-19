@@ -20,24 +20,33 @@ a licence to change the decision.
 | Ruff gate covers `app/`, `tests/`, `eval/` — `scripts/` excluded | Provisional | `scripts/` has 22 outstanding findings; clean before removing the exclusion |
 | `ruff format` NOT enforced | Provisional | Would reformat 44 files and destroy blame on an in-flight branch |
 | `mcp` pinned `<2.0.0` | **Locked** (2026-07-28) | `mcp.server.fastmcp.FastMCP` was removed in 2.x; unpinning silently breaks the MCP server |
+| Critic judges gap-admission by DISCLOSURE, in two ordered steps | **Locked** (2026-08-19) | Step 1 (self-contradiction/vague/off-topic) is poor regardless of honesty; only step 2 excuses a *disclosed* gap. A single-paragraph version leaked the carve-out into corruptions and cost 3/15 |
+| Classification nodes pinned to `temperature=0`, synthesizer left sampling | **Locked** (2026-08-19) | A verdict is a label and must not move between runs; prose gains nothing from determinism |
+| Rejection sink writes complete (rejected, accepted) pairs only | **Locked** (2026-08-19) | A lone rejection is half a training example — unusable for SFT or preference training |
 
 ---
 
 ## Known Gotchas
 
-- **The suite is fully green** — 137 passed, 0 failed. There are no known-failing tests,
+- **The suite is fully green** — 153 passed, 0 failed. There are no known-failing tests,
   so any red is yours. (Was 45/4/12 before the 2026-07-28 venv rebuild; 109 before the
   critic rejection sink added 5.)
-- **The critic cannot approve a correct "I can't answer from this context."** Its prompt
-  defines good as "addresses the full query", so appropriate gap-admission scores poor.
-  Measured by `eval/benchmark.py`: recall 1.00, precision 0.25–0.33 on edge cases — it
-  over-fires, it does not miss. Fixing it is a prompt change needing its own spec.
-- **`eval/benchmark.py` is NOT reproducible run-to-run.** Nothing sets `temperature`, so
-  every node samples at the provider default. Back-to-back runs of the identical build
-  scored 3/5 (P=0.33) then 2/5 (P=0.25). At N=5 one flip moves precision ~8 points, so
-  **a single run cannot support an A/B comparison between models or providers.** Pin
-  `temperature=0` for the classification nodes (critic, planner) before comparing
-  anything, and average several runs.
+- **A model can silently refuse `temperature`.** `gpt-5.6-luna` 400s on
+  `temperature=0` ("Only the default (1) value is supported"); `app/services/llm.py`
+  drops the parameter and retries so the request still succeeds, caching the refusal per
+  model so the 400 is paid once. Consequence: **the classification pin is a no-op on that
+  model and verdicts still move between runs.** Verified deterministic on
+  `LLM_PROVIDER=groq` + `qwen/qwen3.6-27b` (two runs byte-identical across 20 verdicts).
+  Grep the logs for `openai_rejected_temperature_retrying_without` before trusting a delta.
+- **Groq model IDs go away.** `llama-3.3-70b-versatile` was the default and is
+  decommissioned — the entire Groq path 404'd on defaults. Now `openai/gpt-oss-120b`.
+  Check `GET /models` before setting `CHAT_MODEL`. Also: `qwen/qwen3.6-27b` rates
+  *everything* good (recall 0.00) and is unusable as a critic.
+- **The cached LLM client is bound to one event loop.** `app.services.llm` keeps one
+  client per provider; its pool binds to the creating loop, and pytest-asyncio gives each
+  test a fresh one. `tests/conftest.py` resets the cache per test — without it every real
+  API test after the first died with `RuntimeError: Event loop is closed`, which looked
+  like critic failures and hid a real one.
 - **`mcp` is capped below 2.0.** `app/mcp_server.py` uses `mcp.server.fastmcp.FastMCP`,
   removed in mcp 2.x. Lifting the cap requires rewriting that module.
 - **Rebuild the venv before trusting `requirements.txt`.** A long-lived venv hid two

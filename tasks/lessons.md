@@ -168,3 +168,64 @@ the answer" — it is **"a correct judge, given only the fields it actually gets
 call this result poor."** Degradation the judge cannot perceive is dataset poison, and it
 is invisible: the run still produces numbers, they are just wrong. Related: the same
 prompt gap is why the critic cannot approve a correct gap-admission, logged above.
+
+---
+
+## 2026-08-19 — "Config set" is not "setting applied"
+
+**What broke:** `temperature=0` was threaded through the seam and pinned on the critic
+and planner, tests proved it reached every provider, and the benchmark was still not
+reproducible: two runs scored 12/15 with *different cases failing*.
+
+**Root cause:** `gpt-5.6-luna` rejects it — `400 Unsupported value: 'temperature' does
+not support 0 with this model. Only the default (1) value is supported.` The
+drop-and-retry fallback written for exactly this case worked perfectly and logged at
+WARNING, which nothing was displaying. The pin was a silent no-op, and every critic and
+planner call was quietly making two HTTP requests instead of one.
+
+**What to do next time:** A parameter is applied when the *provider* accepted it, not
+when the code sent it. Unit tests assert the request shape; only a live call proves the
+response. When a fallback exists to swallow a rejection, that fallback is exactly what
+hides the failure — check its log line explicitly, and cache the rejection so the cost is
+paid once rather than on every call forever. Verified the pin does work where the model
+allows it: two Groq/`qwen3.6-27b` runs were byte-identical across all 20 verdicts.
+
+---
+
+## 2026-08-19 — A broken test fixture looked like four critic failures
+
+**What broke:** `pytest -m eval` reported 4 failed / 4 passed. Three failures said
+`RuntimeError: Event loop is closed`; one looked like a genuine critic disagreement on
+`hallucinated_claim`, and arrived in the same run as a prompt change — the obvious
+reading was that the new prompt had broken it.
+
+**Root cause:** `app.services.llm` caches one client per provider for the process, and an
+httpx/AsyncGroq connection pool binds to the event loop that created it. pytest-asyncio
+gives every test a fresh loop, so every real-API test after the first hit a dead one.
+Resetting the cache per test in `tests/conftest.py` took the suite to 8 passed — the
+"real" disagreement was a symptom too.
+
+**What to do next time:** Stash-diff before attributing a failure to your change — the
+project rule, and it paid for itself here: the baseline showed the same failures without
+the prompt change. And when a suite fails with a mix of infrastructure errors and
+assertions, fix the infrastructure before reading the assertions at all. A shared cache
+keyed by process but bound to a loop is the recurring shape of this bug.
+
+---
+
+## 2026-08-19 — Provider model IDs rot, and the default rotted first
+
+**What broke:** Running the benchmark against Groq to test determinism returned 20
+identical `404 model_not_found` errors. `llama-3.3-70b-versatile` — the `chat_model`
+default in `config.py` and the value shipped in `.env.example` — no longer exists.
+
+**Root cause:** Nobody had exercised the Groq path since the local `.env` switched to
+OpenAI on 2026-07-29. A provider decommissioned a model and the default rotted silently,
+because the only thing that would have caught it was a live call nobody was making.
+
+**What to do next time:** Hosted model IDs are external state with no compile-time check
+and no test coverage — a fallback provider that is never exercised is not a fallback.
+Query `GET /models` before setting one, and treat "the unused provider still works" as an
+assumption to verify, not a fact. Second-order trap found the same day:
+`qwen/qwen3.6-27b` returns valid JSON for every case and rates all of them good
+(recall 0.00). A model can be alive, fast, correctly wired, and still useless as a judge.

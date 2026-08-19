@@ -1,5 +1,43 @@
 # Active Task Checklist
 
+## Fine-tuning readiness — SHIPPED 2026-08-19
+
+The four blockers between here and a usable training corpus, plus two reporting
+defects found while running the benchmark live.
+
+- [x] `chat_complete` accepts `temperature`; omitted = provider default (unchanged)
+- [x] Pin `temperature=0` at the classification call sites (critic, planner) only —
+      the synthesizer keeps sampling; determinism matters for labels, not prose
+- [x] Verify the live provider accepts it — **it does not.** gpt-5.6-luna 400s on
+      temperature=0; we drop it, retry, and cache the refusal so the 400 is paid once
+- [x] Prove the pin works where the model allows it — two Groq/qwen runs byte-identical
+- [x] `AgentState.pending_rejection` — carries the rejected draft to the pass that
+      knows the replacement
+- [x] Sink writes ONE paired record (rejected + accepted + conversation_id +
+      rejection_id). Unpaired halves are not worth collecting
+- [x] Critic prompt: carve appropriate gap-admission out of "poor" — spec written,
+      then revised after draft 1 cost 3/15 on the corruption set
+- [x] `_report` must not print precision/F1 for an all-poor group — degenerate by
+      construction, only recall carries information
+- [x] Fix the cached-client/event-loop bug that made `pytest -m eval` unusable
+- [x] Replace Groq's decommissioned default model (`llama-3.3-70b-versatile` 404s)
+- [x] Tests for all of the above
+- [x] Verify: `ruff check .` clean · `pytest -m "not eval" -q` → 153 passed
+- [x] Verify: `pytest -m eval` → 8 passed (was 4 failed / 4 passed)
+- [x] Verify: `python eval/benchmark.py` ×2 → edge 5/5, generated 15/15 both runs
+- [x] Docs: HANDOFF, agent_memory, lessons, spec, test count
+
+### Next
+
+- [ ] Enable `CRITIC_REJECTION_LOG` and let pairs accumulate — nothing collected yet
+- [ ] Spec giving `CRITIC_PROMPT` the retrieved context (unlocks `contradict_source`)
+- [ ] Harder corruptions — the generated set is saturated at 15/15 and no longer
+      discriminates
+
+**Not rebuilding the e2e eval.** `eval/e2e_pipeline.py` already scores answer quality
+with the critic loop on vs off (`run_compare`), real LLM calls, deterministic stubbed
+retrieval. Earlier claim that it did not exist was wrong.
+
 Written before implementation, checked off as each item completes — one at a time,
 not batched. Clear this file when a task ships; history lives in git, not here.
 

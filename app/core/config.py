@@ -50,6 +50,17 @@ class Settings(BaseSettings):
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
 
+    # Sampling temperature for the nodes whose output is a LABEL rather than prose
+    # (critic, planner). Pinned to 0 so a verdict does not move between identical
+    # runs: at N=5 a single flip moved benchmark precision ~8 points, which exceeded
+    # the effect anyone was trying to measure. The synthesizer is deliberately NOT
+    # pinned — determinism buys nothing for prose and costs variety.
+    #
+    # NOT ALWAYS HONOURED: a model may reject an explicit temperature (gpt-5.6-luna
+    # 400s on anything but the default). `llm.py` drops it and retries, so the request
+    # succeeds but the pin is a no-op and verdicts still move between runs.
+    classification_temperature: float = 0.0
+
     # Where the critic appends answers it rejected, as JSONL. Blank disables the
     # sink entirely; set it to ./data/critic_rejections.jsonl to start collecting.
     # These drafts exist nowhere else — the replan overwrites them in place.

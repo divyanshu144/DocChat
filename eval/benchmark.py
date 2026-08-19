@@ -41,6 +41,7 @@ async def run_case(case: CriticCase) -> dict:
         "conversation_history": [],
         "sources_to_use": ["pdf"],
         "source_ids": [],
+        "pending_rejection": None,
         # Stays empty even for cases carrying `context`: CRITIC_PROMPT interpolates
         # only query and answer, so populating this would change nothing.
         "retrieved_chunks": [],
@@ -129,7 +130,7 @@ async def _run_group(cases: list[CriticCase], heading: str) -> list[dict]:
     return results
 
 
-def _report(title: str, results: list[dict]) -> None:
+def _report(title: str, results: list[dict], cases: list[CriticCase]) -> None:
     m = _compute_metrics(results)
     correct = sum(1 for r in results if r["correct"])
 
@@ -140,9 +141,18 @@ def _report(title: str, results: list[dict]) -> None:
     print(f"  FN (poor missed as good)     : {m['fn']}")
     print(f"  TN (correctly passed good)   : {m['tn']}")
     print(f"  Errors (no verdict)          : {m['errors']}\n")
-    print(f"  Precision : {_fmt(m['precision'])}   (of cases flagged poor, how many were?)")
-    print(f"  Recall    : {_fmt(m['recall'])}   (of poor cases, how many were caught?)")
-    print(f"  F1        : {_fmt(m['f1'])}")
+
+    # With no "good" cases in the group, FP and TN are zero no matter how the critic
+    # behaves, so precision is pinned at 1.00 and F1 inherits it. Printing them next to
+    # a real recall invites reading a structural constant as a result.
+    if any(c.expected == "good" for c in cases):
+        print(f"  Precision : {_fmt(m['precision'])}   (of cases flagged poor, how many were?)")
+        print(f"  Recall    : {_fmt(m['recall'])}   (of poor cases, how many were caught?)")
+        print(f"  F1        : {_fmt(m['f1'])}")
+    else:
+        print(f"  Recall    : {_fmt(m['recall'])}   (of poor cases, how many were caught?)")
+        print("  Precision : not defined — every case here is labelled poor, so precision")
+        print("              is 1.00 by construction and measures nothing.")
     print(_RULE)
 
 
@@ -183,8 +193,8 @@ async def main() -> None:
     # Scored separately on purpose. The generated cases are mostly NOT borderline, so
     # merging them would inflate the headline number and destroy comparability with
     # every edge-case run recorded before they existed.
-    _report("EDGE CASES", edge_results)
-    _report("GENERATED CORRUPTIONS", gen_results)
+    _report("EDGE CASES", edge_results, edge_cases)
+    _report("GENERATED CORRUPTIONS", gen_results, generated)
     _per_transform(gen_results)
 
     print(f"\n{_RULE}")
@@ -193,8 +203,12 @@ async def main() -> None:
     print("        (over-firing on hedged/partial answers), so it measures edge-case")
     print("        precision, not overall Critic quality in production.")
     print("        The generated set measures the opposite end: whether obvious")
-    print("        degradations are caught at all. Neither is reproducible run-to-run")
-    print("        until temperature is pinned on the classification nodes.")
+    print("        degradations are caught at all.")
+    print("        Reproducibility depends on the MODEL, not just the config: the critic")
+    print("        asks for temperature=0, but a model that rejects it (gpt-5.6-luna and")
+    print("        the reasoning family) is silently served at its default and verdicts")
+    print("        will move between runs. Check the logs for")
+    print("        openai_rejected_temperature_retrying_without before trusting a delta.")
     print(_RULE)
 
 
