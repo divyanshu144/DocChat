@@ -25,7 +25,10 @@ class Settings(BaseSettings):
     fallback_llm_provider: Literal["none", "openai"] = "openai"
 
     groq_api_key: str = ""
-    chat_model: str = "llama-3.3-70b-versatile"   # used when llm_provider="groq"
+    # Used when llm_provider="groq". Was llama-3.3-70b-versatile, which Groq has since
+    # decommissioned — it now 404s with model_not_found, so the whole Groq path was
+    # dead on defaults. Verify against GET /models before changing.
+    chat_model: str = "openai/gpt-oss-120b"
     groq_fallback_chat_model: str = ""
 
     openai_api_key: str = ""
