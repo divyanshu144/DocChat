@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # LLM
     # Which backend `app.services.llm` talks to. Per-provider model names are kept
     # separate so switching providers is a one-variable change, not two.
-    llm_provider: Literal["groq", "mistral", "openai"] = "groq"
+    llm_provider: Literal["groq", "mistral", "openai", "local"] = "groq"
     fallback_llm_provider: Literal["none", "openai"] = "openai"
 
     groq_api_key: str = ""
@@ -36,6 +36,14 @@ class Settings(BaseSettings):
 
     mistral_api_key: str = ""
     mistral_chat_model: str = "mistral-small-latest"  # used when llm_provider="mistral"
+
+    # Self-hosted inference (e.g. vLLM serving an open-weight model on a rented GPU).
+    # Benchmarking target, not a reliability path — deliberately excluded from the
+    # Groq->OpenAI fallback chain, since the box may not be running. Blank base URL
+    # means the provider is unconfigured; used only when llm_provider="local".
+    local_base_url: str = ""
+    local_chat_model: str = ""
+    local_api_key: str = ""
 
     chat_history_limit: int = 10
 

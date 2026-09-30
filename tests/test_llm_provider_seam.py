@@ -44,6 +44,14 @@ def _openai_client(content="from openai"):
     return client
 
 
+def _local_client(content="from local"):
+    resp = MagicMock()
+    resp.json.return_value = {"choices": [{"message": {"content": content}}]}
+    client = AsyncMock()
+    client.post = AsyncMock(return_value=resp)
+    return client
+
+
 def _groq_stream_chunk(text):
     chunk = MagicMock()
     chunk.choices[0].delta.content = text
@@ -79,6 +87,12 @@ def test_active_model_uses_openai_model_when_selected():
     with patch.object(llm.settings, "llm_provider", "openai"), \
          patch.object(llm.settings, "openai_chat_model", "gpt-5.6-luna"):
         assert llm._active_model() == "gpt-5.6-luna"
+
+
+def test_active_model_uses_local_model_when_selected():
+    with patch.object(llm.settings, "llm_provider", "local"), \
+         patch.object(llm.settings, "local_chat_model", "Qwen2.5-7B-Instruct"):
+        assert llm._active_model() == "Qwen2.5-7B-Instruct"
 
 
 def test_groq_models_include_distinct_fallback():
@@ -128,6 +142,21 @@ async def test_complete_dispatches_to_openai():
 
     client.post.assert_awaited_once()
     assert client.post.await_args.kwargs["json"]["model"] == "gpt-5.6-luna"
+
+
+@pytest.mark.asyncio
+async def test_complete_dispatches_to_local():
+    client = _local_client("from vllm")
+    with patch.object(llm.settings, "llm_provider", "local"), \
+         patch.object(llm.settings, "local_chat_model", "Qwen2.5-7B-Instruct"), \
+         patch.object(llm, "_get_client", return_value=client):
+        assert await llm.chat_complete([{"role": "user", "content": "hi"}]) == "from vllm"
+
+    client.post.assert_awaited_once()
+    sent = client.post.await_args.kwargs["json"]
+    assert sent["model"] == "Qwen2.5-7B-Instruct"
+    assert sent["max_tokens"] == 1024
+    assert "max_completion_tokens" not in sent
 
 
 @pytest.mark.asyncio
@@ -245,6 +274,35 @@ async def test_groq_stream_falls_back_to_openai_provider_before_tokens_start():
 
 
 @pytest.mark.asyncio
+async def test_stream_dispatches_to_local():
+    async def fake_aiter_lines():
+        for line in [
+            'data: {"choices": [{"delta": {"content": "loc"}}]}',
+            'data: {"choices": [{"delta": {"content": "al"}}]}',
+            "data: [DONE]",
+        ]:
+            yield line
+
+    resp = MagicMock()
+    resp.aiter_lines = fake_aiter_lines
+    resp.raise_for_status = MagicMock()
+
+    stream_cm = MagicMock()
+    stream_cm.__aenter__ = AsyncMock(return_value=resp)
+    stream_cm.__aexit__ = AsyncMock(return_value=False)
+
+    client = MagicMock()
+    client.stream = MagicMock(return_value=stream_cm)
+
+    with patch.object(llm.settings, "llm_provider", "local"), \
+         patch.object(llm.settings, "local_chat_model", "Qwen2.5-7B-Instruct"), \
+         patch.object(llm, "_get_client", return_value=client):
+        tokens = [t async for t in llm.chat_stream([{"role": "user", "content": "hi"}])]
+
+    assert tokens == ["loc", "al"]
+
+
+@pytest.mark.asyncio
 async def test_mistral_stream_unwraps_completion_event():
     """Mistral nests the chunk under `.data`; Groq does not."""
     def event(text):
@@ -296,6 +354,20 @@ def test_client_is_rebuilt_when_provider_changes():
 def test_unknown_provider_raises_with_a_useful_message():
     with pytest.raises(ValueError, match="Unknown llm_provider"):
         llm._build_client("anthropic")
+
+
+def test_build_client_local_sends_bearer_only_when_key_configured():
+    with patch.object(llm.settings, "local_base_url", "http://gpu-box:8000/v1"), \
+         patch.object(llm.settings, "local_api_key", "sk-local"):
+        client = llm._build_client("local")
+    assert client.headers["Authorization"] == "Bearer sk-local"
+
+
+def test_build_client_local_omits_bearer_when_key_blank():
+    with patch.object(llm.settings, "local_base_url", "http://gpu-box:8000/v1"), \
+         patch.object(llm.settings, "local_api_key", ""):
+        client = llm._build_client("local")
+    assert "Authorization" not in client.headers
 
 
 @pytest.mark.asyncio
