@@ -3,11 +3,12 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse, parse_qs
 
 import uuid as _uuid
+from app.core.sources import source_collection
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
 from qdrant_client.models import PointStruct
 from app.services.embedder import get_embedder
 
-COLLECTION = "youtube_chunks"
+COLLECTION = source_collection()
 CHUNK_DURATION_SECONDS = 60
 
 
@@ -109,6 +110,7 @@ async def ingest_youtube(url: str) -> str:
             payload={
                 "text": chunk["text"],
                 "source_id": source_id,
+                "source_type": "youtube",
                 "video_id": meta["video_id"],
                 "video_url": url,
                 "title": meta["title"],

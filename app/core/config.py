@@ -57,6 +57,7 @@ class Settings(BaseSettings):
 
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
+    context_max_chars: int = 12000
 
     # Sampling temperature for the nodes whose output is a LABEL rather than prose
     # (critic, planner). Pinned to 0 so a verdict does not move between identical

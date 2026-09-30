@@ -6,11 +6,12 @@ from pathlib import Path
 from typing import Callable
 
 import uuid as _uuid
+from app.core.sources import source_collection
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
 from qdrant_client.models import PointStruct
 from app.services.embedder import get_embedder
 
-COLLECTION = "pdf_chunks"
+COLLECTION = source_collection()
 CHUNK_SIZE = 1500
 CHUNK_OVERLAP = 200
 
@@ -216,6 +217,7 @@ async def ingest_pdf(
             payload={
                 "text": chunk["text"],
                 "source_id": source_id,
+                "source_type": "pdf",
                 "filename": filename,
                 "page_number": chunk.get("page_number") or 0,
                 "section_heading": chunk.get("section_heading") or "",
