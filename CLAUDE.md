@@ -23,8 +23,8 @@ docker compose up --build         # full stack
 # UI + API docs: http://localhost:8081  /  http://localhost:8081/docs
 ```
 
-**Verification baseline (2026-08-19):** both gates are green — `ruff check .` clean,
-`pytest -m "not eval"` **153 passed, 0 failed**. There are no known-failing tests, so
+**Verification baseline (2026-09-30):** both gates are green — `ruff check .` clean,
+`pytest -m "not eval"` **246 passed, 0 failed**. There are no known-failing tests, so
 *any* red is a real regression you introduced. Do not rationalise a failure as
 pre-existing without diffing against a stash.
 
@@ -112,7 +112,7 @@ date while a whole feature shipped. Treat updating it as part of the task, not c
 A task is not complete until **all** of these hold:
 
 1. `ruff check .` passes clean
-2. `pytest -m "not eval" -q` is fully green — 153 passed, 0 failed
+2. `pytest -m "not eval" -q` is fully green — 246 passed, 0 failed
 3. New logic has tests
 4. `HANDOFF.md` reflects current state
 

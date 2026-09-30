@@ -1,12 +1,319 @@
 # DocChat — Session Handoff
 
 **Branch:** `feat/openai-sse-chat-quality`
-**Last updated:** 2026-08-16
-**Status:** Active development — green build, all work committed, nothing in flight.
+**Last updated:** 2026-09-30
+**Status:** Active development — green build, all work committed except this session's
+diffs, nothing in flight.
+**No GPU pod is running** — `omqg1cxehw89xi` (L40S 48GB, $1.09/hr, `US-TX-3`) was
+terminated after the fourth sweep; `list-pods` confirmed empty. Lifetime ~9 minutes
+(18:20:39–~18:29:40 UTC), cost ~$0.16 (RunPod's billing API had not posted the record
+yet at check time — this is a computed estimate from the real create/terminate
+timestamps, not a guess at the rate). **The network volume (`owdj19ss50`, 50GB,
+`US-TX-3`) was used for the first time this session** — `HF_HOME` pointed at it, the
+model wasn't cached there yet (fresh 24.2s download), but Qwen2.5-7B-Instruct's weights
+are now cached on it for any future pod in `US-TX-3`. Still incurring its own small
+ongoing storage cost until deleted.
 
 ---
 
 ## Current State
+
+### Built in this branch (2026-09-30) — cache-busting, vLLM metrics, insufficient_samples
+
+Triggered by a review of the Third sweep: c=64 `local` TTFT of 0.5-0.85s is physically
+implausible for ~320k prefill tokens with no caching (~10k prefill tok/s on an A100
+implies tens of seconds). Verdict from code inspection: **likely** cache-inflated, not
+confirmed (no `/metrics` counters existed at the time) — see
+`eval/BENCHMARK_RESULTS.md`'s prominent warning on the Third sweep entry.
+
+- **Cache busting, default ON** — `_bust_prompt()` prepends a unique `request_id: <uuid4>`
+  line to the first message of every request (system message when one exists, else the
+  lone user message), so no two requests in a sweep share a prefix. `--allow-prefix-cache`
+  disables it. Applies to every provider (OpenAI/Groq cache long prompts too, not just
+  vLLM).
+- **vLLM `/metrics` polling** (local only) — scraped every ~1s during each cell via
+  `_poll_metrics_during`; `summary["vllm_metrics"]` gets prefix-cache hit rate (as a
+  delta over the cell, not an averaged ratio — counters are monotonic), peak KV cache
+  usage %, peak requests waiting/running. **The exact Prometheus metric names are
+  UNVERIFIED against a live vLLM v0.30.0 server** — this work was explicitly code-only,
+  no pod. First live run must confirm/correct the candidate names in
+  `_VLLM_METRIC_CANDIDATES`. A loud warning prints if hit rate exceeds 10% while
+  busting is ON — that combination means busting isn't reaching the server or the
+  metric names are wrong.
+- **`insufficient_samples`** — cells with `n_ok < 4` now get `None` (not omitted, not a
+  percentile of 1-3 points) for `ttft_p*`/`latency_p*`/`decode_tok_s_p50`/
+  `aggregate_tok_s`, flagged explicitly. `cost_per_request_local` added
+  (`gpu $/hr × wall time / n_ok`).
+- **28 new tests**, `pytest -m "not eval" -q` 213 → 241 passed, `ruff check .` clean.
+  (Further extended to 246 in the Fourth-sweep entry below.)
+- **`eval/BENCHMARK_RESULTS.md`'s Third-sweep entry corrected**: prominent cache-warning
+  banner added; OpenAI cells with `n_ok < 4` nulled instead of showing numbers computed
+  from 0-1 samples; Groq-failure-mode claim walked back (the earlier smoke test used a
+  reasoning model, inconclusive, not "identical failure mode"); added the KV-headroom
+  caveat (A100 never came close to full) and a quantitative memory-bandwidth check on
+  the decode-speed slowdown (predicted 2.2x, measured 2.06x — close match); noted TTFT
+  includes real UK-to-pod-region network time.
+- **Next**: a fourth sweep, cache-busted + metrics-instrumented, to actually confirm or
+  rule out the caching hypothesis with real counter data. Planned, not yet run — needs
+  an explicit go before any pod is created.
+
+### Built in this branch (2026-09-30) — Fourth sweep: verdict CONFIRMED, pod + live run
+
+User gave explicit go with 5 added constraints (positive control before trusting the
+sweep, L40S-only capped at $1.20/hr, 5-min per-cell timeout, preemption tracking, drop
+`HF_HOME` if the network volume gets dropped in a fallback). All five honored.
+
+- **Code**: `preemptions_during_cell` added to `_summarize_vllm_metrics` (delta over the
+  cell, since `num_preemptions` is a monotonic counter — "peak" doesn't apply to a
+  counter, documented as a deliberate reinterpretation of the ask). `_CellTimeoutError` +
+  a 300s `asyncio.wait_for` around each cell — on timeout, finished cells' rows are saved
+  and the sweep aborts cleanly instead of hanging or crashing. New
+  `eval/positive_control.py`: sends one prompt 2x busting-OFF then 2x busting-ON, prints
+  the literal `/metrics` names it matched, exits 1 (refuses to let the sweep proceed) if
+  it doesn't see OFF-high/ON-low. 246 tests passing (241 → 246), `ruff check .` clean.
+- **Pod**: `omqg1cxehw89xi`, L40S 48GB Secure, `US-TX-3`, $1.09/hr (under the $1.20 cap),
+  network volume `owdj19ss50` mounted, `HF_HOME` on it. Startup clean, no CUDA/driver
+  errors, `Application startup complete` at ~2min (well under the 6-min kill rule).
+  Health checks (`/v1/models` + a real completion) passed.
+- **A real metric-name bug was caught before it could corrupt the sweep**: this
+  server's `/metrics` exposes KV usage as `vllm:kv_cache_usage_perc`, not the
+  `vllm:gpu_cache_usage_perc` name `_VLLM_METRIC_CANDIDATES` had guessed. Fixed with the
+  old name kept as a fallback candidate. `prefix_cache_queries_total`,
+  `prefix_cache_hits_total`, `num_preemptions_total`, `num_requests_waiting`,
+  `num_requests_running` all matched their first-guess name as-is.
+- **Positive control: PASSED.** Busting OFF → 49.9% prefix-cache hit rate (real hit on
+  repeat). Busting ON → 0.0%. Proceeded to the sweep.
+- **Sweep**: local only, concurrency 1/4/16/64/128, real prompts, busting ON, no cell
+  hit the 5-min timeout (longest wall time: 104.6s at c=128). **Prefix-cache hit rate was
+  0.0% at every cell** in the real sweep too. TTFT climbed 805ms → 32.9s, c=1→128 (vs.
+  the Third sweep's suspiciously flat ~0.5-0.85s) — **the caching-inflation hypothesis is
+  now CONFIRMED, not just likely.** At c=128, KV cache hit 99.4% full and 13/128
+  requests failed with client-side `ReadTimeout`/`PoolTimeout` — genuine queueing
+  pressure near capacity, 0 preemptions throughout (vLLM used the waiting queue, not
+  eviction). Full table + analysis: `eval/BENCHMARK_RESULTS.md`'s new "Fourth sweep"
+  entry; the Third sweep's entry now has an updated banner pointing to it.
+- **Network volume actually used for the first time**: model wasn't cached on it yet
+  (fresh download, 24.2s), but is now — a future pod in `US-TX-3` mounting this volume
+  should skip the download.
+- **Wrap-up**: pod terminated, `list-pods` confirmed empty. Lifetime ~9 min, cost ~$0.16
+  (computed from real timestamps; RunPod's billing API hadn't posted the record yet).
+
+### Built in this branch (2026-09-30) — real-prompts sweep, and the actual headline finding
+
+`eval/inference_benchmark.py` gained `--prompts-file` (loads `eval/capture_bench_prompts.py`'s
+JSONL output, sends each row's real captured `messages` as-is instead of a bare query —
+`_run_request`/`_run_concurrency_level`/`_run_provider` refactored from `query: str` to
+`messages: list[dict]` throughout). 3 new tests (`_load_prompts`). Ran it for real
+against a pod (A100 SXM, `cr5nqn5cek9d18`, $1.59/hr, terminated after) with
+`--max-tokens 1400` (matching `synthesizer_node`'s real call) — full writeup in
+`eval/BENCHMARK_RESULTS.md` ("Third sweep").
+
+**Every prior sweep measured the wrong workload** — `eval/cases.py`'s bare queries carry
+no context (20-90 tokens); real DocChat prompts are 3752-6801 tokens. Sized correctly,
+the finding changes: **both OpenAI (`gpt-4.1`) and Groq hit real `429` rate limits at
+low concurrency** — OpenAI 100% error at concurrency 4, 94-98% at 16/64, confirmed
+`HTTPStatusError: 429` in the raw JSONL, not a bug. `local` had 0% error at every level
+through 64 concurrent real-sized requests. **This is the actual argument for
+self-hosting** — a rented GPU has no account-level per-minute quota, which is a more
+concrete story than a throughput or cost number. `local`'s cost-per-token still improved
+~18x from idle to loaded ($6.24 → $0.34 per 1M tokens, c=1→c=64), same shape as before
+but now against a real workload.
+
+### Built in this branch (2026-09-30) — Part B, realistic prompt capture
+
+**`eval/capture_bench_prompts.py`** — runs the real planner→retriever→synthesizer
+pipeline for the 8 `eval/cases.py` queries against real ingested Qdrant data
+(`pdf_chunks` 257, `youtube_chunks` 5, `web_chunks` 23), capturing the exact messages
+`synthesizer_node` would send via a `chat_complete` patch (same interception pattern
+`tests/test_llm_temperature.py` already used — zero app code changes). Real input-token
+counts via the `tokenizers` package loading Qwen2.5's tokenizer. Output:
+`data/bench_prompts.jsonl`, overwritten each run (a snapshot against the current index,
+not an append-only log like the benchmark's JSONL). 6 new tests
+(`tests/test_capture_bench_prompts.py`) for the pure logic.
+
+**The headline finding: Phase 2's benchmark numbers describe the wrong workload.**
+Real DocChat prompts are **3752–6801 input tokens** (planner-selected sources +
+8–21 real retrieved chunks + conversation-history formatting); Phase 2 benchmarked
+`eval/cases.py`'s bare queries directly with **zero context, 20–90 tokens**. Every
+TTFT/throughput/cost number from Phase 2 was measured against a workload roughly
+40–100x smaller than what the app actually sends. Before trusting any of those numbers
+for a real capacity or cost claim, they need re-measuring against prompts this size —
+tracked as a follow-up, needs a pod.
+
+Also fixed along the way: `.env`'s `QDRANT_HOST=qdrant` only resolves inside the
+docker-compose network, not on the host running this script directly — see
+`tasks/lessons.md`. And `.env`'s `LLM_PROVIDER` was still `local`, pointing at the
+terminated pod from the last session; switched to `groq` so the planner step's real LLM
+call works. `local` needs a live pod again before it's usable.
+
+### Built in this branch (2026-09-30) — live re-run found and fixed 2 more bugs
+
+The harness fixes below were unit-tested but never run live (explicitly out of scope
+for that task — no pod). This session did the live re-run: real pod
+(`nkypvybb62jggb`, A100 SXM, $1.59/hr, terminated after), real sweep, real bugs the
+unit tests couldn't have caught because they only exist when a real provider is on the
+other end. Full writeup: `eval/BENCHMARK_RESULTS.md` ("Second sweep" entry).
+
+1. **`_groq_stream`'s `stream_options` request crashed the installed Groq SDK** —
+   `TypeError: AsyncCompletions.create() got an unexpected keyword argument
+   'stream_options'`. 100% Groq error rate on first attempt. Fixed with a
+   catch-and-retry-without-it in `app/services/llm.py` — degrades to no usage data for
+   Groq rather than failing the request over a capability gap.
+2. **`wall_time_s = max(total_s)` was wrong for the new sequential concurrency=1
+   case** — correct for concurrent requests, wrong once concurrency=1 started running
+   every query sequentially (this session's own earlier fix): sequential requests don't
+   overlap, so real wall time is close to their *sum*, not their max. Silently
+   inflated `local`'s concurrency=1 throughput 6.6x (592 → 89.7 tok/s after the fix).
+   Caught by the number being implausibly *higher* at c=1 than c=4. Fixed by measuring
+   real wall-clock time with `time.monotonic()` at the call site instead of inferring
+   it from request data after the fact. See `tasks/lessons.md` for the full writeup —
+   this is a "measure, don't infer" lesson worth internalizing, not just patching.
+3. **Diagnosed, not yet fixed: Groq's configured model (`openai/gpt-oss-120b`) is also
+   a reasoning model** — same signature as the OpenAI bug below (`output_tokens=256`
+   per real usage, `finish_reason=length`, zero visible content). A `--groq-model`
+   override mirroring `--openai-model` is the natural fix.
+4. **Also confirmed, not a bug**: at concurrency=64, Groq genuinely rate-limits
+   (`429 RateLimitError`, RPM/TPM on the `on_demand` tier) — correctly surfaced as
+   visible errors instead of masked by fallback, validating the earlier decision to
+   disable fallback for benchmark runs.
+
+Corrected numbers (1 new test, `pytest -m "not eval" -q` 203 → 204): `local` still beats
+both hosted providers on TTFT at every concurrency level, and the headline finding is
+now sharper than before the fix — `local`'s **$/1M output tokens improves 44x from c=1
+to c=64** ($4.93 → $0.11), showing self-hosted GPU cost is idle-time-dominated and only
+cheap under real concurrent load. The pre-fix numbers hid this entirely (flat, wrong
+cost at every level).
+
+### Built in this branch (2026-09-30) — measurement-bug fixes to the benchmark harness
+
+Triggered by re-reading the first sweep's own results: half of `openai`'s requests at
+c=16/c=64 had `output_tokens=0`. Root-caused (not guessed) by sending each of the 8 eval
+queries directly to `gpt-5.6-luna` with `max_tokens=128` and reading `finish_reason` +
+`usage.completion_tokens_details.reasoning_tokens`: 6/8 spent the *entire* 128-token
+budget on hidden reasoning and got truncated (`finish_reason: length`) before emitting
+one visible character. Not a benchmark bug — a reasoning model with a budget too small
+to survive its own reasoning phase.
+
+- **`app/services/llm.py`** — `chat_stream()` and each private `_*_stream` gained an
+  optional `usage_sink: dict | None = None` parameter, filled in-place with
+  `prompt_tokens`/`completion_tokens`/`finish_reason` when provided. Purely additive —
+  every existing caller passes nothing and sends no extra request field; verified with
+  dedicated tests (`tests/test_llm_usage_sink.py`) asserting the exact payload sent
+  with and without it. Also fixed a latent bug this surfaced: the OpenAI/local streaming
+  parsers indexed `choices[0]` unconditionally, which would IndexError on the
+  usage-bearing final chunk (`choices: []`) — guarded now.
+- **`eval/inference_benchmark.py`** rewritten:
+  - Fallback is **unconditionally disabled** for every benchmark run
+    (`settings.fallback_llm_provider = "none"` scoped inside `_run_provider`) — a
+    benchmark whose provider identity can silently change mid-run isn't measuring what
+    it claims to. A failed request is recorded as `status="error"` with `error_type`,
+    never silently retried against a different provider.
+  - New per-request schema: `status` (ok/error/empty), `error_type`, `finish_reason`,
+    `input_tokens`, `output_tokens` (real `usage.completion_tokens`, not a chunk-count
+    proxy — falls back to the proxy only when a provider doesn't return usage),
+    `ttft_s`/`total_s` (`ttft_s` is `None`, not guessed, for anything that isn't "ok").
+  - `_summarize()` computes percentiles/throughput on `status=="ok"` requests only;
+    `error_rate`/`empty_rate` are separate top-level fields, checked before trusting any
+    percentile above them. Added `aggregate_tok_s` (throughput under load — total tokens
+    over wall time, not summed per-request rates) and `decode_tok_s_p50` (post-TTFT
+    generation speed, excluding non-positive decode windows). Old `avg_tokens_per_sec`
+    kept as `legacy_avg_tokens_per_sec`, explicitly labelled as the weaker statistic.
+  - `--gpu-cost-per-hr` is now a CLI flag (was a hardcoded placeholder constant);
+    `cost_per_1m_output_tokens_local` derived from measured `aggregate_tok_s`, `None`
+    (not 0 or inf) when nothing was generated.
+  - `--openai-model` override flag, since the configured default can be a reasoning
+    model unsuitable for a throughput benchmark (see above) — only affects this
+    script's own run, production `settings.openai_chat_model` is untouched.
+  - `concurrency=1` now runs every query in the set sequentially instead of firing just
+    one request — n=1 can't produce a percentile, which was the root of the earlier
+    `local` concurrency=1 rows only having one sample.
+- **29 new tests** across `tests/test_llm_usage_sink.py`,
+  `tests/test_inference_benchmark_metrics.py` (rewritten for the new schema),
+  `tests/test_inference_benchmark_live_logic.py` (new — mocks `llm.chat_stream` to
+  verify ok/empty/error classification and that `_run_provider` disables fallback and
+  restores every setting it touches, even on exception).
+- **Not yet done:** Part B of this task (`eval/capture_bench_prompts.py`, capturing
+  realistic DocChat-sized prompts via the real retriever→synthesizer pipeline) is
+  blocked on real ingested Qdrant sources — user is ingesting some. No live re-run of
+  the fixed harness against a real pod has happened yet either (explicitly out of scope
+  for this task — no RunPod pod was created).
+
+### Built in this branch (2026-09-30) — Phase 2, inference benchmark harness
+
+- **`eval/inference_benchmark.py`** — TTFT / output-tokens-per-sec / cost across a
+  concurrency sweep (default 1/4/16/64), reusing `eval/cases.py`'s queries rather than a
+  second corpus. Talks to whichever provider(s) are named via the same `chat_stream`
+  seam the app itself uses, temporarily flipping `settings.llm_provider` per provider
+  under test (client cache reset each time, same pattern the provider-seam tests use).
+  Raw per-request results append to a JSONL file; deliberately measures performance
+  only, never answer quality (that stays the critic eval harness's job).
+- **16 new unit tests** (`tests/test_inference_benchmark_metrics.py`) for the pure logic
+  — `_percentile`, `_summarize`, `_cost_for_run`, `_fmt_row`. No live call in the suite,
+  same bar as `eval/benchmark.py`.
+- **First real sweep collected 2026-09-30.** Full results, methodology, and caveats in
+  `eval/BENCHMARK_RESULTS.md`. Headline: `local` (self-hosted vLLM/L40S) held
+  per-request throughput roughly flat (37.3 → 33.6 tok/s) across a 1→64 concurrency
+  sweep — continuous batching visibly absorbing the load — with lower TTFT than both
+  Groq and OpenAI at every concurrency level. **Groq's numbers from that run are not
+  trustworthy** — 61% of Groq requests silently fell back to OpenAI mid-sweep (most
+  likely real rate-limiting under burst concurrency); see the results file for the
+  full caveat before citing a Groq number from it.
+- **Cost table uses placeholder rates** for Groq/OpenAI/Mistral (`$/1M output tokens` in
+  `eval/inference_benchmark.py`) — not fetched live, not fully verified (Groq's pricing
+  page doesn't list per-model rates; OpenAI's blocked an automated fetch). Verify before
+  quoting a cost number from this externally.
+
+**Two operational findings from getting the pod up, both now fixed in docs/lessons:**
+
+1. `docker compose restart` does **not** reload `.env` — it restarts the existing
+   container, whose environment is frozen from whenever it was created. Must use
+   `docker compose up -d <service>` to actually pick up an `.env` change. Caught because
+   two real `/api/v1/chat` queries kept hitting `api.openai.com` instead of the local
+   pod despite `.env` and a restart both being "done." See `tasks/lessons.md`
+   2026-09-29. Recreating `app` this way cascaded into recreating `postgres` and
+   `qdrant` too, which surfaced **pre-existing WAL/ID-tracker corruption** in
+   `postgres_data`/`qdrant_data` that had sat dormant for two months (neither process
+   had done a real restart-recovery sequence in that time). Both were wiped (personal
+   project, user accepted the data loss) and reinitialized empty — **local dev DB and
+   Qdrant collections are now empty, 0 ingested sources.**
+2. **RunPod bills GPU time for a `Stopped`/`EXITED` pod, not just a running one** —
+   real billing data showed $1.87 charged for a pod that crashed in ~2 minutes but sat
+   `EXITED` (not yet `Terminated`) for ~2.5 hours. `docs/vllm_setup.md` §6 corrected:
+   use **Terminate**, not Stop, as the actual cost control. See `tasks/lessons.md`
+   2026-09-30.
+
+**Also changed this session:** the global `~/.claude/hooks/pre-tool-use.sh`
+(`swarm-safety`) guard now asks for approval on `rm -rf` instead of hard-blocking it
+(other guarded categories — force-push, `DROP TABLE`, etc. — still hard-block,
+unchanged). Not part of this repo, but relevant to anyone continuing this work with the
+same agent setup.
+
+### Built in this branch (2026-09-28 → 2026-09-29) — `local` inference provider
+
+Goal: use this repo as a portfolio piece for LLM **inference-engineering** roles
+(vLLM/serving-infra), not just LLM application engineering. Spec:
+`docs/superpowers/specs/2026-09-28-inference-benchmarking-design.md`. Phase 1 only —
+Phases 2–5 (benchmark harness, quantization comparison, batching proof, write-up) are
+still ahead and each gets its own spec before code.
+
+- **`app/services/llm.py` gained a fourth provider, `local`** — a self-hosted model
+  served by vLLM's OpenAI-compatible server, reachable via `LLM_PROVIDER=local`. New
+  settings: `local_base_url`, `local_chat_model`, `local_api_key` (bearer header sent
+  only when the key is set).
+- `_local_complete` / `_local_stream` mirror `_openai_complete` / `_openai_stream` but
+  are simpler — vLLM's server takes plain `max_tokens` and doesn't have OpenAI's
+  reasoning-model `max_completion_tokens` split or temperature-rejection quirk, so
+  there's no drop-and-retry dance.
+- **Deliberately not in the fallback chain.** `local` is not added to
+  `_can_fallback_to_openai` — it's a benchmarking target on a rented GPU that may not
+  even be running, not a reliability path.
+- **Structural tests only, same bar as the Mistral path** — mocked httpx, no live GPU
+  call in CI. 5 new tests in `tests/test_llm_provider_seam.py`. **Not yet exercised
+  against a real vLLM box.**
+- **Next:** rent a GPU, serve Qwen2.5-7B-Instruct with vLLM, smoke-test
+  `LLM_PROVIDER=local` for real, then Phase 2 — `eval/inference_benchmark.py`
+  (TTFT / tokens-per-sec / cost across a concurrency sweep, comparing `local` against
+  Groq/OpenAI). Costs real money per hour; never automate a run against it.
 
 ### Shipped and committed
 
@@ -295,10 +602,20 @@ signal you'd be measuring.** Before comparing providers or a fine-tuned model:
 ```bash
 source venv/bin/activate
 ruff check .                # clean
-pytest -m "not eval" -q     # 153 passed, 0 failed
+pytest -m "not eval" -q     # 246 passed, 0 failed
 ```
 
-Was 109 until the critic rejection sink added 5 tests (2026-08-15).
+Was 241 until the Fourth sweep's preemption-tracking + cell-timeout logic added 5 tests
+(2026-09-30). Before that, 213 until cache-busting + vLLM metrics + insufficient_samples
+added 28 tests. Before that, 210 until `--prompts-file` support added 3 `_load_prompts`
+tests.
+Before that, 204 until Part B's prompt capture added 6 tests. Before that, 203
+until the live re-run's sequential-wall-time fix added 1 test.
+Before that, 174 until the measurement-bug fixes (usage_sink, error/empty status, decode
+throughput — see below) added 29 tests (2026-09-30). Before that, 158 until the
+inference benchmark harness added 16 tests. Before that, 153 until the `local`
+provider seam added 5 tests (2026-09-29). Before that, 109 until the critic
+rejection sink added 5 tests (2026-08-15).
 
 **Both gates are green.** There are no known-failing tests, so any red is a real
 regression — don't dismiss one as pre-existing without diffing against a stash.
