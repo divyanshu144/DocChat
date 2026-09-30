@@ -57,7 +57,7 @@ Ingest (PDF / YouTube / Web)
 | Agent orchestration | LangGraph (StateGraph) |
 | Vector store | Qdrant (REST API · cosine HNSW index) |
 | Embeddings | fastembed ONNX · `BAAI/bge-small-en-v1.5` · 384-dim |
-| LLM | Groq API · `llama-3.3-70b-versatile` |
+| LLM | Groq API · `llama-3.3-70b-versatile` (OpenAI/Mistral fallback; optional self-hosted vLLM provider — see [Inference benchmarking](#inference-benchmarking)) |
 | Streaming | Server-Sent Events via FastAPI `StreamingResponse` |
 | Conversation store | PostgreSQL + SQLAlchemy 2.0 async |
 | Auth | JWT (python-jose) + bcrypt · access + refresh tokens |
@@ -101,7 +101,7 @@ Current local verification baseline:
 
 ```bash
 venv/bin/python -m ruff check .
-venv/bin/python -m pytest -m "not eval" -q   # 109 passed, 8 deselected
+venv/bin/python -m pytest -m "not eval" -q   # 246 passed, 8 deselected
 ```
 
 The critic benchmark is intentionally separate because it hits the live LLM:
@@ -109,6 +109,46 @@ The critic benchmark is intentionally separate because it hits the live LLM:
 ```bash
 venv/bin/python eval/benchmark.py
 ```
+
+---
+
+## Inference benchmarking
+
+DocChat also carries a self-hosted-inference benchmarking harness, built to measure
+serving performance under load rather than just answer quality — `eval/inference_benchmark.py`
+sweeps TTFT, decode throughput, and cost across a concurrency range for any configured
+provider (`groq`, `openai`, `mistral`, or a self-hosted vLLM server via the `local`
+provider above), using the same `chat_stream` seam the app itself calls.
+
+```bash
+python eval/inference_benchmark.py --providers local \
+  --prompts-file data/bench_prompts.jsonl --concurrency 1,4,16,64,128 \
+  --max-tokens 1400 --gpu-cost-per-hr 1.09
+```
+
+What makes the numbers trustworthy, not just fast-looking:
+
+- **Realistic prompts** — `eval/capture_bench_prompts.py` captures DocChat's actual
+  planner→retriever→synthesizer request shape (3.7k-6.8k input tokens, real retrieval
+  context), not a toy 20-90 token query.
+- **Cache-busting by default** — every request gets a unique token prepended
+  client-side, so a concurrency sweep can't silently measure its own KV-cache hits
+  instead of real inference.
+- **Live vLLM `/metrics` instrumentation** — prefix-cache hit rate, KV cache usage,
+  queue depth, and preemption count are scraped during each cell, so a busting claim is
+  backed by the server's own counters, not just code review.
+- **A positive control before any sweep is trusted** — `eval/positive_control.py` sends
+  one prompt twice with busting off (expect a real cache hit) and twice with busting on
+  (expect ~0%) and refuses to proceed if that split isn't observed.
+
+**Headline finding:** at realistic prompt sizes, hosted-API concurrency limits bind
+before raw latency does — OpenAI returned `429` on the majority of requests at
+concurrency 4+ on this account's tier, while a self-hosted GPU has no such ceiling, only
+its own KV-cache capacity. A second finding came from the harness catching its own
+measurement bug: an early sweep's local TTFT was suspiciously flat under load; the
+cache-busting + `/metrics` work above was built specifically to test that suspicion, and
+confirmed it — see `eval/BENCHMARK_RESULTS.md` for the full sweep-by-sweep writeup,
+including the self-correction.
 
 ---
 
@@ -344,10 +384,13 @@ All settings load from environment variables or a `.env` file.
 
 | Variable | Default | Description |
 |---|---|---|
-| `LLM_PROVIDER` | `groq` | Chat provider: `groq`, `openai`, or `mistral` |
+| `LLM_PROVIDER` | `groq` | Chat provider: `groq`, `openai`, `mistral`, or `local` (self-hosted, e.g. vLLM) |
 | `FALLBACK_LLM_PROVIDER` | `openai` | Cross-provider fallback for retryable Groq failures; requires `OPENAI_API_KEY` |
 | `GROQ_API_KEY` | *(required for Groq)* | Groq API key |
 | `OPENAI_API_KEY` | *(required for OpenAI)* | OpenAI API key |
+| `LOCAL_BASE_URL` | *(empty)* | Base URL of a self-hosted OpenAI-compatible server (e.g. a vLLM pod); required for `LLM_PROVIDER=local` |
+| `LOCAL_CHAT_MODEL` | *(empty)* | Model name as served by the local endpoint |
+| `LOCAL_API_KEY` | *(empty)* | Bearer token for the local endpoint, if it requires one |
 | `JWT_SECRET_KEY` | *(required)* | Secret for signing JWTs — use a long random string |
 | `DATABASE_URL` | `postgresql+asyncpg://docchat:docchat@localhost:5432/docchat` | SQLAlchemy async DSN |
 | `QDRANT_HOST` | `localhost` | Qdrant host (use `qdrant` inside Docker Compose) |
