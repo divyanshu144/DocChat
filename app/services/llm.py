@@ -14,6 +14,9 @@ import json
 
 from typing import Any, AsyncGenerator
 
+from langsmith import traceable
+from langsmith.run_helpers import get_current_run_tree
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -30,6 +33,8 @@ def _active_model() -> str:
         return settings.mistral_chat_model
     if settings.llm_provider == "openai":
         return settings.openai_chat_model
+    if settings.llm_provider == "local":
+        return settings.local_chat_model
     return settings.chat_model
 
 
@@ -88,9 +93,23 @@ def _build_client(provider: str) -> Any:
             timeout=60.0,
         )
 
+    if provider == "local":
+        import httpx
+
+        # vLLM's --api-key is optional (e.g. behind a private/tunnelled network), so
+        # the bearer header is only sent when a key is actually configured.
+        headers = {}
+        if settings.local_api_key:
+            headers["Authorization"] = f"Bearer {settings.local_api_key}"
+        return httpx.AsyncClient(
+            base_url=settings.local_base_url,
+            headers=headers,
+            timeout=60.0,
+        )
+
     raise ValueError(
         f"Unknown llm_provider {provider!r}. "
-        "Supported providers: 'groq', 'mistral', 'openai'."
+        "Supported providers: 'groq', 'mistral', 'openai', 'local'."
     )
 
 
@@ -121,11 +140,34 @@ def _text(content: Any) -> str:
     return str(content)
 
 
+def _temperature_kwargs(temperature: float | None) -> dict:
+    """Send `temperature` only when a caller asked for one.
+
+    Omitting it leaves every existing call sampling at the provider default, so
+    pinning the classification nodes cannot silently change the synthesizer's prose.
+    """
+    return {} if temperature is None else {"temperature": temperature}
+
+
+def _mentions_temperature(resp: Any) -> bool:
+    """Did this 400 complain about `temperature` specifically?
+
+    Narrow on purpose: retrying a 400 we have not understood would just burn a second
+    request and return the same error.
+    """
+    try:
+        return "temperature" in json.dumps(resp.json()).lower()
+    except Exception:  # pragma: no cover - malformed error body
+        return False
+
+
 # ---------------------------------------------------------------------------
 # Groq
 # ---------------------------------------------------------------------------
 
-async def _groq_complete(client: Any, messages: list[dict], max_tokens: int) -> str:
+async def _groq_complete(
+    client: Any, messages: list[dict], max_tokens: int, temperature: float | None = None
+) -> str:
     models = _groq_models()
     for index, model in enumerate(models):
         try:
@@ -133,6 +175,7 @@ async def _groq_complete(client: Any, messages: list[dict], max_tokens: int) -> 
                 model=model,
                 messages=messages,
                 max_tokens=max_tokens,
+                **_temperature_kwargs(temperature),
             )
             return _text(resp.choices[0].message.content)
         except Exception as exc:
@@ -147,20 +190,45 @@ async def _groq_complete(client: Any, messages: list[dict], max_tokens: int) -> 
 
 
 async def _groq_stream(
-    client: Any, messages: list[dict], max_tokens: int
+    client: Any, messages: list[dict], max_tokens: int, usage_sink: dict | None = None
 ) -> AsyncGenerator[str, None]:
     models = _groq_models()
     for index, model in enumerate(models):
         yielded = False
         try:
-            stream = await client.chat.completions.create(
-                model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-                stream=True,
-            )
+            create_kwargs: dict = {
+                "model": model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "stream": True,
+            }
+            # Usage only arrives on a final chunk with empty `choices` if explicitly
+            # requested — and only requested when a caller actually wants it, so an
+            # ordinary stream's chunk shape is unchanged for every existing caller.
+            if usage_sink is not None:
+                create_kwargs["stream_options"] = {"include_usage": True}
+            try:
+                stream = await client.chat.completions.create(**create_kwargs)
+            except TypeError as exc:
+                # Some installed groq SDK versions don't accept stream_options at
+                # all (unlike the OpenAI SDK it otherwise mirrors) — degrade to no
+                # usage rather than fail the whole request over a capability gap.
+                if "stream_options" not in str(exc) or usage_sink is None:
+                    raise
+                create_kwargs.pop("stream_options")
+                stream = await client.chat.completions.create(**create_kwargs)
             async for chunk in stream:
-                delta = chunk.choices[0].delta.content
+                if usage_sink is not None:
+                    usage = getattr(chunk, "usage", None)
+                    if usage is not None:
+                        usage_sink["prompt_tokens"] = usage.prompt_tokens
+                        usage_sink["completion_tokens"] = usage.completion_tokens
+                if not chunk.choices:
+                    continue
+                choice = chunk.choices[0]
+                if usage_sink is not None and choice.finish_reason:
+                    usage_sink["finish_reason"] = choice.finish_reason
+                delta = choice.delta.content
                 if delta:
                     yielded = True
                     yield _text(delta)
@@ -179,26 +247,43 @@ async def _groq_stream(
 # Mistral
 # ---------------------------------------------------------------------------
 
-async def _mistral_complete(client: Any, messages: list[dict], max_tokens: int) -> str:
+async def _mistral_complete(
+    client: Any, messages: list[dict], max_tokens: int, temperature: float | None = None
+) -> str:
     resp = await client.chat.complete_async(
         model=_active_model(),
         messages=messages,
         max_tokens=max_tokens,
+        **_temperature_kwargs(temperature),
     )
     return _text(resp.choices[0].message.content)
 
 
 async def _mistral_stream(
-    client: Any, messages: list[dict], max_tokens: int
+    client: Any, messages: list[dict], max_tokens: int, usage_sink: dict | None = None
 ) -> AsyncGenerator[str, None]:
     # Mistral wraps each chunk in a CompletionEvent — the payload is under `.data`.
+    # Usage/finish_reason extraction here is best-effort and unverified against a
+    # live Mistral stream (no active caller currently requests usage_sink for this
+    # provider) — mirrors the OpenAI-compatible shape defensively via getattr.
     stream = await client.chat.stream_async(
         model=_active_model(),
         messages=messages,
         max_tokens=max_tokens,
     )
     async for event in stream:
-        delta = event.data.choices[0].delta.content
+        data = event.data
+        if usage_sink is not None:
+            usage = getattr(data, "usage", None)
+            if usage is not None:
+                usage_sink["prompt_tokens"] = getattr(usage, "prompt_tokens", None)
+                usage_sink["completion_tokens"] = getattr(usage, "completion_tokens", None)
+        if not data.choices:
+            continue
+        choice = data.choices[0]
+        if usage_sink is not None and getattr(choice, "finish_reason", None):
+            usage_sink["finish_reason"] = choice.finish_reason
+        delta = choice.delta.content
         if delta:
             yield _text(delta)
 
@@ -207,22 +292,42 @@ async def _mistral_stream(
 # OpenAI
 # ---------------------------------------------------------------------------
 
-async def _openai_complete(client: Any, messages: list[dict], max_tokens: int) -> str:
-    resp = await client.post(
-        "/chat/completions",
-        json={
-            "model": settings.openai_chat_model,
-            "messages": messages,
-            "max_completion_tokens": max_tokens,
-        },
-    )
+# Models that have rejected an explicit temperature. Reasoning-family models accept
+# only the default and reject every single time, so without this the retry below would
+# permanently double the request count of every classification call.
+_TEMPERATURE_UNSUPPORTED: set[str] = set()
+
+
+async def _openai_complete(
+    client: Any, messages: list[dict], max_tokens: int, temperature: float | None = None
+) -> str:
+    model = settings.openai_chat_model
+    payload: dict = {
+        "model": model,
+        "messages": messages,
+        "max_completion_tokens": max_tokens,
+    }
+    if model not in _TEMPERATURE_UNSUPPORTED:
+        payload.update(_temperature_kwargs(temperature))
+
+    resp = await client.post("/chat/completions", json=payload)
+
+    # Determinism is a nice-to-have; failing the user's request over it is not. Drop
+    # the parameter and retry rather than propagate — then remember, so the next call
+    # goes straight to the working shape.
+    if resp.status_code == 400 and "temperature" in payload and _mentions_temperature(resp):
+        _TEMPERATURE_UNSUPPORTED.add(model)
+        logger.warning("openai_rejected_temperature_retrying_without", extra={"model": model})
+        del payload["temperature"]
+        resp = await client.post("/chat/completions", json=payload)
+
     resp.raise_for_status()
     data = resp.json()
     return _text(data["choices"][0]["message"].get("content"))
 
 
 async def _openai_stream(
-    client: Any, messages: list[dict], max_tokens: int
+    client: Any, messages: list[dict], max_tokens: int, usage_sink: dict | None = None
 ) -> AsyncGenerator[str, None]:
     payload = {
         "model": settings.openai_chat_model,
@@ -230,6 +335,8 @@ async def _openai_stream(
         "max_completion_tokens": max_tokens,
         "stream": True,
     }
+    if usage_sink is not None:
+        payload["stream_options"] = {"include_usage": True}
     async with client.stream("POST", "/chat/completions", json=payload) as resp:
         resp.raise_for_status()
         async for line in resp.aiter_lines():
@@ -239,17 +346,29 @@ async def _openai_stream(
             if not raw or raw == "[DONE]":
                 continue
             data = json.loads(raw)
-            delta = data["choices"][0].get("delta", {}).get("content")
+            if usage_sink is not None and data.get("usage"):
+                usage = data["usage"]
+                usage_sink["prompt_tokens"] = usage.get("prompt_tokens")
+                usage_sink["completion_tokens"] = usage.get("completion_tokens")
+            # The usage-bearing final chunk (when stream_options requested it) carries
+            # an empty `choices` list — guard rather than index into nothing.
+            choices = data.get("choices") or []
+            if not choices:
+                continue
+            choice = choices[0]
+            if usage_sink is not None and choice.get("finish_reason"):
+                usage_sink["finish_reason"] = choice["finish_reason"]
+            delta = choice.get("delta", {}).get("content")
             if delta:
                 yield _text(delta)
 
 
 async def _openai_complete_with_temporary_client(
-    messages: list[dict], max_tokens: int
+    messages: list[dict], max_tokens: int, temperature: float | None = None
 ) -> str:
     client = _build_client("openai")
     try:
-        return await _openai_complete(client, messages, max_tokens)
+        return await _openai_complete(client, messages, max_tokens, temperature)
     finally:
         await client.aclose()
 
@@ -265,6 +384,65 @@ async def _openai_stream_with_temporary_client(
         await client.aclose()
 
 
+# ---------------------------------------------------------------------------
+# Local (self-hosted, e.g. vLLM's OpenAI-compatible server)
+# ---------------------------------------------------------------------------
+#
+# vLLM's server is a plain OpenAI-compatible chat endpoint — no reasoning-model
+# temperature quirks, no max_completion_tokens split, so this is a straight
+# `max_tokens` request/response shape with none of `_openai_*`'s retry dance.
+
+
+async def _local_complete(
+    client: Any, messages: list[dict], max_tokens: int, temperature: float | None = None
+) -> str:
+    payload: dict = {
+        "model": settings.local_chat_model,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        **_temperature_kwargs(temperature),
+    }
+    resp = await client.post("/chat/completions", json=payload)
+    resp.raise_for_status()
+    data = resp.json()
+    return _text(data["choices"][0]["message"].get("content"))
+
+
+async def _local_stream(
+    client: Any, messages: list[dict], max_tokens: int, usage_sink: dict | None = None
+) -> AsyncGenerator[str, None]:
+    payload = {
+        "model": settings.local_chat_model,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "stream": True,
+    }
+    if usage_sink is not None:
+        payload["stream_options"] = {"include_usage": True}
+    async with client.stream("POST", "/chat/completions", json=payload) as resp:
+        resp.raise_for_status()
+        async for line in resp.aiter_lines():
+            if not line.startswith("data:"):
+                continue
+            raw = line.removeprefix("data:").strip()
+            if not raw or raw == "[DONE]":
+                continue
+            data = json.loads(raw)
+            if usage_sink is not None and data.get("usage"):
+                usage = data["usage"]
+                usage_sink["prompt_tokens"] = usage.get("prompt_tokens")
+                usage_sink["completion_tokens"] = usage.get("completion_tokens")
+            choices = data.get("choices") or []
+            if not choices:
+                continue
+            choice = choices[0]
+            if usage_sink is not None and choice.get("finish_reason"):
+                usage_sink["finish_reason"] = choice["finish_reason"]
+            delta = choice.get("delta", {}).get("content")
+            if delta:
+                yield _text(delta)
+
+
 def _can_fallback_to_openai(exc: Exception) -> bool:
     return (
         settings.fallback_llm_provider == "openai"
@@ -274,16 +452,63 @@ def _can_fallback_to_openai(exc: Exception) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Tracing
+#
+# LangGraph traces the agent nodes on its own, but every LLM call below goes
+# through a vendor SDK (AsyncGroq, Mistral) or raw httpx (OpenAI) — none of which
+# LangChain instruments. Without these decorators a trace shows five node runs
+# and not a single prompt, completion, or token count.
+# ---------------------------------------------------------------------------
+
+def _tag_run(**metadata: Any) -> None:
+    """Attach metadata to the active LangSmith run, if one exists.
+
+    Never raises. Observability must not be able to break a chat request — a
+    no-op here costs a missing label, an exception costs the user their answer.
+    """
+    try:
+        run = get_current_run_tree()
+        if run is not None:
+            run.extra.setdefault("metadata", {}).update(metadata)
+    except Exception:  # pragma: no cover - defensive only
+        logger.debug("langsmith_tag_run_failed", exc_info=True)
+
+
+def _join_stream(tokens: list[str]) -> dict:
+    """Collapse streamed tokens into one output field.
+
+    Without this the trace records the raw yield list — hundreds of fragments
+    instead of the answer the user actually saw.
+    """
+    return {"output": "".join(tokens)}
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
-async def chat_complete(messages: list[dict], max_tokens: int = 1024) -> str:
+@traceable(run_type="llm", name="chat_complete")
+async def chat_complete(
+    messages: list[dict], max_tokens: int = 1024, temperature: float | None = None
+) -> str:
+    """Complete a chat turn.
+
+    `temperature=None` (the default) sends no temperature at all, leaving the provider
+    default in place. Pass `0` for the classification nodes, whose output is a label
+    that should not move between runs — see `settings.classification_temperature`.
+    """
+    _tag_run(
+        provider=settings.llm_provider,
+        model=_active_model(),
+        streaming=False,
+        temperature=temperature,
+    )
     client = _get_client()
     if settings.llm_provider == "mistral":
-        return await _mistral_complete(client, messages, max_tokens)
+        return await _mistral_complete(client, messages, max_tokens, temperature)
     if settings.llm_provider == "groq":
         try:
-            return await _groq_complete(client, messages, max_tokens)
+            return await _groq_complete(client, messages, max_tokens, temperature)
         except Exception as exc:
             if not _can_fallback_to_openai(exc):
                 raise
@@ -291,25 +516,39 @@ async def chat_complete(messages: list[dict], max_tokens: int = 1024) -> str:
                 "groq_chat_failed_retrying_openai",
                 extra={"fallback_model": settings.openai_chat_model},
             )
-            return await _openai_complete_with_temporary_client(messages, max_tokens)
+            return await _openai_complete_with_temporary_client(
+                messages, max_tokens, temperature
+            )
     if settings.llm_provider == "openai":
-        return await _openai_complete(client, messages, max_tokens)
+        return await _openai_complete(client, messages, max_tokens, temperature)
+    if settings.llm_provider == "local":
+        return await _local_complete(client, messages, max_tokens, temperature)
     raise ValueError(
         f"Unknown llm_provider {settings.llm_provider!r}. "
-        "Supported providers: 'groq', 'mistral', 'openai'."
+        "Supported providers: 'groq', 'mistral', 'openai', 'local'."
     )
 
 
+@traceable(run_type="llm", name="chat_stream", reduce_fn=_join_stream)
 async def chat_stream(
-    messages: list[dict], max_tokens: int = 1024
+    messages: list[dict], max_tokens: int = 1024, usage_sink: dict | None = None
 ) -> AsyncGenerator[str, None]:
+    """Stream a chat completion.
+
+    `usage_sink`, when passed a dict, is filled in-place with whatever the provider
+    returns of `prompt_tokens`, `completion_tokens`, `finish_reason` — for callers
+    (e.g. the inference benchmark) that need real usage/finish data a plain token
+    stream doesn't carry. Every existing caller passes nothing and is unaffected:
+    no extra request field is sent, no behavior changes.
+    """
+    _tag_run(provider=settings.llm_provider, model=_active_model(), streaming=True)
     client = _get_client()
     if settings.llm_provider == "mistral":
-        generator = _mistral_stream(client, messages, max_tokens)
+        generator = _mistral_stream(client, messages, max_tokens, usage_sink=usage_sink)
     elif settings.llm_provider == "groq":
         yielded = False
         try:
-            async for token in _groq_stream(client, messages, max_tokens):
+            async for token in _groq_stream(client, messages, max_tokens, usage_sink=usage_sink):
                 yielded = True
                 yield token
         except Exception as exc:
@@ -323,11 +562,13 @@ async def chat_stream(
                 yield token
         return
     elif settings.llm_provider == "openai":
-        generator = _openai_stream(client, messages, max_tokens)
+        generator = _openai_stream(client, messages, max_tokens, usage_sink=usage_sink)
+    elif settings.llm_provider == "local":
+        generator = _local_stream(client, messages, max_tokens, usage_sink=usage_sink)
     else:
         raise ValueError(
             f"Unknown llm_provider {settings.llm_provider!r}. "
-            "Supported providers: 'groq', 'mistral', 'openai'."
+            "Supported providers: 'groq', 'mistral', 'openai', 'local'."
         )
     async for token in generator:
         yield token

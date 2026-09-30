@@ -17,10 +17,20 @@ def _route_critic(state: AgentState) -> str:
 
 
 def _configure_langsmith() -> None:
-    if settings.langsmith_api_key:
-        os.environ["LANGCHAIN_TRACING_V2"] = "true"
-        os.environ["LANGCHAIN_API_KEY"] = settings.langsmith_api_key
-        os.environ["LANGCHAIN_PROJECT"] = settings.langsmith_project
+    """Enable LangSmith tracing when a key is configured.
+
+    LangGraph instruments the compiled graph automatically once these are set —
+    each node becomes a child run. The LLM calls themselves are traced separately
+    in `app.services.llm`, which talks to vendor SDKs LangChain knows nothing about.
+    """
+    if not (settings.langsmith_api_key and settings.langsmith_tracing):
+        return
+
+    os.environ["LANGSMITH_TRACING"] = "true"
+    os.environ["LANGSMITH_API_KEY"] = settings.langsmith_api_key
+    os.environ["LANGSMITH_PROJECT"] = settings.langsmith_project
+    if settings.langsmith_endpoint:
+        os.environ["LANGSMITH_ENDPOINT"] = settings.langsmith_endpoint
 
 
 def build_graph():

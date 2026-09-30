@@ -119,6 +119,7 @@ async def chat(
         "needs_replan": False,
         "iteration": 0,
         "grounding_passed": False,
+        "pending_rejection": None,
     }
 
     async def sse_stream():

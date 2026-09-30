@@ -59,7 +59,7 @@ async def test_planner_uses_history_to_resolve_pronoun_reference():
         {"role": "assistant", "content": "The Q3 report summarizes quarterly performance."},
     ]
 
-    async def fake_chat_complete(messages, max_tokens=200):
+    async def fake_chat_complete(messages, max_tokens=200, temperature=None):
         prompt = messages[0]["content"]
         assert "user: Tell me about the Q3 report" in prompt
         assert "Query: what was its revenue?" in prompt
