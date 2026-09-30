@@ -92,21 +92,16 @@ async def list_documents() -> str:
     """List all ingested documents across all source types.
 
     Returns JSON array: [{"source_id": "...", "type": "pdf|youtube|web", "name": "..."}, ...]
-    Name field per type: pdf → filename payload field, youtube/web → title payload field.
+    Name field prefers filename, title, URL, then source_id.
     """
     from app.core.qdrant import get_qdrant_client
+    from app.core.sources import LEGACY_SOURCE_COLLECTIONS, source_collection
     from qdrant_client.http.exceptions import UnexpectedResponse
-
-    _COLLECTIONS = {
-        "pdf_chunks": ("pdf", "filename"),
-        "youtube_chunks": ("youtube", "title"),
-        "web_chunks": ("web", "title"),
-    }
 
     client = get_qdrant_client()
     seen: dict[str, dict] = {}
 
-    for collection_name, (source_type, name_field) in _COLLECTIONS.items():
+    for collection_name in [source_collection(), *LEGACY_SOURCE_COLLECTIONS.values()]:
         offset = None
         try:
             while True:
@@ -121,10 +116,16 @@ async def list_documents() -> str:
                     payload = point.payload or {}
                     source_id = payload.get("source_id")
                     if source_id and source_id not in seen:
+                        source_type = payload.get("source_type") or collection_name.replace("_chunks", "")
                         seen[source_id] = {
                             "source_id": source_id,
                             "type": source_type,
-                            "name": payload.get(name_field, ""),
+                            "name": (
+                                payload.get("filename")
+                                or payload.get("title")
+                                or payload.get("url")
+                                or source_id
+                            ),
                         }
                 if next_offset is None:
                     break

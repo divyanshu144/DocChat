@@ -17,6 +17,7 @@ def client():
         session.flush = AsyncMock()
         session.add = MagicMock()
         session.commit = AsyncMock()
+        app.state.test_db_session = session
         result_mock = MagicMock()
         result_mock.scalars.return_value.all.return_value = []
         session.execute = AsyncMock(return_value=result_mock)
@@ -33,6 +34,8 @@ def client():
     app.dependency_overrides[get_current_user] = mock_current_user
     yield TestClient(app)
     app.dependency_overrides.clear()
+    if hasattr(app.state, "test_db_session"):
+        del app.state.test_db_session
 
 
 def test_chat_streams_sse_answer(client):
@@ -57,6 +60,22 @@ def test_chat_streams_sse_answer(client):
     assert "event: token" in response.text
     assert "Attention" in response.text
     assert "[DONE]" in response.text
+
+
+def test_chat_commits_new_conversation_before_streaming(client):
+    with patch("app.api.chat.agent_graph") as mock_graph:
+        async def fake_astream(*_args, **_kwargs):
+            assert client.app.state.test_db_session.commit.await_count == 1
+            yield {"synthesizer": {"answer": "Committed before streaming."}}
+
+        mock_graph.astream = fake_astream
+        response = client.post(
+            "/api/v1/chat",
+            json={"query": "Create a conversation"},
+        )
+
+    assert response.status_code == 200
+    assert client.app.state.test_db_session.commit.await_count == 2
 
 
 def test_chat_streams_rate_limit_error_message(client):

@@ -34,6 +34,7 @@ async def create_all_tables() -> None:
     import app.models.conversation  # noqa: F401
     import app.models.user  # noqa: F401
     import app.models.refresh_token  # noqa: F401
+    import app.models.ingest_job  # noqa: F401
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
