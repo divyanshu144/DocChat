@@ -8,9 +8,12 @@ off `feat/openai-sse-chat-quality`. One commit per item. Nothing pushed, nothing
 
 - [x] 1. `--groq-model` override in `eval/inference_benchmark.py`, mirrors `--openai-model`.
       Tests in `tests/test_inference_benchmark_live_logic.py`. 257 to 259 passed.
-- [ ] 2. Blocked e2e check: real `/api/v1/chat` query, 2+ sources, `LLM_PROVIDER=groq`,
-      `QDRANT_HOST=localhost`. Check logs for planner/critic JSON failures and
-      context-length errors. STOP and ask if the local index is empty.
+- [x] 2. Blocked e2e check done. source_chunks was empty on this branch (legacy
+      collections have old data but retriever never reads them). Ingested the 1 unique
+      leftover PDF + a Wikipedia page, ran a real chat query against a host-side
+      instance of current code. All 5 nodes ran clean, no JSON parse failures, no
+      context-length errors, one transient Groq 429 auto-retried fine. Details in
+      HANDOFF.md.
 - [ ] 3. Metric-name version comment next to `_VLLM_METRIC_CANDIDATES` (vLLM v0.30.0).
 - [ ] 4. Phase 3 spec (FP16 vs AWQ/GPTQ quantization, quality check against
       `eval/benchmark.py`) + Phase 4 spec (serial vs concurrent throughput curve).

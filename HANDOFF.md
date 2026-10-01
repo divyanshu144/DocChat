@@ -29,6 +29,38 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Ran in this branch (2026-10-01) — blocked e2e chat check, found source_chunks was empty
+
+The current code only ever queries the `source_chunks` Qdrant collection (confirmed:
+`app/agent/nodes/retriever.py` has no legacy fallback). That collection did not exist on
+the local Qdrant instance yet, even though the old `pdf_chunks`/`youtube_chunks`/
+`web_chunks` collections still had the data from an earlier session (257/5/23 points).
+Those legacy collections are only read by `/sources` listing and deletion cleanup, not
+by retrieval, so from the current code's point of view the index was empty. Stopped and
+asked per the task's own instruction instead of faking a result.
+
+User chose to ingest the leftover PDF in `uploads/` (all 4 files there turned out to be
+byte-identical, MD5 `58c085...`, so they dedupe to 1 source by DocChat's content-hash
+`source_id`) plus one real web page for a second distinct source
+(`https://en.wikipedia.org/wiki/Retrieval-augmented_generation`).
+
+Ran a real end-to-end check: started a host-side `uvicorn` instance of the current
+branch's code (not the stale 19-hour-old Docker container, which predates the
+RAG-normalization merge and still writes the old per-type collections) with
+`QDRANT_HOST=localhost` and `DATABASE_URL` pointed at the host-exposed Postgres port
+(5433), signed up a real user, ingested both sources through the real HTTP endpoints,
+then sent a real `/api/v1/chat` query touching both sources on `LLM_PROVIDER=groq`.
+
+Result: all 5 pipeline stages ran (planner, retriever, synthesizer, grounding, critic).
+No planner or critic JSON parse failures and no context-length errors in the logs. One
+transient Groq `429` happened mid-run and the SDK's own retry logic handled it
+automatically (3 second backoff, succeeded on retry), visible in the log, not masked.
+The critic correctly let through an answer that admitted the PDF had no relevant
+content for the question, instead of guessing. This is one real run, not exhaustive, so
+it confirms the happy path works but does not rule out a rarer parse failure on
+different input. Host-side test server stopped after the check; the two real sources
+stay ingested in `source_chunks` for later work (useful for item G's retrieval eval).
+
 ### Built in this branch (2026-09-30) — cache-busting, vLLM metrics, insufficient_samples
 
 Triggered by a review of the Third sweep: c=64 `local` TTFT of 0.5-0.85s is physically
