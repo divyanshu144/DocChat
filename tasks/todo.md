@@ -1,4 +1,98 @@
-# Task: Inference-engineering portfolio work — status
+# Task: inference completion + codebase hardening (chore/inference-complete-and-hardening)
+
+Plan file: `/Users/divyanshu/.claude/plans/silly-forging-deer.md` (full context and
+rationale). This is the checklist version. Branch: `chore/inference-complete-and-hardening`,
+off `feat/openai-sse-chat-quality`. One commit per item. Nothing pushed, nothing merged.
+
+## Part 1 - finish the inference work
+
+- [x] 1. `--groq-model` override in `eval/inference_benchmark.py`, mirrors `--openai-model`.
+      Tests in `tests/test_inference_benchmark_live_logic.py`. 257 to 259 passed.
+- [ ] 2. Blocked e2e check: real `/api/v1/chat` query, 2+ sources, `LLM_PROVIDER=groq`,
+      `QDRANT_HOST=localhost`. Check logs for planner/critic JSON failures and
+      context-length errors. STOP and ask if the local index is empty.
+- [ ] 3. Metric-name version comment next to `_VLLM_METRIC_CANDIDATES` (vLLM v0.30.0).
+- [ ] 4. Phase 3 spec (FP16 vs AWQ/GPTQ quantization, quality check against
+      `eval/benchmark.py`) + Phase 4 spec (serial vs concurrent throughput curve).
+      Specs in `docs/superpowers/specs/`, dry-run tests only. STOP, ask for go before
+      any live sweep.
+- [ ] 5. `docs/inference-writeup.md` from `eval/BENCHMARK_RESULTS.md` numbers only,
+      including the measurement-mistake story. Update README's Inference benchmarking
+      section to match.
+- [ ] 6. Cleanup: ask before deleting network volume `owdj19ss50`. Update this file and
+      HANDOFF.md to close out the track.
+
+## Part 2 - codebase review fixes, in order
+
+### A. Auth gaps
+- [ ] `Depends(get_current_user)` on all `app/api/ingest.py` + `app/api/folders.py` routes.
+- [ ] `decisions.md` entry 003 (corrects 001's "any authenticated user" wording).
+- [ ] `Folder.user_id` column + `_migrate()` extension (mirror `conversations.user_id`).
+- [ ] Scope folder queries by user; conversation-move verifies folder ownership.
+- [ ] Startup refusal if `jwt_secret_key` is still the shipped default and debug=false.
+- [ ] Tests: 401 on every newly-guarded route, cross-user folder isolation.
+
+### B. Chat streaming and formatting
+- [ ] `chat.py`: whitespace-preserving split (`re.findall(r"\S+\s*|\s+", answer)`).
+- [ ] `_sse()` frames multi-line payloads as multiple `data:` lines per SSE spec.
+- [ ] `frontend/src/api.ts`: join consecutive `data:` lines with `\n` before yielding.
+- [ ] Delete `normalizeMessageText` in `ChatPanel.tsx` and its call sites entirely.
+- [ ] Backend test (newline round-trip) + frontend test (stream reconstruction).
+- [ ] `npm run build` into `app/static`.
+
+### C. Retrieval correctness
+- [ ] Wire `retrieval_min_score` into `retriever.py`; empty-context path says sources
+      don't contain the answer instead of synthesizing from nothing.
+- [ ] `chat_history_limit` actually drives `chat.py`'s history query.
+- [ ] Remove dead `youtube_api_key` setting.
+- [ ] `context_max_chars`: log drops, truncate whole-chunk from the low-ranked end.
+- [ ] Lazy Qdrant base URL + one reused httpx client in `retriever.py`.
+
+### D. Planner query overwrite
+- [ ] `original_query` added to `AgentState`, set once at state construction (chat.py,
+      mcp_server.py), never touched by the planner.
+- [ ] Synthesizer answers `original_query`; critic judges against `original_query`.
+- [ ] Tests: replan loop doesn't lose the original question.
+- [ ] Re-run `eval/benchmark.py` only after explicit approval (API cost).
+
+### E. Ingestion robustness
+- [ ] web.py/youtube.py: embedding + upsert off the event loop, batched.
+- [ ] Delete-by-`source_id` before upsert (shared helper with `delete_source`). Test.
+- [ ] Configurable upload size limit, 413 past it.
+- [ ] Startup: mark stuck `queued`/`running` ingest jobs as `error`.
+- [ ] Fix unawaited `create_task` progress-update race in `_run_pdf_ingest_job`.
+- [ ] Late chunking: rename `embed_late` to something honest (recommended: smaller
+      change than implementing it for real), strip false claims from docs.
+
+### F. Smaller hardening
+- [ ] `/health` checks Postgres + Qdrant, non-200 when either is down.
+- [ ] Basic rate limiting on `/auth/login`, `/auth/signup`, `/chat`.
+- [ ] Refresh-token reuse detection revokes the user's whole token family. Test.
+- [ ] `critic.py` logs a warning on JSON-parse failure.
+
+### G. Retrieval measurement (report only)
+- [ ] `eval/retrieval_eval.py`: golden set (20-30 Qs) against the real corpus. STOP and
+      ask which documents if the local index is empty.
+- [ ] Report recall@k/MRR: dense-only, current lexical rerank, cross-encoder rerank.
+      Unit tests on the metric logic only, no live calls in the suite.
+- [ ] Do not change the production retriever from this without showing numbers first.
+
+### H. Needs a spec and approval before any code
+- [ ] Grounding redesign spec (verdict + sentences-to-drop instead of full rewrite),
+      latency/quality plan via `eval/e2e_pipeline.py`. Stop after the spec.
+- [ ] Critic-context spec + critic-loop on/off ablation plan. Stop, ask for go (API cost).
+
+### I. Documentation reconciliation (last)
+- [ ] Fix "three collections" claims (CLAUDE.md, agent_memory.md, README,
+      `.claude/skills/langgraph/SKILL.md`, `.claude/skills/ingestion/SKILL.md`).
+- [ ] Fix README's stale default model (`llama-3.3-70b-versatile` -> `openai/gpt-oss-120b`).
+- [ ] Mark `reports/docchat-audit.md` historical, matching `docs/claude_onboarding.md`.
+- [ ] Update every quoted test count via grep, not memory.
+- [ ] Trim HANDOFF.md to current and shorter than its ~660 lines today.
+
+---
+
+# Task: Inference-engineering portfolio work — status (prior session, context)
 
 Spec: `docs/superpowers/specs/2026-09-28-inference-benchmarking-design.md`
 Runbook: `docs/vllm_setup.md`

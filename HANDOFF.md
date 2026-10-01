@@ -1,9 +1,10 @@
 # DocChat — Session Handoff
 
-**Branch:** `feat/openai-sse-chat-quality`
-**Last updated:** 2026-09-30
-**Status:** Active development — green build, all work committed except this session's
-diffs, nothing in flight.
+**Branch:** `chore/inference-complete-and-hardening` (off `feat/openai-sse-chat-quality`,
+which is merged into `master`)
+**Last updated:** 2026-10-01
+**Status:** Working through the Part 1 (inference) and Part 2 (codebase hardening)
+checklist in `tasks/todo.md`, one commit per item, nothing pushed or merged yet.
 **No GPU pod is running** — `omqg1cxehw89xi` (L40S 48GB, $1.09/hr, `US-TX-3`) was
 terminated after the fourth sweep; `list-pods` confirmed empty. Lifetime ~9 minutes
 (18:20:39–~18:29:40 UTC), cost ~$0.16 (RunPod's billing API had not posted the record
@@ -17,6 +18,16 @@ ongoing storage cost until deleted.
 ---
 
 ## Current State
+
+### Built in this branch (2026-10-01) — --groq-model override
+
+Mirrors `--openai-model` exactly. Groq's configured default (`settings.chat_model`,
+`openai/gpt-oss-120b`) is also a reasoning model, same problem the OpenAI override was
+built to work around (see the Second sweep entry below). The override only touches
+`settings.chat_model` for the duration of `_run_provider`'s own run, restored in the
+`finally` block, and only applies when `provider == "groq"`. Two new tests mirroring the
+existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
+clean.
 
 ### Built in this branch (2026-09-30) — cache-busting, vLLM metrics, insufficient_samples
 

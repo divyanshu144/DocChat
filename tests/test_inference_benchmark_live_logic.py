@@ -191,6 +191,58 @@ async def test_run_provider_ignores_openai_model_override_for_other_providers():
     assert captured_models == ["gpt-5.6-luna"]  # untouched — override didn't leak in
 
 
+@pytest.mark.asyncio
+async def test_run_provider_applies_and_restores_groq_model_override():
+    captured_models: list[str] = []
+
+    async def fake_chat_stream(messages, max_tokens=None, usage_sink=None):
+        captured_models.append(settings.chat_model)
+        if usage_sink is not None:
+            usage_sink.update({"completion_tokens": 1})
+        yield "x"
+
+    with patch.object(settings, "chat_model", "openai/gpt-oss-120b"), \
+         patch.object(llm, "chat_stream", fake_chat_stream):
+        await _run_provider(
+            "groq",
+            [_HI],
+            [1],
+            max_tokens=10,
+            local_gpu_cost_per_hr=None,
+            openai_model_override=None,
+            groq_model_override="llama-3.1-8b-instant",
+        )
+
+    assert captured_models == ["llama-3.1-8b-instant"]
+    assert settings.chat_model == "openai/gpt-oss-120b"  # restored
+
+
+@pytest.mark.asyncio
+async def test_run_provider_ignores_groq_model_override_for_other_providers():
+    """The override is only meaningful for provider == 'groq'."""
+    captured_models: list[str] = []
+
+    async def fake_chat_stream(messages, max_tokens=None, usage_sink=None):
+        captured_models.append(settings.chat_model)
+        if usage_sink is not None:
+            usage_sink.update({"completion_tokens": 1})
+        yield "x"
+
+    with patch.object(settings, "chat_model", "openai/gpt-oss-120b"), \
+         patch.object(llm, "chat_stream", fake_chat_stream):
+        await _run_provider(
+            "openai",
+            [_HI],
+            [1],
+            max_tokens=10,
+            local_gpu_cost_per_hr=None,
+            openai_model_override=None,
+            groq_model_override="llama-3.1-8b-instant",
+        )
+
+    assert captured_models == ["openai/gpt-oss-120b"]  # untouched — override didn't leak in
+
+
 # ---------------------------------------------------------------------------
 # concurrency == 1 runs every query sequentially (not just one request)
 # ---------------------------------------------------------------------------

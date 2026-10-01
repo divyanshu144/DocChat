@@ -37,6 +37,13 @@ zero visible content — measured directly on 2026-09-30, see
 throughput measurement; this only overrides the setting for the duration of
 this script's own run, production is untouched.
 
+`--groq-model` is the same fix for Groq. The configured production default
+(`settings.chat_model`, `openai/gpt-oss-120b`) is also a reasoning model --
+diagnosed but not fixed during the second live sweep (2026-09-30, see
+`eval/BENCHMARK_RESULTS.md` and tasks/lessons.md). Pass a non-reasoning Groq
+model here to separate "wrong model" from "real rate limit" the same way
+`--openai-model` does; production is untouched either way.
+
 Always exits 0 once measurement starts — it measures, it does not assert.
 (A missing required flag like `--gpu-cost-per-hr` for `local` is a usage
 error and is reported before anything runs, not a measurement outcome.)
@@ -602,6 +609,7 @@ async def _run_provider(
     local_gpu_cost_per_hr: float | None,
     openai_model_override: str | None,
     bust_cache: bool = True,
+    groq_model_override: str | None = None,
 ) -> list[dict]:
     """Sweep one provider across every concurrency level.
 
@@ -611,6 +619,11 @@ async def _run_provider(
     `settings.fallback_llm_provider = "none"` for the duration: see the
     module docstring for why a benchmark must never let a request be
     silently served by a different provider than the one under test.
+
+    `groq_model_override` mirrors `openai_model_override`: only affects
+    `settings.chat_model` (the setting Groq actually reads, see
+    `llm._active_model`) for the duration of this function, restored in the
+    `finally` block below regardless of outcome.
 
     For `provider == "local"`, each cell's requests run alongside a ~1s
     poll of vLLM's `/metrics` (see `_poll_metrics_during`) — the resulting
@@ -623,11 +636,14 @@ async def _run_provider(
     original_provider = settings.llm_provider
     original_fallback = settings.fallback_llm_provider
     original_openai_model = settings.openai_chat_model
+    original_chat_model = settings.chat_model
 
     settings.llm_provider = provider
     settings.fallback_llm_provider = "none"
     if provider == "openai" and openai_model_override:
         settings.openai_chat_model = openai_model_override
+    if provider == "groq" and groq_model_override:
+        settings.chat_model = groq_model_override
     llm._client = None
     llm._client_provider = None
 
@@ -710,6 +726,7 @@ async def _run_provider(
         settings.llm_provider = original_provider
         settings.fallback_llm_provider = original_fallback
         settings.openai_chat_model = original_openai_model
+        settings.chat_model = original_chat_model
         llm._client = None
         llm._client_provider = None
 
@@ -769,6 +786,17 @@ async def main() -> None:
             "budget on hidden reasoning and returns zero visible content -- pass a "
             "non-reasoning model here for a real throughput measurement. Production "
             "is untouched either way."
+        ),
+    )
+    parser.add_argument(
+        "--groq-model",
+        default=None,
+        help=(
+            "Override settings.chat_model (the setting Groq reads) for this run "
+            "only. The configured default can be a reasoning model that spends its "
+            "whole --max-tokens budget on hidden reasoning and returns zero visible "
+            "content -- pass a non-reasoning model here for a real throughput "
+            "measurement. Production is untouched either way."
         ),
     )
     parser.add_argument(
@@ -848,6 +876,7 @@ async def main() -> None:
                 args.gpu_cost_per_hr,
                 args.openai_model,
                 bust_cache,
+                groq_model_override=args.groq_model,
             )
         except _CellTimeoutError as exc:
             all_rows.extend(exc.rows)
