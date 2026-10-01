@@ -1,0 +1,587 @@
+{
+  "description": "24 source-grounded questions, labeled against the two existing local sources. Document claims are evaluated as source content, not legal or factual advice.",
+  "annotation": "Single annotator; all chunks inspected; independently audit labels before using this for deployment decisions.",
+  "cases": [
+    {
+      "id": "pdf-average",
+      "query": "According to the working-time declaration, what is the maximum average weekly working time for mobile drivers?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "evidence": [
+        {
+          "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+          "quote": "48 hours per week"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 0
+        }
+      ]
+    },
+    {
+      "id": "pdf-weekly",
+      "query": "What maximum weekly working-time limit is stated in the declaration?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "evidence": [
+        {
+          "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+          "quote": "60 hours Working Time"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 0
+        }
+      ]
+    },
+    {
+      "id": "pdf-night",
+      "query": "How many hours of night work are allowed in each 24-hour period according to the document?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "evidence": [
+        {
+          "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+          "quote": "10 hours night work"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 0
+        }
+      ]
+    },
+    {
+      "id": "pdf-goods-night",
+      "query": "Which hours are defined as night time for goods vehicles in the declaration?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "evidence": [
+        {
+          "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+          "quote": "midnight to 0400 hours"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 0
+        }
+      ]
+    },
+    {
+      "id": "pdf-passenger-night",
+      "query": "Which night-time hours does the declaration specify for passenger vehicles?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "evidence": [
+        {
+          "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+          "quote": "0100 and 0500 hours"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 0
+        }
+      ]
+    },
+    {
+      "id": "pdf-breaks",
+      "query": "What breaks must mobile workers take after six hours and after more than nine hours of working time?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "evidence": [
+        {
+          "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+          "quote": "30 minutes after 6 hours"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 0
+        }
+      ]
+    },
+    {
+      "id": "pdf-reference",
+      "query": "What default reference period applies to average working time, and how far can it be extended?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "evidence": [
+        {
+          "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+          "quote": "default 17 week reference period"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 0
+        }
+      ]
+    },
+    {
+      "id": "pdf-employer-reference",
+      "query": "What rolling reference period does First Call Contract Services operate?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864"
+      ],
+      "evidence": [
+        {
+          "point_id": "4a325257-292d-55a8-9673-0780ec36f864",
+          "quote": "26 week rolling reference period"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 1
+        }
+      ]
+    },
+    {
+      "id": "pdf-other-work",
+      "query": "Must working time for other employers include non-transport work?",
+      "relevant_ids": [
+        "7f02e868-34df-5c65-9015-c64be231fda4",
+        "5a312ea6-bc96-5d60-b6c8-99bab55be050"
+      ],
+      "evidence": [
+        {
+          "point_id": "7f02e868-34df-5c65-9015-c64be231fda4",
+          "quote": "Both transport and non-transport"
+        },
+        {
+          "point_id": "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+          "quote": "Both transport and non-transport"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 2
+        },
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 2,
+          "chunk_index": 3
+        }
+      ]
+    },
+    {
+      "id": "pdf-voluntary",
+      "query": "Does the declaration require workers to disclose charitable, voluntary or emergency-service work?",
+      "relevant_ids": [
+        "5a312ea6-bc96-5d60-b6c8-99bab55be050"
+      ],
+      "evidence": [
+        {
+          "point_id": "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+          "quote": "charitable or voluntary work"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 2,
+          "chunk_index": 3
+        }
+      ]
+    },
+    {
+      "id": "pdf-record-duty",
+      "query": "Who is responsible for accurately recording working time during an assignment?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864"
+      ],
+      "evidence": [
+        {
+          "point_id": "4a325257-292d-55a8-9673-0780ec36f864",
+          "quote": "accurately record your Working Time"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 1
+        }
+      ]
+    },
+    {
+      "id": "pdf-false-record",
+      "query": "What does the document say happens if a worker knowingly makes a false record?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864",
+        "7f02e868-34df-5c65-9015-c64be231fda4"
+      ],
+      "evidence": [
+        {
+          "point_id": "4a325257-292d-55a8-9673-0780ec36f864",
+          "quote": "knowingly makes a false record"
+        },
+        {
+          "point_id": "7f02e868-34df-5c65-9015-c64be231fda4",
+          "quote": "knowingly makes a false record"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 1
+        },
+        {
+          "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+          "source_type": "pdf",
+          "page_number": 1,
+          "chunk_index": 2
+        }
+      ]
+    },
+    {
+      "id": "rag-definition",
+      "query": "What does retrieval-augmented generation add to a language model beyond its training data?",
+      "relevant_ids": [
+        "d033044f-b091-585b-ac83-829c4e843ff9",
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "evidence": [
+        {
+          "point_id": "d033044f-b091-585b-ac83-829c4e843ff9",
+          "quote": "external data sources"
+        },
+        {
+          "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+          "quote": "Process\n[edit]Retrieval-augmented generation (RAG) enhances large language model"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 0
+        },
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 3
+        }
+      ]
+    },
+    {
+      "id": "rag-history",
+      "query": "When was the term retrieval-augmented generation introduced?",
+      "relevant_ids": [
+        "d033044f-b091-585b-ac83-829c4e843ff9",
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+      ],
+      "evidence": [
+        {
+          "point_id": "d033044f-b091-585b-ac83-829c4e843ff9",
+          "quote": "2020"
+        },
+        {
+          "point_id": "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+          "quote": "2020"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 0
+        },
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 1
+        }
+      ]
+    },
+    {
+      "id": "rag-updates",
+      "query": "How can a RAG system use new information without retraining the language model?",
+      "relevant_ids": [
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "evidence": [
+        {
+          "point_id": "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+          "quote": "retrain"
+        },
+        {
+          "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+          "quote": "retrain"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 1
+        },
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 3
+        }
+      ]
+    },
+    {
+      "id": "rag-transparency",
+      "query": "How do sources in RAG responses let users verify answers?",
+      "relevant_ids": [
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+      ],
+      "evidence": [
+        {
+          "point_id": "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+          "quote": "cross-check retrieved content"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 1
+        }
+      ]
+    },
+    {
+      "id": "rag-embeddings",
+      "query": "Where are numerical document embeddings stored for retrieval?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "evidence": [
+        {
+          "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+          "quote": "vector database"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 3
+        }
+      ]
+    },
+    {
+      "id": "rag-data-types",
+      "query": "Can RAG use structured and semi-structured data as well as unstructured text?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "evidence": [
+        {
+          "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+          "quote": "semi-structured"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 3
+        }
+      ]
+    },
+    {
+      "id": "rag-stages",
+      "query": "How does the retriever select documents before the LLM generates an answer?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+        "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+      ],
+      "evidence": [
+        {
+          "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+          "quote": "Retriev"
+        },
+        {
+          "point_id": "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+          "quote": "retriev"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 3
+        },
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 4
+        }
+      ]
+    },
+    {
+      "id": "rag-hallucinations",
+      "query": "Does RAG completely prevent a language model from hallucinating?",
+      "relevant_ids": [
+        "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+        "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+      ],
+      "evidence": [
+        {
+          "point_id": "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+          "quote": "does not prevent hallucinations"
+        },
+        {
+          "point_id": "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+          "quote": "does not prevent hallucinations"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 7
+        },
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 8
+        }
+      ]
+    },
+    {
+      "id": "rag-hybrid",
+      "query": "How does hybrid search compensate when semantic search misses key facts?",
+      "relevant_ids": [
+        "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+      ],
+      "evidence": [
+        {
+          "point_id": "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+          "quote": "traditional text search"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 7
+        }
+      ]
+    },
+    {
+      "id": "rag-encoding",
+      "query": "How do sparse vectors differ from dense vectors in encoding text?",
+      "relevant_ids": [
+        "b52ac8c7-c659-5819-81b8-1d0c14896510"
+      ],
+      "evidence": [
+        {
+          "point_id": "b52ac8c7-c659-5819-81b8-1d0c14896510",
+          "quote": "sparse vectors"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 5
+        }
+      ]
+    },
+    {
+      "id": "rag-ict",
+      "query": "What pre-training task teaches a retriever to predict masked text?",
+      "relevant_ids": [
+        "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+      ],
+      "evidence": [
+        {
+          "point_id": "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+          "quote": "Inverse Cloze Task"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 6
+        }
+      ]
+    },
+    {
+      "id": "rag-retro",
+      "query": "What training-cost disadvantage does the Retro language model have?",
+      "relevant_ids": [
+        "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+      ],
+      "evidence": [
+        {
+          "point_id": "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+          "quote": "high cost of training runs"
+        }
+      ],
+      "expected_sources": [
+        {
+          "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+          "source_type": "web",
+          "page_number": null,
+          "chunk_index": 6
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1853 @@
+{
+  "summary": {
+    "dense": {
+      "recall@1": 0.7291666666666666,
+      "recall@3": 0.875,
+      "recall@5": 0.9583333333333334,
+      "reciprocal_rank": 0.9111111111111111,
+      "mean_ranking_ms": 0.13128454641749462
+    },
+    "lexical": {
+      "recall@1": 0.7916666666666666,
+      "recall@3": 0.9791666666666666,
+      "recall@5": 1.0,
+      "reciprocal_rank": 0.9583333333333334,
+      "mean_ranking_ms": 0.1404634676873684
+    },
+    "cross_encoder": {
+      "recall@1": 0.8541666666666666,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "reciprocal_rank": 1.0,
+      "mean_ranking_ms": 1174.4613662206878
+    }
+  },
+  "results": [
+    {
+      "id": "pdf-average",
+      "query": "According to the working-time declaration, what is the maximum average weekly working time for mobile drivers?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 1.586124300956726,
+        "lexical": 0.18062535673379898,
+        "cross_encoder": 1246.730542741716
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-weekly",
+      "query": "What maximum weekly working-time limit is stated in the declaration?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.056791119277477264,
+        "lexical": 0.09987503290176392,
+        "cross_encoder": 1153.437958098948
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-night",
+      "query": "How many hours of night work are allowed in each 24-hour period according to the document?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05487445741891861,
+        "lexical": 0.16799941658973694,
+        "cross_encoder": 1183.8674154132605
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-goods-night",
+      "query": "Which hours are defined as night time for goods vehicles in the declaration?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.0499580055475235,
+        "lexical": 0.13741664588451385,
+        "cross_encoder": 1153.3255828544497
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-passenger-night",
+      "query": "Which night-time hours does the declaration specify for passenger vehicles?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05199946463108063,
+        "lexical": 0.11383369565010071,
+        "cross_encoder": 1214.8009575903416
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-breaks",
+      "query": "What breaks must mobile workers take after six hours and after more than nine hours of working time?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.11058337986469269,
+        "lexical": 0.23841671645641327,
+        "cross_encoder": 1178.2373748719692
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-reference",
+      "query": "What default reference period applies to average working time, and how far can it be extended?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.07450021803379059,
+        "lexical": 0.1633334904909134,
+        "cross_encoder": 1177.206166088581
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 0.5,
+          "recall@1": 0.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-employer-reference",
+      "query": "What rolling reference period does First Call Contract Services operate?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.053124502301216125,
+        "lexical": 0.13425014913082123,
+        "cross_encoder": 1162.1202500537038
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-other-work",
+      "query": "Must working time for other employers include non-transport work?",
+      "relevant_ids": [
+        "7f02e868-34df-5c65-9015-c64be231fda4",
+        "5a312ea6-bc96-5d60-b6c8-99bab55be050"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05120784044265747,
+        "lexical": 0.12904126197099686,
+        "cross_encoder": 1152.4784583598375
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-voluntary",
+      "query": "Does the declaration require workers to disclose charitable, voluntary or emergency-service work?",
+      "relevant_ids": [
+        "5a312ea6-bc96-5d60-b6c8-99bab55be050"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.051499344408512115,
+        "lexical": 0.1327497884631157,
+        "cross_encoder": 1170.6249583512545
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-record-duty",
+      "query": "Who is responsible for accurately recording working time during an assignment?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.06479118019342422,
+        "lexical": 0.13458263128995895,
+        "cross_encoder": 1169.139708392322
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-false-record",
+      "query": "What does the document say happens if a worker knowingly makes a false record?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864",
+        "7f02e868-34df-5c65-9015-c64be231fda4"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05354173481464386,
+        "lexical": 0.14424975961446762,
+        "cross_encoder": 1176.2004159390926
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 0.5,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-definition",
+      "query": "What does retrieval-augmented generation add to a language model beyond its training data?",
+      "relevant_ids": [
+        "d033044f-b091-585b-ac83-829c4e843ff9",
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05354173481464386,
+        "lexical": 0.1381654292345047,
+        "cross_encoder": 1158.5827078670263
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-history",
+      "query": "When was the term retrieval-augmented generation introduced?",
+      "relevant_ids": [
+        "d033044f-b091-585b-ac83-829c4e843ff9",
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.08554104715585709,
+        "lexical": 0.12637581676244736,
+        "cross_encoder": 1144.463500007987
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 0.5,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "4a325257-292d-55a8-9673-0780ec36f864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-updates",
+      "query": "How can a RAG system use new information without retraining the language model?",
+      "relevant_ids": [
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.06820820271968842,
+        "lexical": 0.1309998333454132,
+        "cross_encoder": 1168.9207078889012
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 0.5,
+          "recall@1": 0.0,
+          "recall@3": 0.5,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-transparency",
+      "query": "How do sources in RAG responses let users verify answers?",
+      "relevant_ids": [
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05583278834819794,
+        "lexical": 0.11691730469465256,
+        "cross_encoder": 1175.8687915280461
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-embeddings",
+      "query": "Where are numerical document embeddings stored for retrieval?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.054834410548210144,
+        "lexical": 0.13079214841127396,
+        "cross_encoder": 1153.4116249531507
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 0.2,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-data-types",
+      "query": "Can RAG use structured and semi-structured data as well as unstructured text?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.053709372878074646,
+        "lexical": 0.12533273547887802,
+        "cross_encoder": 1255.9442082419991
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-stages",
+      "query": "How does the retriever select documents before the LLM generates an answer?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+        "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05354173481464386,
+        "lexical": 0.12699980288743973,
+        "cross_encoder": 1162.7764999866486
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-hallucinations",
+      "query": "Does RAG completely prevent a language model from hallucinating?",
+      "relevant_ids": [
+        "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+        "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05158223211765289,
+        "lexical": 0.10874960571527481,
+        "cross_encoder": 1161.884667351842
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-hybrid",
+      "query": "How does hybrid search compensate when semantic search misses key facts?",
+      "relevant_ids": [
+        "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.0594165176153183,
+        "lexical": 0.146583653986454,
+        "cross_encoder": 1193.2875830680132
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 0.16666666666666666,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0
+        },
+        "lexical": {
+          "ids": [
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-encoding",
+      "query": "How do sparse vectors differ from dense vectors in encoding text?",
+      "relevant_ids": [
+        "b52ac8c7-c659-5819-81b8-1d0c14896510"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.2476247027516365,
+        "lexical": 0.2065831795334816,
+        "cross_encoder": 1160.4138342663646
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "7f02e868-34df-5c65-9015-c64be231fda4"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-ict",
+      "query": "What pre-training task teaches a retriever to predict masked text?",
+      "relevant_ids": [
+        "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05125068128108978,
+        "lexical": 0.11079199612140656,
+        "cross_encoder": 1160.6377912685275
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-retro",
+      "query": "What training-cost disadvantage does the Retro language model have?",
+      "relevant_ids": [
+        "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+      ],
+      "candidate_count": 17,
+      "timing_ms": {
+        "dense": 0.05675014108419418,
+        "lexical": 0.12645777314901352,
+        "cross_encoder": 1152.711084112525
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "lexical": {
+          "ids": [
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 0.5,
+          "recall@1": 0.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    }
+  ],
+  "generated_at": "2026-10-01T08:09:40.286902+00:00",
+  "corpus_sha256": "f73d2b6f83281bf4d83c4794aecf47eccc98696de8f60e7b818616ed35d0cf04",
+  "corpus_chunks": 17,
+  "source_ids": [
+    "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+    "e8b93bac-6734-5eb0-9b0c-23f0b3640777"
+  ],
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "cross_encoder": "Xenova/ms-marco-MiniLM-L-6-v2",
+  "candidate_limit": 24,
+  "min_score": 0.3,
+  "ranking_limit": 12,
+  "method": "Exact CPU cosine search over existing stored vectors; shared dense candidate pool",
+  "caveats": [
+    "Small two-source corpus; not a production generalization claim",
+    "Labels written from source chunks; no independent annotator",
+    "Ranking times exclude query embedding and network; no latency deployment claim",
+    "MRR is truncated to 12 results; recall labels include all identified relevant chunks"
+  ]
+}
