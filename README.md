@@ -498,6 +498,46 @@ The current Docker Compose setup is good for local development. To productionise
 - Persist partial ingestion state so failed jobs can resume or be retried safely.
 - Test SSE behavior through the actual load balancer, because proxy buffering/timeouts can break streaming.
 
+### LLM Inference Serving
+
+The points above are generic web-tier scaling. The LLM call itself scales differently,
+and the [inference benchmarking](#inference-benchmarking) work in this repo measured
+exactly where it breaks — these points are grounded in that data, not generic advice:
+
+- **The real ceiling is KV-cache capacity, not CPU or request count.** A concurrency
+  sweep against a self-hosted vLLM instance (L40S 48GB) showed KV cache usage climbing
+  from 1.6% at concurrency 1 to 99.4% at concurrency 128, with `num_requests_waiting`
+  peaking at 96 — the GPU was queueing, not idling. Autoscale a self-hosted GPU pool on
+  vLLM's own `/metrics` (`num_requests_waiting`, `kv_cache_usage_perc`), not on CPU
+  utilization or raw request count, which stay low right up until the cache is full.
+- **Admission control has to act before the client gives up.** At 99.4% KV usage, 13 of
+  128 requests in that sweep failed with client-side `ReadTimeout`/`PoolTimeout` — the
+  server queued them past the client's patience rather than rejecting them early. A
+  production router should shed load (fast 429/503 with retry-after) once KV usage
+  crosses a threshold (e.g. 90%), instead of letting vLLM's own queue silently grow.
+- **Context length is a capacity lever, not just a quality one.** KV footprint scales
+  with tokens-in-flight; DocChat's real retrieval-augmented prompts run 3.7k-6.8k input
+  tokens. Trimming retrieved context (fewer/shorter chunks) directly raises how many
+  concurrent requests fit in a fixed KV budget — a tuning knob most request-count-based
+  capacity planning misses entirely.
+- **Continuous batching trades per-request speed for aggregate throughput — size SLAs
+  around that, not raw tok/s.** The same sweep measured per-request decode speed
+  dropping from 48.7 tok/s (c=1) to 4.3 tok/s (c=128) while aggregate throughput kept
+  climbing — expected behavior, but a dashboard that only shows aggregate tok/s hides
+  the p50/p95 latency users actually feel under load.
+- **A single GPU's ceiling is a hard wall, not a soft limit** — once KV cache is full,
+  only more GPU capacity (another replica behind a router, a bigger GPU, or
+  quantization to shrink the per-request memory footprint) fixes it; waiting doesn't.
+  AWQ/GPTQ quantization is a planned follow-up specifically to measure that tradeoff
+  against the FP16/bf16 numbers already collected.
+- **Benchmark dashboards need to separate real throughput from cache-inflated
+  throughput.** Production traffic will organically hit vLLM's prefix cache on shared
+  system prompts — real signal, not a bug — but a load-testing or capacity-planning
+  harness that reuses prompts across measurement runs will silently measure its own
+  cache instead of the GPU's real capacity, exactly the self-caught bug documented in
+  `eval/BENCHMARK_RESULTS.md`. Any inference dashboard should track prefix-cache hit
+  rate alongside throughput so the two numbers are never read as the same thing.
+
 ## Engineering Standards Followed
 
 - Kept clear module boundaries: API routers, core infrastructure, services, agent nodes, and frontend components are separate.
