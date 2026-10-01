@@ -128,7 +128,8 @@ async def critic_node(state: AgentState) -> dict:
         data = json.loads(response)
         quality = data.get("quality", "good")
         feedback = data.get("feedback", "")
-    except (json.JSONDecodeError, KeyError, TypeError):
+    except (json.JSONDecodeError, KeyError, TypeError, AttributeError):
+        logger.warning("critic_json_parse_failed; accepting without a verdict", exc_info=True)
         quality = "good"
         feedback = ""
 

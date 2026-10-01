@@ -9,6 +9,14 @@ import os
 
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    from app.core.rate_limit import rate_limiter
+    rate_limiter._buckets.clear()
+    yield
+    rate_limiter._buckets.clear()
+
 # A LANGSMITH_API_KEY in .env would otherwise switch tracing on for the whole
 # suite: every traced call spawns a background upload, and a key that is expired
 # or wrong-region turns that into 403 log spam loud enough to bury a real

@@ -6,12 +6,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import Settings, settings
 from app.core.database import create_all_tables
 from app.agent.nodes.retriever import close_retriever_client
+from app.core.rate_limit import rate_limiter
 from app.api import auth
 from app.api import chat
 from app.api import conversations
@@ -60,6 +61,25 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def limit_requests(request: Request, call_next):
+    limits = {
+        f"{settings.api_prefix}/auth/login": settings.login_rate_limit,
+        f"{settings.api_prefix}/auth/signup": settings.signup_rate_limit,
+        f"{settings.api_prefix}/chat": settings.chat_rate_limit,
+    }
+    path = request.url.path.rstrip("/")
+    if request.method == "POST" and path in limits:
+        host = request.client.host if request.client else "unknown"
+        retry_after = rate_limiter.check((path, host), limits[path], settings.rate_limit_window_seconds)
+        if retry_after:
+            return JSONResponse(
+                {"detail": "Too many requests; please retry later"}, status_code=429,
+                headers={"Retry-After": str(retry_after)},
+            )
+    return await call_next(request)
 
 
 @app.middleware("http")

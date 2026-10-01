@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     context_max_chars: int = 12000
     ingest_batch_size: int = Field(default=64, ge=1)
     upload_max_bytes: int = Field(default=50 * 1024 * 1024, ge=1)
+    rate_limit_window_seconds: int = Field(default=60, ge=1)
+    login_rate_limit: int = Field(default=10, ge=1)
+    signup_rate_limit: int = Field(default=5, ge=1)
+    chat_rate_limit: int = Field(default=30, ge=1)
 
     # Sampling temperature for the nodes whose output is a LABEL rather than prose
     # (critic, planner). Pinned to 0 so a verdict does not move between identical
