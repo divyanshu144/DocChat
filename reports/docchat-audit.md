@@ -1,3 +1,8 @@
+> **HISTORICAL — 2026-03-08 snapshot, not the current architecture or checklist.**
+> Several features and claims below belong to an older implementation. Current
+> behavior is documented in README.md, HANDOFF.md and tasks/todo.md. Retained as
+> audit provenance; do not execute its recommendations without checking current code.
+
 # DocChat Codebase Audit
 
 **Date:** 2026-03-08

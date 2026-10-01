@@ -11,7 +11,7 @@ a licence to change the decision.
 
 | Decision | Status | Rationale |
 |---|---|---|
-| Three separate Qdrant collections (`pdf_chunks`, `youtube_chunks`, `web_chunks`) rather than one with a `type` filter | **Locked** | Different payload schemas per source; per-source retrieval tuning |
+| One normalized `source_chunks` collection with `source_type` / `source_id` payload filters | **Current (supersedes the former three-collection decision)** | Shared storage/retrieval for future source types; legacy collections only listed/deleted |
 | Agent is a LangGraph `StateGraph`, not hand-rolled orchestration | **Locked** | Bounded critic-feedback retry loop needs explicit state machine |
 | Config only via `from app.core.config import settings` — never `os.environ` | **Locked** | Single Pydantic Settings source of truth |
 | Deterministic `uuid5` source IDs (content hash / canonical URL / video ID) | **Locked** (2026-07-02) | Re-ingesting the same input must be idempotent |
@@ -28,9 +28,8 @@ a licence to change the decision.
 
 ## Known Gotchas
 
-- **The suite is fully green** — 153 passed, 0 failed. There are no known-failing tests,
-  so any red is yours. (Was 45/4/12 before the 2026-07-28 venv rebuild; 109 before the
-  critic rejection sink added 5.)
+- **Current offline baseline (2026-10-01):** 368 passed, 8 live evals deselected;
+  ruff clean. Historical counts below describe their original sessions.
 - **A model can silently refuse `temperature`.** `gpt-5.6-luna` 400s on
   `temperature=0` ("Only the default (1) value is supported"); `app/services/llm.py`
   drops the parameter and retries so the request still succeeds, caching the refusal per
@@ -55,8 +54,15 @@ a licence to change the decision.
   runtime via the registry, but ruff F821 flags it without a `TYPE_CHECKING` import.
 - **B008 fires on every FastAPI `Depends()`.** Configured away via
   `extend-immutable-calls` in `pyproject.toml` — do not "fix" the endpoints instead.
-- **Ingestion is upsert-only.** Re-ingesting a *shorter* document leaves orphaned
-  tail chunks; there is no version cleanup.
+- **Ingestion replaces same-source points.** Embeddings are prepared first, then
+  delete-by-source_id and batched upsert run in a worker. This is not transactional;
+  retry an indexing failure. Single-process source locks do not coordinate multiple workers.
+- **Single-worker job recovery.** Startup marks queued/running jobs as interrupted.
+  Move to a shared durable queue before running independent app workers.
+- **Rate limits are per-process/IP.** Auth and chat return 429 with Retry-After;
+  multi-worker deployments need a shared limiter. Forwarded headers are not trusted.
+- **Refresh replay revokes all refresh sessions for that user.** Access tokens
+  remain valid until their normal expiry; frontend refresh requests are coalesced.
 - **Docker Compose `restart` does not reload `.env`.** Use
   `docker compose up -d --force-recreate app` after changing provider/env settings.
 - **`git push --force` is blocked** by `~/.claude/hooks/pre-tool-use.sh`. The user runs
@@ -91,6 +97,5 @@ a licence to change the decision.
   to establish what was already failing.
 - **Spec → plan → implement:** specs and plans are paired by date in
   `docs/superpowers/{specs,plans}/`. Write both before code on any non-trivial feature.
-- **Late chunking (PDF):** `_embed_chunks_late` embeds chunks with full-segment context
-  and always returns exactly `len(raw_chunks)` entries — the `zip(..., strict=True)` in
-  `ingest_pdf` documents that invariant.
+- **Independent chunk embedding:** PDF, web and YouTube use bounded fastembed
+  batches; no segment-level token pooling or true late chunking is implemented.

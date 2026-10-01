@@ -4,7 +4,7 @@ import uuid as _uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from jose import JWTError
 from pydantic import BaseModel, EmailStr
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -141,22 +141,40 @@ async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
         raise credentials_exc
 
     token_hash = hash_refresh_token(body.refresh_token)
+    # Serialize rotations for this user on PostgreSQL. The conditional UPDATE
+    # below also prevents double consumption when row locks are unavailable.
+    user = (await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )).scalar_one_or_none()
+    if user is None or not user.is_active:
+        raise credentials_exc
     result = await db.execute(
         select(RefreshToken).where(RefreshToken.token_hash == token_hash)
     )
     stored = result.scalar_one_or_none()
 
-    if stored is None or stored.revoked:
+    if stored is None or stored.user_id != user_id:
+        raise credentials_exc
+
+    if stored.revoked:
+        await db.execute(update(RefreshToken).where(
+            RefreshToken.user_id == user_id
+        ).values(revoked=True))
+        await db.commit()
         raise credentials_exc
 
     if stored.expires_at.replace(tzinfo=timezone.utc) < datetime.now(tz=timezone.utc):
         raise credentials_exc
 
-    user = await db.get(User, user_id)
-    if user is None or not user.is_active:
+    consumed = await db.execute(update(RefreshToken).where(
+        RefreshToken.id == stored.id, RefreshToken.revoked.is_(False)
+    ).values(revoked=True))
+    if consumed.rowcount != 1:
+        await db.execute(update(RefreshToken).where(
+            RefreshToken.user_id == user_id
+        ).values(revoked=True))
+        await db.commit()
         raise credentials_exc
-
-    stored.revoked = True
     access_token = create_access_token(user.id)
     raw_refresh, expires_at = create_refresh_token(user.id)
     db.add(RefreshToken(

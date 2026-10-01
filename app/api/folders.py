@@ -6,7 +6,9 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.deps import get_current_user
 from app.models.conversation import Conversation, Folder
+from app.models.user import User
 
 router = APIRouter()
 
@@ -19,9 +21,30 @@ class FolderRename(BaseModel):
     name: str
 
 
+async def _get_owned_folder(
+    folder_id: str,
+    db: AsyncSession,
+    current_user: User,
+) -> Folder:
+    result = await db.execute(
+        select(Folder).where(
+            Folder.id == folder_id,
+            Folder.user_id == current_user.id,
+        )
+    )
+    folder = result.scalar_one_or_none()
+    if not folder:
+        raise HTTPException(404, "Folder not found")
+    return folder
+
+
 @router.post("/folders", status_code=201)
-async def create_folder(body: FolderCreate, db: AsyncSession = Depends(get_db)):
-    folder = Folder(id=str(_uuid.uuid4()), name=body.name.strip())
+async def create_folder(
+    body: FolderCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    folder = Folder(id=str(_uuid.uuid4()), name=body.name.strip(), user_id=current_user.id)
     db.add(folder)
     await db.commit()
     await db.refresh(folder)
@@ -29,8 +52,15 @@ async def create_folder(body: FolderCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/folders")
-async def list_folders(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Folder).order_by(Folder.created_at))
+async def list_folders(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Folder)
+        .where(Folder.user_id == current_user.id)
+        .order_by(Folder.created_at)
+    )
     folders = result.scalars().all()
 
     counts: dict[str, int] = {}
@@ -54,10 +84,13 @@ async def list_folders(db: AsyncSession = Depends(get_db)):
 
 
 @router.patch("/folders/{folder_id}")
-async def rename_folder(folder_id: str, body: FolderRename, db: AsyncSession = Depends(get_db)):
-    folder = await db.get(Folder, folder_id)
-    if not folder:
-        raise HTTPException(404, "Folder not found")
+async def rename_folder(
+    folder_id: str,
+    body: FolderRename,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    folder = await _get_owned_folder(folder_id, db, current_user)
     folder.name = body.name.strip()
     await db.commit()
     await db.refresh(folder)
@@ -65,10 +98,12 @@ async def rename_folder(folder_id: str, body: FolderRename, db: AsyncSession = D
 
 
 @router.delete("/folders/{folder_id}", status_code=204)
-async def delete_folder(folder_id: str, db: AsyncSession = Depends(get_db)):
-    folder = await db.get(Folder, folder_id)
-    if not folder:
-        raise HTTPException(404, "Folder not found")
+async def delete_folder(
+    folder_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    folder = await _get_owned_folder(folder_id, db, current_user)
     await db.execute(
         update(Conversation).where(Conversation.folder_id == folder_id).values(folder_id=None)
     )

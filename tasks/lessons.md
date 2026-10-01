@@ -401,3 +401,47 @@ why this got caught instead of silently reporting `peak_gpu_cache_usage_pct: Non
 every cell of a real, paid sweep. The general pattern: when code that talks to an
 external surface is written before that surface is reachable, treat every literal name
 in it as a hypothesis, not a fact, until the first live call confirms or corrects it.
+
+---
+
+## 2026-10-01 — A word-boundary trim can silently erase a whole chunk
+
+**What broke (caught by a test, not shipped):** `_format_chunks`/`_format_context`'s
+partial-inclusion path does `entry[:remaining].rsplit(" ", 1)[0]` to avoid cutting a
+chunk mid-word when it doesn't fully fit the remaining budget. Writing a test for the
+new drop-count logging used a chunk made of one repeated character with no spaces
+(`"b" * 700`). The label before it (`"Source marker: [PDF - doc.pdf]\n"`) has spaces,
+so `rsplit(" ", 1)` found its last space *inside the label*, not inside the chunk body,
+and cut everything from that point onward, including the entire space-free chunk body.
+A test asserting the partial chunk's content should appear in the output failed because
+of this, not because of anything the new logging code did.
+
+**What to do next time:** when testing a word-boundary truncation helper, don't use
+repeated-character test fixtures with no spaces in them. More importantly: this is a
+real, pre-existing bug in the partial-inclusion logic, not something this session's
+change introduced — a chunk whose body happens to have no space near the cut point (or
+no space at all) can lose its entire partial slice silently, with the label surviving
+and the actual content gone. Not fixed here (out of scope for the logging-only task),
+but worth a follow-up: `rsplit` should search within the chunk's own text, not the
+combined `entry` string that includes the label, or fall back to a hard character cut
+when no space is found within some reasonable distance of the end.
+
+---
+
+## 2026-10-01 completion notes
+
+- The default `.venv` lacked pytest/ruff; this project's working environment is
+  `venv/`. Use its explicit executables rather than assuming a directory name.
+- A startup lifecycle test that mocks schema creation must also isolate the new
+  interrupted-job recovery query. Recovery itself is tested against real SQLite;
+  do not let an offline lifecycle test accidentally connect to Docker DNS names.
+- Independent embeddings were hidden behind `embed_late`, which ignored segment
+  context. That name and its dead parameters are removed; docs describe what runs.
+- A critic parse fallback accepts without a real verdict. Benchmarks must record
+  malformed/empty responses as errors, not score the fallback as a good verdict.
+- GPT-5.5 defaults to reasoning that can exhaust a tiny classification output cap.
+  For the approved short critic diagnostic, explicitly selected reasoning=none;
+  live usage confirmed zero reasoning tokens and no truncated/empty verdicts.
+- The e2e harness still looked up synthetic fixtures by per-type collection names
+  after production switched to source_chunks. Its adapter now applies payload source
+  filters. Its compare mode measures first pass versus retry, not critic on/off.

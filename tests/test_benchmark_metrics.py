@@ -7,6 +7,21 @@ import pytest
 
 from eval.benchmark import _compute_metrics, _fmt, _report
 from eval.cases import BENCHMARK_CASES, CriticCase
+from unittest.mock import AsyncMock, patch
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("response,expected", [
+    ("not JSON", "error"), ("", "error"), ('{"quality":"unknown"}', "error"),
+    ('{"quality":"good","feedback":""}', "good"),
+])
+async def test_run_case_does_not_score_parse_fallback_as_good(response, expected):
+    from eval.benchmark import run_case
+
+    with patch("app.services.llm.chat_complete", AsyncMock(return_value=response)):
+        result = await run_case(BENCHMARK_CASES[0])
+    assert result["got"] == expected
+    assert result["raw_response"] == response
 
 
 def _r(expected: str, got: str) -> dict:

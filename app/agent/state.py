@@ -2,6 +2,7 @@ from typing import TypedDict
 
 
 class AgentState(TypedDict):
+    original_query: str          # immutable user question; query may be rewritten for retrieval
     query: str
     conversation_id: str
     conversation_history: list[dict]

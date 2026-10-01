@@ -36,17 +36,8 @@ function renderInline(text: string): string {
       (_, inner: string) => `<span class="cite cite-web">${inner.trim()}</span>`);
 }
 
-function normalizeMessageText(text: string): string {
-  return text
-    .replace(/\s+#{1,3}\s+/g, '\n\n')
-    .replace(/\s+\*\*([^*\n]{2,80}:)\*\*\s*/g, '\n\n$1\n')
-    .replace(/\s+(Introduction:|Summary:|Key points:|Key Points to Consider:|Will Coding be Dead\?|Future of Coding:|Conclusion:|Takeaway:|Sources:)\s*/g, '\n\n$1\n')
-    .replace(/\s+\*\s+/g, '\n- ')
-    .replace(/\s+(\d+)\.\s+(?=[A-Z])/g, '\n$1. ');
-}
-
 function renderMessageHtml(text: string): string {
-  const lines = normalizeMessageText(text).split(/\r?\n/);
+  const lines = text.split(/\r?\n/);
   const html: string[] = [];
   let list: 'ul' | 'ol' | null = null;
 

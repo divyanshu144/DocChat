@@ -307,6 +307,8 @@ async def _openai_complete(
         "messages": messages,
         "max_completion_tokens": max_tokens,
     }
+    if settings.openai_reasoning_effort:
+        payload["reasoning_effort"] = settings.openai_reasoning_effort
     if model not in _TEMPERATURE_UNSUPPORTED:
         payload.update(_temperature_kwargs(temperature))
 
@@ -335,6 +337,8 @@ async def _openai_stream(
         "max_completion_tokens": max_tokens,
         "stream": True,
     }
+    if settings.openai_reasoning_effort:
+        payload["reasoning_effort"] = settings.openai_reasoning_effort
     if usage_sink is not None:
         payload["stream_options"] = {"include_usage": True}
     async with client.stream("POST", "/chat/completions", json=payload) as resp:

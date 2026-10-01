@@ -66,15 +66,16 @@ async def test_refresh_rotates_refresh_tokens():
         refresh_b = rotated_once.refresh_token
 
         assert refresh_b != refresh_a
+        rotated_twice = await refresh(RefreshRequest(refresh_token=refresh_b), session)
+        assert rotated_twice.refresh_token != refresh_b
         with pytest.raises(HTTPException) as exc:
             await refresh(RefreshRequest(refresh_token=refresh_a), session)
         assert exc.value.status_code == 401
 
-        rotated_twice = await refresh(RefreshRequest(refresh_token=refresh_b), session)
-        refresh_c = rotated_twice.refresh_token
-
-        assert refresh_c != refresh_b
+        # Replaying A revokes every refresh token for this user, including C.
+        with pytest.raises(HTTPException) as exc:
+            await refresh(RefreshRequest(refresh_token=rotated_twice.refresh_token), session)
+        assert exc.value.status_code == 401
         assert rotated_once.access_token
-        assert rotated_twice.access_token
 
     await engine.dispose()

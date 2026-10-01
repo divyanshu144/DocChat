@@ -37,6 +37,13 @@ zero visible content — measured directly on 2026-09-30, see
 throughput measurement; this only overrides the setting for the duration of
 this script's own run, production is untouched.
 
+`--groq-model` is the same fix for Groq. The configured production default
+(`settings.chat_model`, `openai/gpt-oss-120b`) is also a reasoning model --
+diagnosed but not fixed during the second live sweep (2026-09-30, see
+`eval/BENCHMARK_RESULTS.md` and tasks/lessons.md). Pass a non-reasoning Groq
+model here to separate "wrong model" from "real rate limit" the same way
+`--openai-model` does; production is untouched either way.
+
 Always exits 0 once measurement starts — it measures, it does not assert.
 (A missing required flag like `--gpu-cost-per-hr` for `local` is a usage
 error and is reported before anything runs, not a measurement outcome.)
@@ -62,6 +69,14 @@ not the older `vllm:gpu_cache_usage_perc` (kept as a fallback candidate).
 matched their first-guess candidate name as-is. If a metric name is wrong on
 some other vLLM version, `_scrape_vllm_metrics` degrades to None for that
 field rather than crashing.
+
+SERIAL MODE (--serial, Phase 4 batching proof, default off): runs each
+concurrency level's requests one at a time instead of together, so the
+resulting wall time is a true no-batching baseline at that batch size,
+directly comparable to a normal (concurrent) run at the same concurrency.
+Each output row is tagged with `mode` ("serial" or "concurrent") so the two
+can be told apart once both exist in the same JSONL file. See
+docs/superpowers/specs/2026-10-01-batching-proof-design.md.
 """
 
 import argparse
@@ -103,14 +118,20 @@ _DEFAULT_CONCURRENCY_LEVELS = [1, 4, 16, 64]
 _DEFAULT_MAX_TOKENS = 256
 
 # Candidate Prometheus metric names, tried in order, for each field vLLM's
-# /metrics exposes. UNVERIFIED against a live v0.30.0 server -- see module
-# docstring. First match wins; None if none of a field's candidates appear.
+# /metrics exposes. VERIFIED against a live vLLM v0.30.0 server on
+# 2026-09-30 (see the Fourth sweep in eval/BENCHMARK_RESULTS.md and the
+# module docstring above). A different vLLM version may use different
+# names -- these are not guaranteed to hold outside v0.30.0, check a real
+# /metrics response before trusting a sweep against another version. First
+# match wins; None if none of a field's candidates appear.
 _VLLM_METRIC_CANDIDATES: dict[str, list[str]] = {
+    # Matched "vllm:prefix_cache_queries_total" as-is on v0.30.0.
     "prefix_cache_queries": [
         "vllm:prefix_cache_queries_total",
         "vllm:gpu_prefix_cache_queries_total",
         "vllm:gpu_prefix_cache_queries",
     ],
+    # Matched "vllm:prefix_cache_hits_total" as-is on v0.30.0.
     "prefix_cache_hits": [
         "vllm:prefix_cache_hits_total",
         "vllm:gpu_prefix_cache_hits_total",
@@ -121,8 +142,11 @@ _VLLM_METRIC_CANDIDATES: dict[str, list[str]] = {
     # v0.30.0 /metrics endpoint 2026-09-30. Old name kept as a fallback for
     # other versions.
     "gpu_cache_usage_perc": ["vllm:kv_cache_usage_perc", "vllm:gpu_cache_usage_perc"],
+    # Matched as-is on v0.30.0.
     "num_requests_waiting": ["vllm:num_requests_waiting"],
+    # Matched as-is on v0.30.0.
     "num_requests_running": ["vllm:num_requests_running"],
+    # Matched "vllm:num_preemptions_total" as-is on v0.30.0.
     "num_preemptions": [
         "vllm:num_preemptions_total",
         "vllm:num_preemptions",
@@ -524,7 +548,11 @@ async def _run_request(messages: list[dict], max_tokens: int, bust_cache: bool =
 
 
 async def _run_concurrency_level(
-    prompts: list[list[dict]], concurrency: int, max_tokens: int, bust_cache: bool = True
+    prompts: list[list[dict]],
+    concurrency: int,
+    max_tokens: int,
+    bust_cache: bool = True,
+    serial: bool = False,
 ) -> list[dict]:
     """Fire `concurrency` requests at once, cycling through `prompts` if
     concurrency exceeds the prompt count.
@@ -533,9 +561,20 @@ async def _run_concurrency_level(
     sequentially rather than firing just one request — a single sample can't
     produce a percentile, and a "concurrency=1" row with n=1 was exactly the
     degenerate case flagged in the first sweep (2026-09-30).
+
+    `serial` (Phase 4, batching proof): when True and concurrency > 1, awaits
+    each request in a loop instead of `asyncio.gather`, so no two requests
+    ever overlap -- a true no-batching baseline at the same batch size N,
+    directly comparable to the concurrent (default) mode's wall time at that
+    same N. concurrency == 1 is unaffected, since it is already sequential.
     """
     if concurrency == 1:
         return [await _run_request(m, max_tokens, bust_cache) for m in prompts]
+    if serial:
+        return [
+            await _run_request(prompts[i % len(prompts)], max_tokens, bust_cache)
+            for i in range(concurrency)
+        ]
     tasks = [
         _run_request(prompts[i % len(prompts)], max_tokens, bust_cache)
         for i in range(concurrency)
@@ -546,10 +585,10 @@ async def _run_concurrency_level(
 async def _scrape_vllm_metrics(metrics_url: str) -> dict[str, float | None]:
     """One /metrics scrape. Returns None for every field on any failure
     (unreachable, non-200, malformed body) or for any field whose metric name
-    wasn't found under the candidates in _VLLM_METRIC_CANDIDATES — see the
-    module docstring's caveat that those names are unverified against a live
-    server. A failed scrape must never abort the benchmark request it's
-    running alongside.
+    wasn't found under the candidates in _VLLM_METRIC_CANDIDATES — those were
+    verified against vLLM v0.30.0 (see the comment on that constant), not
+    guaranteed to match a different version. A failed scrape must never abort
+    the benchmark request it's running alongside.
     """
     try:
         import httpx
@@ -602,6 +641,8 @@ async def _run_provider(
     local_gpu_cost_per_hr: float | None,
     openai_model_override: str | None,
     bust_cache: bool = True,
+    groq_model_override: str | None = None,
+    serial: bool = False,
 ) -> list[dict]:
     """Sweep one provider across every concurrency level.
 
@@ -611,6 +652,17 @@ async def _run_provider(
     `settings.fallback_llm_provider = "none"` for the duration: see the
     module docstring for why a benchmark must never let a request be
     silently served by a different provider than the one under test.
+
+    `groq_model_override` mirrors `openai_model_override`: only affects
+    `settings.chat_model` (the setting Groq actually reads, see
+    `llm._active_model`) for the duration of this function, restored in the
+    `finally` block below regardless of outcome.
+
+    `serial` (Phase 4, batching proof): threaded into `_run_concurrency_level`
+    unchanged, and tagged on each output row as `mode` ("serial" or
+    "concurrent") so a serial run and a concurrent run at the same
+    concurrency level can be told apart once both exist in the same JSONL
+    file.
 
     For `provider == "local"`, each cell's requests run alongside a ~1s
     poll of vLLM's `/metrics` (see `_poll_metrics_during`) — the resulting
@@ -623,11 +675,14 @@ async def _run_provider(
     original_provider = settings.llm_provider
     original_fallback = settings.fallback_llm_provider
     original_openai_model = settings.openai_chat_model
+    original_chat_model = settings.chat_model
 
     settings.llm_provider = provider
     settings.fallback_llm_provider = "none"
     if provider == "openai" and openai_model_override:
         settings.openai_chat_model = openai_model_override
+    if provider == "groq" and groq_model_override:
+        settings.chat_model = groq_model_override
     llm._client = None
     llm._client_provider = None
 
@@ -641,14 +696,18 @@ async def _run_provider(
                     raw_results, metric_samples = await asyncio.wait_for(
                         _poll_metrics_during(
                             metrics_url,
-                            _run_concurrency_level(prompts, concurrency, max_tokens, bust_cache),
+                            _run_concurrency_level(
+                                prompts, concurrency, max_tokens, bust_cache, serial
+                            ),
                         ),
                         timeout=_CELL_TIMEOUT_S,
                     )
                     vllm_metrics = _summarize_vllm_metrics(metric_samples)
                 else:
                     raw_results = await asyncio.wait_for(
-                        _run_concurrency_level(prompts, concurrency, max_tokens, bust_cache),
+                        _run_concurrency_level(
+                            prompts, concurrency, max_tokens, bust_cache, serial
+                        ),
                         timeout=_CELL_TIMEOUT_S,
                     )
                     vllm_metrics = None
@@ -684,6 +743,7 @@ async def _run_provider(
                 {
                     "provider": provider,
                     "concurrency": concurrency,
+                    "mode": "serial" if serial else "concurrent",
                     "summary": summary,
                     "cost_usd": cost,
                     "cost_per_1m_output_tokens_local": local_cost_per_1m,
@@ -710,6 +770,7 @@ async def _run_provider(
         settings.llm_provider = original_provider
         settings.fallback_llm_provider = original_fallback
         settings.openai_chat_model = original_openai_model
+        settings.chat_model = original_chat_model
         llm._client = None
         llm._client_provider = None
 
@@ -772,6 +833,17 @@ async def main() -> None:
         ),
     )
     parser.add_argument(
+        "--groq-model",
+        default=None,
+        help=(
+            "Override settings.chat_model (the setting Groq reads) for this run "
+            "only. The configured default can be a reasoning model that spends its "
+            "whole --max-tokens budget on hidden reasoning and returns zero visible "
+            "content -- pass a non-reasoning model here for a real throughput "
+            "measurement. Production is untouched either way."
+        ),
+    )
+    parser.add_argument(
         "--gpu-cost-per-hr",
         type=float,
         default=None,
@@ -798,6 +870,17 @@ async def main() -> None:
             "cache lookup, not inference -- see eval/BENCHMARK_RESULTS.md's "
             "2026-09-30 'Third sweep' entry, where exactly this was flagged. Only "
             "pass this when a cache hit is genuinely what you want to measure."
+        ),
+    )
+    parser.add_argument(
+        "--serial",
+        action="store_true",
+        help=(
+            "Phase 4 batching proof: run each concurrency level's requests strictly "
+            "one at a time (no overlap) instead of firing them together, so the "
+            "resulting wall time is a true no-batching baseline at that batch size -- "
+            "directly comparable to a normal (concurrent) run at the same "
+            "concurrency. See docs/superpowers/specs/2026-10-01-batching-proof-design.md."
         ),
     )
     args = parser.parse_args()
@@ -831,7 +914,8 @@ async def main() -> None:
 
     print(
         f"\nInference benchmark — {len(prompts)} prompts, concurrency {concurrency_levels}, "
-        f"cache-busting {'ON' if bust_cache else 'OFF (--allow-prefix-cache)'}\n"
+        f"cache-busting {'ON' if bust_cache else 'OFF (--allow-prefix-cache)'}, "
+        f"mode {'serial' if args.serial else 'concurrent'}\n"
     )
 
     all_rows: list[dict] = []
@@ -848,6 +932,8 @@ async def main() -> None:
                 args.gpu_cost_per_hr,
                 args.openai_model,
                 bust_cache,
+                groq_model_override=args.groq_model,
+                serial=args.serial,
             )
         except _CellTimeoutError as exc:
             all_rows.extend(exc.rows)

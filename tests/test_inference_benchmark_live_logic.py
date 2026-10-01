@@ -12,7 +12,12 @@ import pytest
 
 from app.core.config import settings
 from app.services import llm
-from eval.inference_benchmark import _CellTimeoutError, _run_provider, _run_request
+from eval.inference_benchmark import (
+    _CellTimeoutError,
+    _run_concurrency_level,
+    _run_provider,
+    _run_request,
+)
 
 _HI = [{"role": "user", "content": "hi"}]
 
@@ -189,6 +194,58 @@ async def test_run_provider_ignores_openai_model_override_for_other_providers():
         )
 
     assert captured_models == ["gpt-5.6-luna"]  # untouched — override didn't leak in
+
+
+@pytest.mark.asyncio
+async def test_run_provider_applies_and_restores_groq_model_override():
+    captured_models: list[str] = []
+
+    async def fake_chat_stream(messages, max_tokens=None, usage_sink=None):
+        captured_models.append(settings.chat_model)
+        if usage_sink is not None:
+            usage_sink.update({"completion_tokens": 1})
+        yield "x"
+
+    with patch.object(settings, "chat_model", "openai/gpt-oss-120b"), \
+         patch.object(llm, "chat_stream", fake_chat_stream):
+        await _run_provider(
+            "groq",
+            [_HI],
+            [1],
+            max_tokens=10,
+            local_gpu_cost_per_hr=None,
+            openai_model_override=None,
+            groq_model_override="llama-3.1-8b-instant",
+        )
+
+    assert captured_models == ["llama-3.1-8b-instant"]
+    assert settings.chat_model == "openai/gpt-oss-120b"  # restored
+
+
+@pytest.mark.asyncio
+async def test_run_provider_ignores_groq_model_override_for_other_providers():
+    """The override is only meaningful for provider == 'groq'."""
+    captured_models: list[str] = []
+
+    async def fake_chat_stream(messages, max_tokens=None, usage_sink=None):
+        captured_models.append(settings.chat_model)
+        if usage_sink is not None:
+            usage_sink.update({"completion_tokens": 1})
+        yield "x"
+
+    with patch.object(settings, "chat_model", "openai/gpt-oss-120b"), \
+         patch.object(llm, "chat_stream", fake_chat_stream):
+        await _run_provider(
+            "openai",
+            [_HI],
+            [1],
+            max_tokens=10,
+            local_gpu_cost_per_hr=None,
+            openai_model_override=None,
+            groq_model_override="llama-3.1-8b-instant",
+        )
+
+    assert captured_models == ["openai/gpt-oss-120b"]  # untouched — override didn't leak in
 
 
 # ---------------------------------------------------------------------------
@@ -439,3 +496,88 @@ async def test_run_provider_no_timeout_when_cell_finishes_in_time():
         )
 
     assert len(rows) == 1
+
+
+# ---------------------------------------------------------------------------
+# _run_concurrency_level / _run_provider — serial mode (Phase 4 batching proof)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_serial_mode_never_overlaps_requests():
+    """The actual proof serial mode works: no two requests are ever in
+    flight at once, not just that the right number of calls happened."""
+    in_flight = 0
+    max_in_flight = 0
+
+    async def fake_chat_stream(messages, max_tokens=None, usage_sink=None):
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        await asyncio.sleep(0.01)
+        in_flight -= 1
+        if usage_sink is not None:
+            usage_sink.update({"completion_tokens": 1})
+        yield "x"
+
+    with patch.object(llm, "chat_stream", fake_chat_stream):
+        results = await _run_concurrency_level(
+            [_msg("hi")], concurrency=5, max_tokens=10, bust_cache=False, serial=True
+        )
+
+    assert len(results) == 5
+    assert max_in_flight == 1
+
+
+@pytest.mark.asyncio
+async def test_concurrent_mode_does_overlap_requests():
+    """Sanity check that the test methodology above actually distinguishes
+    the two modes -- concurrent (serial=False, the default) must allow
+    overlap, or the serial test above would prove nothing."""
+    in_flight = 0
+    max_in_flight = 0
+
+    async def fake_chat_stream(messages, max_tokens=None, usage_sink=None):
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        await asyncio.sleep(0.01)
+        in_flight -= 1
+        if usage_sink is not None:
+            usage_sink.update({"completion_tokens": 1})
+        yield "x"
+
+    with patch.object(llm, "chat_stream", fake_chat_stream):
+        results = await _run_concurrency_level(
+            [_msg("hi")], concurrency=5, max_tokens=10, bust_cache=False, serial=False
+        )
+
+    assert len(results) == 5
+    assert max_in_flight == 5
+
+
+@pytest.mark.asyncio
+async def test_run_provider_tags_serial_mode_on_the_row():
+    from eval import inference_benchmark as ib
+
+    with patch.object(llm, "chat_stream", _fake_ok_chat_stream):
+        rows = await ib._run_provider(
+            "groq", [_msg("hi")], [4], max_tokens=10,
+            local_gpu_cost_per_hr=None, openai_model_override=None, bust_cache=True,
+            serial=True,
+        )
+
+    assert rows[0]["mode"] == "serial"
+
+
+@pytest.mark.asyncio
+async def test_run_provider_defaults_to_concurrent_mode_on_the_row():
+    from eval import inference_benchmark as ib
+
+    with patch.object(llm, "chat_stream", _fake_ok_chat_stream):
+        rows = await ib._run_provider(
+            "groq", [_msg("hi")], [4], max_tokens=10,
+            local_gpu_cost_per_hr=None, openai_model_override=None, bust_cache=True,
+        )
+
+    assert rows[0]["mode"] == "concurrent"

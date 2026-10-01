@@ -1,6 +1,7 @@
 import json
 import logging
 import sys
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -10,7 +11,17 @@ from pydantic import Field
 logging.basicConfig(stream=sys.stderr, level=logging.INFO, force=True)
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("docchat")
+@asynccontextmanager
+async def _lifespan(server):
+    from app.agent.nodes.retriever import close_retriever_client
+
+    try:
+        yield
+    finally:
+        await close_retriever_client()
+
+
+mcp = FastMCP("docchat", lifespan=_lifespan)
 
 
 @mcp.tool()
@@ -27,6 +38,7 @@ async def query_documents(
 
     state: AgentState = {
         "query": query,
+        "original_query": query,
         "conversation_id": "",
         "conversation_history": [],
         "sources_to_use": ["pdf", "youtube", "web"],

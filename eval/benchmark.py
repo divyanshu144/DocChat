@@ -16,8 +16,12 @@ Always exits 0. It measures; it does not assert.
 """
 
 import asyncio
+import argparse
+import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 # Invoked as a script (`python eval/benchmark.py`), sys.path[0] is eval/, not the
 # repo root — so `app` and `eval` are unimportable without this.
@@ -27,6 +31,8 @@ from app.agent.nodes.critic import critic_node  # noqa: E402
 from app.agent.state import AgentState  # noqa: E402
 from eval.cases import BENCHMARK_CASES, CriticCase  # noqa: E402
 from eval.corruptions import generate  # noqa: E402
+from app.core.config import settings  # noqa: E402
+from app.services import llm  # noqa: E402
 
 _RULE = "─" * 53
 
@@ -35,6 +41,7 @@ async def run_case(case: CriticCase) -> dict:
     """Run one case through the critic. Returns the case's verdict and feedback."""
     state: AgentState = {
         "query": case.query,
+        "original_query": case.query,
         "answer": case.answer,
         "iteration": 0,  # must be 0 — critic short-circuits at >= 2 without an LLM call
         "conversation_id": "",
@@ -50,8 +57,25 @@ async def run_case(case: CriticCase) -> dict:
         "grounding_passed": False,
     }
 
-    result = await critic_node(state)
+    responses = []
+    original_complete = llm.chat_complete
+
+    async def track_response(*args, **kwargs):
+        response = await original_complete(*args, **kwargs)
+        responses.append(response)
+        return response
+
+    with patch("app.agent.nodes.critic.chat_complete", new=track_response):
+        result = await critic_node(state)
     got = "poor" if result["needs_replan"] else "good"
+    # A fail-open parse fallback is not an observed good verdict.
+    try:
+        parsed = json.loads(responses[-1])
+        valid = isinstance(parsed, dict) and parsed.get("quality") in ("good", "poor")
+    except (ValueError, TypeError, IndexError):
+        valid = False
+    if not valid:
+        got = "error"
 
     return {
         "label": case.label,
@@ -59,6 +83,7 @@ async def run_case(case: CriticCase) -> dict:
         "got": got,
         "correct": got == case.expected,
         "feedback": result.get("critic_feedback", ""),
+        "raw_response": responses[-1] if responses else None,
     }
 
 
@@ -174,9 +199,25 @@ def _per_transform(results: list[dict]) -> None:
         print(f"    {name:<22} {caught}/{len(group)}")
 
 
-async def main() -> None:
+async def main(output: Path | None = None) -> None:
     edge_cases = list(BENCHMARK_CASES)
     generated = generate()
+    http_usage = []
+    if settings.llm_provider == "openai":
+        if not settings.openai_api_key:
+            raise RuntimeError("OPENAI_API_KEY is not configured")
+        client = llm._get_client()
+        preflight = await client.get(f"/models/{settings.openai_chat_model}")
+        preflight.raise_for_status()
+
+        async def observe(response):
+            await response.aread()
+            if response.request.url.path.endswith("/chat/completions"):
+                data = response.json()
+                http_usage.append({"status": response.status_code, "usage": data.get("usage"),
+                                   "finish_reason": (data.get("choices") or [{}])[0].get("finish_reason")})
+
+        client.event_hooks["response"].append(observe)
 
     print(
         f"\nDiagnostic run — {len(edge_cases)} hand-written edge cases "
@@ -210,7 +251,33 @@ async def main() -> None:
     print("        will move between runs. Check the logs for")
     print("        openai_rejected_temperature_retrying_without before trusting a delta.")
     print(_RULE)
+    if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps({
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "provider": settings.llm_provider, "model": llm._active_model(),
+            "reasoning_effort": settings.openai_reasoning_effort,
+            "max_completion_tokens": 150, "temperature": settings.classification_temperature,
+            "fallback": settings.fallback_llm_provider,
+            "edge_metrics": _compute_metrics(edge_results), "generated_metrics": _compute_metrics(gen_results),
+            "edge_results": edge_results, "generated_results": gen_results,
+            "http_usage": http_usage,
+        }, indent=2))
+
+
+async def _cli(output: Path | None) -> None:
+    try:
+        await asyncio.wait_for(main(output), timeout=300)
+    finally:
+        if llm._client is not None:
+            close = getattr(llm._client, "aclose", None) or llm._client.close
+            await close()
+            llm._client = None
+            llm._client_provider = None
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+    asyncio.run(_cli(args.output))

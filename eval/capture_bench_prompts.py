@@ -20,8 +20,8 @@ LLM call per query against whatever LLM_PROVIDER is configured in .env.
 Usage:
     python eval/capture_bench_prompts.py
 
-Requires Qdrant reachable with real ingested chunks (pdf_chunks / youtube_chunks
-/ web_chunks -- check with e.g. `curl localhost:6333/collections/pdf_chunks`)
+Requires Qdrant reachable with real ingested chunks in source_chunks
+(check with e.g. `curl localhost:6333/collections/source_chunks`)
 and a working LLM_PROVIDER for the planner step.
 
 Writes one row per query to data/bench_prompts.jsonl, OVERWRITING the file --
@@ -72,6 +72,7 @@ def _count_tokens(tokenizer, messages: list[dict]) -> int:
 def _new_state(query: str) -> AgentState:
     return {
         "query": query,
+        "original_query": query,
         "conversation_id": "",
         "conversation_history": [],
         "sources_to_use": [],

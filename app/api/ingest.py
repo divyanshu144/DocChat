@@ -1,4 +1,3 @@
-import shutil
 import tempfile
 import uuid as _uuid
 from pathlib import Path
@@ -7,17 +6,52 @@ import asyncio
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import update
 
 from app.core.database import AsyncSessionLocal, get_db
+from app.core.deps import get_current_user
+from app.core.config import settings
 from app.core.sources import LEGACY_SOURCE_COLLECTIONS, source_collection, source_metadata
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
-from qdrant_client.models import Filter, FieldCondition, MatchValue
+from app.services.ingestion.storage import delete_source_points, source_filter
 from app.models.ingest_job import IngestJob, IngestJobStatusValue
+from app.models.user import User
 from app.services.ingestion.pdf import ingest_pdf, SUPPORTED_TYPES
 from app.services.ingestion.youtube import ingest_youtube
 from app.services.ingestion.web import ingest_web
 
 router = APIRouter()
+
+
+async def _save_upload(file: UploadFile) -> str:
+    suffix = Path(file.filename or "upload").suffix or ".bin"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    try:
+        size = 0
+        while chunk := await file.read(1024 * 1024):
+            size += len(chunk)
+            if size > settings.upload_max_bytes:
+                raise HTTPException(413, "Upload exceeds the configured size limit")
+            await asyncio.to_thread(tmp.write, chunk)
+        return tmp.name
+    except BaseException:
+        Path(tmp.name).unlink(missing_ok=True)
+        raise
+    finally:
+        tmp.close()
+
+
+async def recover_interrupted_ingest_jobs() -> None:
+    """Single-worker startup: no persisted in-process job survives a restart."""
+    async with AsyncSessionLocal() as session:
+        await session.execute(
+            update(IngestJob)
+            .where(IngestJob.status.in_([IngestJobStatusValue.queued, IngestJobStatusValue.running]))
+            .values(status=IngestJobStatusValue.error, phase="error",
+                    message="Ingest interrupted by server restart",
+                    error="Server restarted before ingestion completed; please retry")
+        )
+        await session.commit()
 
 
 class UrlRequest(BaseModel):
@@ -98,8 +132,8 @@ async def _run_pdf_ingest_job(
     filename: str,
     content_type: str,
 ) -> None:
-    def progress(phase: str, message: str) -> None:
-        asyncio.create_task(_set_job(job_id, status="running", phase=phase, message=message))
+    async def progress(phase: str, message: str) -> None:
+        await _set_job(job_id, status="running", phase=phase, message=message)
 
     try:
         await _set_job(job_id, status="running", phase="starting", message="Starting ingest")
@@ -150,14 +184,14 @@ async def _run_url_ingest_job(job_id: str, source_type: str, url: str) -> None:
 
 
 @router.post("/ingest/pdf", response_model=IngestResponse)
-async def ingest_pdf_endpoint(file: UploadFile = File(...)):
+async def ingest_pdf_endpoint(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
     if file.content_type not in SUPPORTED_TYPES:
         raise HTTPException(400, f"Unsupported file type: {file.content_type}")
 
-    suffix = Path(file.filename or "upload").suffix or ".bin"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        shutil.copyfileobj(file.file, tmp)
-        tmp_path = tmp.name
+    tmp_path = await _save_upload(file)
 
     try:
         source_id = await ingest_pdf(tmp_path, file.filename or "upload", file.content_type)
@@ -176,14 +210,12 @@ async def start_pdf_ingest_job(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     if file.content_type not in SUPPORTED_TYPES:
         raise HTTPException(400, f"Unsupported file type: {file.content_type}")
 
-    suffix = Path(file.filename or "upload").suffix or ".bin"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        shutil.copyfileobj(file.file, tmp)
-        tmp_path = tmp.name
+    tmp_path = await _save_upload(file)
 
     job_id = str(_uuid.uuid4())
     filename = file.filename or "upload"
@@ -194,7 +226,11 @@ async def start_pdf_ingest_job(
         phase="queued",
         message=f"Queued {filename}",
     ))
-    await db.commit()
+    try:
+        await db.commit()
+    except BaseException:
+        Path(tmp_path).unlink(missing_ok=True)
+        raise
     background_tasks.add_task(_run_pdf_ingest_job, job_id, tmp_path, filename, file.content_type)
 
     return IngestJobResponse(
@@ -206,7 +242,11 @@ async def start_pdf_ingest_job(
 
 
 @router.get("/ingest/jobs/{job_id}", response_model=IngestJobStatus)
-async def get_ingest_job(job_id: str, db: AsyncSession = Depends(get_db)):
+async def get_ingest_job(
+    job_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     job = await db.get(IngestJob, job_id)
     if not job:
         raise HTTPException(404, f"Ingest job {job_id} not found")
@@ -222,6 +262,7 @@ async def start_youtube_ingest_job(
     req: UrlRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     job_id = str(_uuid.uuid4())
     db.add(IngestJob(
@@ -245,6 +286,7 @@ async def start_web_ingest_job(
     req: UrlRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     job_id = str(_uuid.uuid4())
     db.add(IngestJob(
@@ -260,7 +302,10 @@ async def start_web_ingest_job(
 
 
 @router.post("/ingest/youtube", response_model=IngestResponse)
-async def ingest_youtube_endpoint(req: UrlRequest):
+async def ingest_youtube_endpoint(
+    req: UrlRequest,
+    current_user: User = Depends(get_current_user),
+):
     try:
         source_id = await ingest_youtube(req.url)
     except Exception as exc:
@@ -269,7 +314,10 @@ async def ingest_youtube_endpoint(req: UrlRequest):
 
 
 @router.post("/ingest/web", response_model=IngestResponse)
-async def ingest_web_endpoint(req: UrlRequest):
+async def ingest_web_endpoint(
+    req: UrlRequest,
+    current_user: User = Depends(get_current_user),
+):
     try:
         source_id = await ingest_web(req.url)
     except Exception as exc:
@@ -278,7 +326,7 @@ async def ingest_web_endpoint(req: UrlRequest):
 
 
 @router.get("/sources")
-async def list_sources():
+async def list_sources(current_user: User = Depends(get_current_user)):
     client = get_qdrant_client()
     sources = []
     seen_ids: set[str] = set()
@@ -310,16 +358,21 @@ async def list_sources():
 
 
 @router.delete("/sources/{source_id}")
-async def delete_source(source_id: str):
+async def delete_source(
+    source_id: str,
+    current_user: User = Depends(get_current_user),
+):
     client = get_qdrant_client()
     deleted = False
-    source_filter = Filter(must=[FieldCondition(key="source_id", match=MatchValue(value=source_id))])
+    point_filter = source_filter(source_id)
     for name in [source_collection(), *LEGACY_SOURCE_COLLECTIONS.values()]:
         try:
-            get_qdrant_collection(name)
-            count = client.count(collection_name=name, count_filter=source_filter, exact=True).count
+            await asyncio.to_thread(get_qdrant_collection, name)
+            count = (await asyncio.to_thread(
+                client.count, collection_name=name, count_filter=point_filter, exact=True
+            )).count
             if count > 0:
-                client.delete(collection_name=name, points_selector=source_filter)
+                await asyncio.to_thread(delete_source_points, client, name, source_id)
                 deleted = True
         except Exception:
             pass

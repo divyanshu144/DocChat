@@ -79,6 +79,61 @@ async def test_synthesizer_formats_pdf_citation():
     assert "p.5" in formatted
 
 
+def _big_chunk(label: str, size: int) -> dict:
+    return {"text": label * size, "metadata": {"filename": "doc.pdf"}, "source_type": "pdf"}
+
+
+def test_format_chunks_logs_a_warning_when_chunks_are_dropped_for_budget(caplog):
+    from app.agent.nodes.synthesizer import _format_chunks
+
+    chunks = [_big_chunk("a", 100), _big_chunk("b", 100), _big_chunk("c", 100)]
+    with patch("app.agent.nodes.synthesizer.settings.context_max_chars", 150), \
+         caplog.at_level("WARNING"):
+        _format_chunks(chunks)
+
+    assert any("dropped" in record.message for record in caplog.records)
+
+
+def test_format_chunks_does_not_log_when_everything_fits(caplog):
+    from app.agent.nodes.synthesizer import _format_chunks
+
+    chunks = [_big_chunk("a", 10), _big_chunk("b", 10)]
+    with patch("app.agent.nodes.synthesizer.settings.context_max_chars", 12000), \
+         caplog.at_level("WARNING"):
+        _format_chunks(chunks)
+
+    assert not any("dropped" in record.message for record in caplog.records)
+
+
+def test_format_chunks_drop_count_excludes_a_partially_included_chunk(caplog):
+    """When the chunk that overflowed the budget still got a partial slice
+    included (remaining > 500), it must not also be counted as dropped --
+    only the chunks after it that were never reached at all."""
+    from app.agent.nodes.synthesizer import _format_chunks
+
+    chunks = [_big_chunk("a", 50), _big_chunk("b", 700), _big_chunk("c", 300)]
+    with patch("app.agent.nodes.synthesizer.settings.context_max_chars", 700), \
+         caplog.at_level("WARNING"):
+        _format_chunks(chunks)
+
+    [message] = [r.message for r in caplog.records if "dropped" in r.message]
+    assert "dropped 1/3" in message  # only chunk c, not b (partially included) + c
+
+
+@pytest.mark.asyncio
+async def test_synthesizer_returns_no_context_answer_without_calling_llm():
+    """Guaranteed behavior, not left to the model's own judgment: zero
+    retrieved chunks must short-circuit to a fixed answer, never an LLM
+    call that could ignore its "say what's missing" instruction."""
+    from app.agent.nodes.synthesizer import _NO_CONTEXT_ANSWER, synthesizer_node
+
+    with patch("app.agent.nodes.synthesizer.chat_complete", new=AsyncMock()) as mock_llm:
+        result = await synthesizer_node(_make_state(retrieved_chunks=[]))
+
+    assert result["answer"] == _NO_CONTEXT_ANSWER
+    mock_llm.assert_not_awaited()
+
+
 @pytest.mark.asyncio
 async def test_critic_approves_good_answer():
     from app.agent.nodes.critic import critic_node

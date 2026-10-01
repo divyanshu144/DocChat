@@ -1,5 +1,7 @@
+import asyncio
 import logging
 import re
+from weakref import WeakKeyDictionary
 import httpx
 from qdrant_client.models import Filter, FieldCondition, MatchAny
 from app.agent.state import AgentState
@@ -12,20 +14,36 @@ logger = logging.getLogger(__name__)
 N_RESULTS_PER_SOURCE = 8
 MAX_RERANKED_CHUNKS = 12
 
-_QDRANT_BASE = f"http://{settings.qdrant_host}:{settings.qdrant_port}"
+_http_clients: WeakKeyDictionary = WeakKeyDictionary()
+
+
+def _get_http_client() -> httpx.AsyncClient:
+    # Connection pools belong to the loop that uses them (API, MCP, or eval).
+    loop = asyncio.get_running_loop()
+    client = _http_clients.get(loop)
+    if client is None or client.is_closed:
+        client = httpx.AsyncClient(timeout=30.0)
+        _http_clients[loop] = client
+    return client
+
+
+async def close_retriever_client() -> None:
+    client = _http_clients.pop(asyncio.get_running_loop(), None)
+    if client is not None:
+        await client.aclose()
 
 
 async def _search(collection_name: str, query_vector: list, limit: int, qdrant_filter=None) -> list:
     payload: dict = {"vector": query_vector, "limit": limit, "with_payload": True}
     if qdrant_filter is not None:
         payload["filter"] = qdrant_filter.model_dump(mode="json", exclude_none=True)
-    async with httpx.AsyncClient(timeout=30.0) as http:
-        resp = await http.post(
-            f"{_QDRANT_BASE}/collections/{collection_name}/points/search",
-            json=payload,
-        )
-        resp.raise_for_status()
-        return resp.json()["result"]
+    base_url = f"http://{settings.qdrant_host}:{settings.qdrant_port}"
+    resp = await _get_http_client().post(
+        f"{base_url}/collections/{collection_name}/points/search",
+        json=payload,
+    )
+    resp.raise_for_status()
+    return resp.json()["result"]
 
 
 def _query_terms(query: str) -> set[str]:
@@ -60,12 +78,12 @@ def _retrieval_filter(source_types: list[str], source_ids: list[str]):
 
 
 async def retriever_node(state: AgentState) -> dict:
-    embedder = get_embedder()
+    embedder = await asyncio.to_thread(get_embedder)
     if not embedder:
         logger.error("retriever: embedder is None — fastembed failed to load")
         return {"retrieved_chunks": []}
 
-    query_emb = embedder.embed_query(state["query"]).tolist()
+    query_emb = (await asyncio.to_thread(embedder.embed_query, state["query"])).tolist()
     source_ids = state.get("source_ids") or []
     source_types = state.get("sources_to_use") or []
     qdrant_filter = _retrieval_filter(source_types, source_ids)
@@ -73,6 +91,7 @@ async def retriever_node(state: AgentState) -> dict:
     logger.debug("[RETRIEVER] query=%r sources=%s source_ids=%s", state["query"], source_types, source_ids)
 
     all_chunks: list[dict] = []
+    dropped_low_score = 0
     try:
         hits = await _search(
             source_collection(),
@@ -82,14 +101,23 @@ async def retriever_node(state: AgentState) -> dict:
         )
         logger.debug("[RETRIEVER] %s -> %d hits", source_collection(), len(hits))
         for hit in hits:
+            score = hit.get("score", 0.0)
+            if score < settings.retrieval_min_score:
+                dropped_low_score += 1
+                continue
             payload = dict(hit.get("payload") or {})
             source_type = payload.get("source_type") or "unknown"
             all_chunks.append({
                 "text": payload.pop("text", ""),
                 "metadata": payload,
                 "source_type": source_type,
-                "score": hit.get("score", 0.0),
+                "score": score,
             })
+        if dropped_low_score:
+            logger.debug(
+                "[RETRIEVER] dropped %d/%d hits below retrieval_min_score=%.2f",
+                dropped_low_score, len(hits), settings.retrieval_min_score,
+            )
     except Exception as exc:
         logger.exception("[RETRIEVER ERROR] collection=%s error=%s", source_collection(), exc)
 

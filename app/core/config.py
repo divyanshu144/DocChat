@@ -1,6 +1,7 @@
 from pathlib import Path
 from functools import lru_cache
 from typing import Literal
+from pydantic import Field
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -33,6 +34,9 @@ class Settings(BaseSettings):
 
     openai_api_key: str = ""
     openai_chat_model: str = "gpt-5.6-luna"  # used when llm_provider="openai"
+    # Blank preserves the model default. Short classification evals can select
+    # none on compatible models so hidden reasoning does not consume their cap.
+    openai_reasoning_effort: Literal["", "none", "low", "medium", "high", "xhigh"] = ""
 
     mistral_api_key: str = ""
     mistral_chat_model: str = "mistral-small-latest"  # used when llm_provider="mistral"
@@ -58,6 +62,12 @@ class Settings(BaseSettings):
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
     context_max_chars: int = 12000
+    ingest_batch_size: int = Field(default=64, ge=1)
+    upload_max_bytes: int = Field(default=50 * 1024 * 1024, ge=1)
+    rate_limit_window_seconds: int = Field(default=60, ge=1)
+    login_rate_limit: int = Field(default=10, ge=1)
+    signup_rate_limit: int = Field(default=5, ge=1)
+    chat_rate_limit: int = Field(default=30, ge=1)
 
     # Sampling temperature for the nodes whose output is a LABEL rather than prose
     # (critic, planner). Pinned to 0 so a verdict does not move between identical
@@ -85,9 +95,6 @@ class Settings(BaseSettings):
     # the EU host and 403s against US — which looks identical to a revoked key, so
     # set this explicitly rather than debugging it twice.
     langsmith_endpoint: str = ""
-
-    # YouTube (optional)
-    youtube_api_key: str = ""
 
     # DB connection pool (PostgreSQL only)
     db_pool_size: int = 10

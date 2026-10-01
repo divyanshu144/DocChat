@@ -25,3 +25,15 @@ Architectural decisions for DocChat v2. Each entry records what was decided, why
 **What was ruled out:** Server-side sessions (Redis or DB-backed). Ruled out because they require a session store, add a DB/cache lookup to every authenticated request, and introduce statefulness that complicates horizontal scaling. API key auth was also considered but ruled out — it has no expiry mechanism and no safe rotation path without user action.
 
 **Revisit when:** OAuth2 social login (Google, GitHub) is needed — at that point, an OAuth2 library like `authlib` should replace the hand-rolled JWT layer rather than extending it.
+
+---
+
+## 003 — Decision 001's wording corrected: authentication is now actually required
+
+**Decision:** Decision 001 said "any authenticated user can retrieve chunks from any source." That sentence described the intended policy, not the actual code: until this fix, `app/api/ingest.py` and `app/api/folders.py` had no `Depends(get_current_user)` on any route, so any caller, authenticated or not, could ingest, delete, or list sources, and create, rename, delete, or list folders. Every route in both files now requires authentication. Decision 001's policy (sources stay global across all authenticated users, not scoped per user) is unchanged and still correct; only the enforcement was missing.
+
+**Reasoning:** This is a correction, not a new design decision. The gap was found during a codebase review and fixed directly: `Depends(get_current_user)` added to all 9 ingest/sources routes and all 4 folder routes, with tests asserting 401 on every one of them without a valid token.
+
+**What was ruled out:** Nothing new. Decision 001's own reasoning for keeping sources global (not per-user) still holds and is not revisited here.
+
+**Revisit when:** Not applicable — this entry exists to keep decisions.md honest about what the code actually does, not to flag a future change.

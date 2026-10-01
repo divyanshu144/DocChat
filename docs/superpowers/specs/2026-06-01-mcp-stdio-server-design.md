@@ -1,3 +1,10 @@
+> **Historical design/provenance, superseded for current storage and embedding behavior.**
+> Current ingestion/retrieval use one `source_chunks` collection with payload filters.
+> Embeddings are independent CPU chunk embeddings. Any late-chunking or segment-level
+> pooling assertion below was not implemented and must not be treated as a current
+> capability. Embedded test counts describe the original session, not today's baseline.
+> See README.md, HANDOFF.md and the live skills for current instructions.
+
 # MCP stdio Server Design
 
 ## Goal
