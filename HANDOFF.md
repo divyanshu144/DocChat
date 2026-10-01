@@ -29,6 +29,16 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Fixed in this branch (2026-10-01) — stale "unverified" comment on vLLM metric names
+
+The module docstring already said the `_VLLM_METRIC_CANDIDATES` names were verified
+against a live vLLM v0.30.0 server (from the Fourth sweep), but the comment directly
+above the constant still said "UNVERIFIED against a live v0.30.0 server", left over from
+before that sweep ran. Fixed to say verified, noted which names matched as-is versus
+the one that needed a fallback (`kv_cache_usage_perc`), and added an explicit warning
+that these names are specific to v0.30.0, not guaranteed on another vLLM version. No
+test or behavior change, comment only.
+
 ### Ran in this branch (2026-10-01) — blocked e2e chat check, found source_chunks was empty
 
 The current code only ever queries the `source_chunks` Qdrant collection (confirmed:

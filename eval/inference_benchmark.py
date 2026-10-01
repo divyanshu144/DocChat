@@ -110,14 +110,20 @@ _DEFAULT_CONCURRENCY_LEVELS = [1, 4, 16, 64]
 _DEFAULT_MAX_TOKENS = 256
 
 # Candidate Prometheus metric names, tried in order, for each field vLLM's
-# /metrics exposes. UNVERIFIED against a live v0.30.0 server -- see module
-# docstring. First match wins; None if none of a field's candidates appear.
+# /metrics exposes. VERIFIED against a live vLLM v0.30.0 server on
+# 2026-09-30 (see the Fourth sweep in eval/BENCHMARK_RESULTS.md and the
+# module docstring above). A different vLLM version may use different
+# names -- these are not guaranteed to hold outside v0.30.0, check a real
+# /metrics response before trusting a sweep against another version. First
+# match wins; None if none of a field's candidates appear.
 _VLLM_METRIC_CANDIDATES: dict[str, list[str]] = {
+    # Matched "vllm:prefix_cache_queries_total" as-is on v0.30.0.
     "prefix_cache_queries": [
         "vllm:prefix_cache_queries_total",
         "vllm:gpu_prefix_cache_queries_total",
         "vllm:gpu_prefix_cache_queries",
     ],
+    # Matched "vllm:prefix_cache_hits_total" as-is on v0.30.0.
     "prefix_cache_hits": [
         "vllm:prefix_cache_hits_total",
         "vllm:gpu_prefix_cache_hits_total",
@@ -128,8 +134,11 @@ _VLLM_METRIC_CANDIDATES: dict[str, list[str]] = {
     # v0.30.0 /metrics endpoint 2026-09-30. Old name kept as a fallback for
     # other versions.
     "gpu_cache_usage_perc": ["vllm:kv_cache_usage_perc", "vllm:gpu_cache_usage_perc"],
+    # Matched as-is on v0.30.0.
     "num_requests_waiting": ["vllm:num_requests_waiting"],
+    # Matched as-is on v0.30.0.
     "num_requests_running": ["vllm:num_requests_running"],
+    # Matched "vllm:num_preemptions_total" as-is on v0.30.0.
     "num_preemptions": [
         "vllm:num_preemptions_total",
         "vllm:num_preemptions",
@@ -553,10 +562,10 @@ async def _run_concurrency_level(
 async def _scrape_vllm_metrics(metrics_url: str) -> dict[str, float | None]:
     """One /metrics scrape. Returns None for every field on any failure
     (unreachable, non-200, malformed body) or for any field whose metric name
-    wasn't found under the candidates in _VLLM_METRIC_CANDIDATES — see the
-    module docstring's caveat that those names are unverified against a live
-    server. A failed scrape must never abort the benchmark request it's
-    running alongside.
+    wasn't found under the candidates in _VLLM_METRIC_CANDIDATES — those were
+    verified against vLLM v0.30.0 (see the comment on that constant), not
+    guaranteed to match a different version. A failed scrape must never abort
+    the benchmark request it's running alongside.
     """
     try:
         import httpx

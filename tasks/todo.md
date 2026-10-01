@@ -14,7 +14,9 @@ off `feat/openai-sse-chat-quality`. One commit per item. Nothing pushed, nothing
       instance of current code. All 5 nodes ran clean, no JSON parse failures, no
       context-length errors, one transient Groq 429 auto-retried fine. Details in
       HANDOFF.md.
-- [ ] 3. Metric-name version comment next to `_VLLM_METRIC_CANDIDATES` (vLLM v0.30.0).
+- [x] 3. Found and fixed a stale comment: the constant still said "UNVERIFIED" even
+      though the module docstring already said verified against v0.30.0. Fixed, added
+      a per-field note on which names matched as-is.
 - [ ] 4. Phase 3 spec (FP16 vs AWQ/GPTQ quantization, quality check against
       `eval/benchmark.py`) + Phase 4 spec (serial vs concurrent throughput curve).
       Specs in `docs/superpowers/specs/`, dry-run tests only. STOP, ask for go before
