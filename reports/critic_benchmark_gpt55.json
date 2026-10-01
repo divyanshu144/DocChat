@@ -1,0 +1,575 @@
+{
+  "generated_at": "2026-10-01T08:20:56.181604+00:00",
+  "provider": "openai",
+  "model": "gpt-5.5",
+  "reasoning_effort": "none",
+  "max_completion_tokens": 150,
+  "temperature": 0.0,
+  "fallback": "none",
+  "edge_metrics": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "errors": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "generated_metrics": {
+    "tp": 15,
+    "fp": 0,
+    "fn": 0,
+    "tn": 0,
+    "errors": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "edge_results": [
+    {
+      "label": "correct_admits_gaps",
+      "expected": "good",
+      "got": "good",
+      "correct": true,
+      "feedback": "",
+      "raw_response": "{\"quality\":\"good\",\"feedback\":\"\"}"
+    },
+    {
+      "label": "hedged_but_correct",
+      "expected": "good",
+      "got": "good",
+      "correct": true,
+      "feedback": "",
+      "raw_response": "{\"quality\":\"good\",\"feedback\":\"\"}"
+    },
+    {
+      "label": "partially_addresses_multipart",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer identifies the splitter strategy but omits the requested chunk size and overlap without saying that information is unavailable.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer identifies the splitter strategy but omits the requested chunk size and overlap without saying that information is unavailable.\"}"
+    },
+    {
+      "label": "correct_but_terse",
+      "expected": "good",
+      "got": "good",
+      "correct": true,
+      "feedback": "",
+      "raw_response": "{\"quality\":\"good\",\"feedback\":\"\"}"
+    },
+    {
+      "label": "admits_gaps_with_partial_answer",
+      "expected": "good",
+      "got": "good",
+      "correct": true,
+      "feedback": "",
+      "raw_response": "{\"quality\":\"good\",\"feedback\":\"\"}"
+    }
+  ],
+  "generated_results": [
+    {
+      "label": "correct_but_terse__contradict_self",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer contradicts itself by first claiming DocChat uses the Groq API with llama-3.3-70b-versatile, then stating that this is not correct.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer contradicts itself by first claiming DocChat uses the Groq API with llama-3.3-70b-versatile, then stating that this is not correct.\"}"
+    },
+    {
+      "label": "admits_gaps_with_partial_answer__contradict_self",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer contradicts itself by stating that access tokens expire after 30 minutes and then saying that this is not correct.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer contradicts itself by stating that access tokens expire after 30 minutes and then saying that this is not correct.\"}"
+    },
+    {
+      "label": "correct_well_grounded__contradict_self",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is self-contradictory: it first states a specific model and vector dimension, then says that statement is not correct.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is self-contradictory: it first states a specific model and vector dimension, then says that statement is not correct.\"}"
+    },
+    {
+      "label": "correct_multi_part_answer__contradict_self",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer directly contradicts itself by first listing three ingestion sources and libraries, then stating that this is not correct while repeating the same list.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer directly contradicts itself by first listing three ingestion sources and libraries, then stating that this is not correct while repeating the same list.\"}"
+    },
+    {
+      "label": "hedged_but_correct__strip_specifics",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is too vague to be useful because the database specifics are replaced with placeholders and it does not provide a concrete database name.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is too vague to be useful because the database specifics are replaced with placeholders and it does not provide a concrete database name.\"}"
+    },
+    {
+      "label": "correct_but_terse__strip_specifics",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is too vague to be useful because the key specifics are replaced by placeholders.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is too vague to be useful because the key specifics are replaced by placeholders.\"}"
+    },
+    {
+      "label": "correct_well_grounded__strip_specifics",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is too vague to be useful because the embedding model and vector dimension are replaced with placeholders rather than provided.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is too vague to be useful because the embedding model and vector dimension are replaced with placeholders rather than provided.\"}"
+    },
+    {
+      "label": "correct_multi_part_answer__strip_specifics",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is too vague to be useful because key specifics are replaced with placeholders like [redacted], including the libraries and handled content requested.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is too vague to be useful because key specifics are replaced with placeholders like [redacted], including the libraries and handled content requested.\"}"
+    },
+    {
+      "label": "correct_multi_part_answer__truncate_enumeration",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer lists only two ingestion sources while the query asks for three, and it does not disclose that the third source is missing.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer lists only two ingestion sources while the query asks for three, and it does not disclose that the third source is missing.\"}"
+    },
+    {
+      "label": "correct_admits_gaps__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is off-topic: it discusses access and refresh token expiry instead of the internal training loss curve for BAAI/bge-small-en-v1.5.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is off-topic: it discusses access and refresh token expiry instead of the internal training loss curve for BAAI/bge-small-en-v1.5.\"}"
+    },
+    {
+      "label": "hedged_but_correct__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is off-topic: it describes the embedding model/runtime rather than identifying the database used to store conversations.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is off-topic: it describes the embedding model/runtime rather than identifying the database used to store conversations.\"}"
+    },
+    {
+      "label": "correct_but_terse__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is off-topic: it describes ingestion sources and extraction tools rather than identifying the LLM DocChat uses for generating answers.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is off-topic: it describes ingestion sources and extraction tools rather than identifying the LLM DocChat uses for generating answers.\"}"
+    },
+    {
+      "label": "admits_gaps_with_partial_answer__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is off-topic: it discusses a training loss curve for BAAI/bge-small-en-v1.5 instead of the access and refresh token expiry times in DocChat.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is off-topic: it discusses a training loss curve for BAAI/bge-small-en-v1.5 instead of the access and refresh token expiry times in DocChat.\"}"
+    },
+    {
+      "label": "correct_well_grounded__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is off-topic: it discusses PostgreSQL and SQLAlchemy instead of identifying DocChat's embedding model and vector dimension.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is off-topic: it discusses PostgreSQL and SQLAlchemy instead of identifying DocChat's embedding model and vector dimension.\"}"
+    },
+    {
+      "label": "correct_multi_part_answer__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is off-topic: it mentions the Groq API/model instead of identifying the three DocChat ingestion sources and the library handling each one.",
+      "raw_response": "{\"quality\":\"poor\",\"feedback\":\"The answer is off-topic: it mentions the Groq API/model instead of identifying the three DocChat ingestion sources and the library handling each one.\"}"
+    }
+  ],
+  "http_usage": [
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 343,
+        "completion_tokens": 12,
+        "total_tokens": 355,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 339,
+        "completion_tokens": 12,
+        "total_tokens": 351,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 335,
+        "completion_tokens": 33,
+        "total_tokens": 368,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 320,
+        "completion_tokens": 12,
+        "total_tokens": 332,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 325,
+        "completion_tokens": 12,
+        "total_tokens": 337,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 350,
+        "completion_tokens": 46,
+        "total_tokens": 396,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 342,
+        "completion_tokens": 35,
+        "total_tokens": 377,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 398,
+        "completion_tokens": 39,
+        "total_tokens": 437,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 471,
+        "completion_tokens": 39,
+        "total_tokens": 510,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 343,
+        "completion_tokens": 37,
+        "total_tokens": 380,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 317,
+        "completion_tokens": 28,
+        "total_tokens": 345,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 359,
+        "completion_tokens": 34,
+        "total_tokens": 393,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 398,
+        "completion_tokens": 39,
+        "total_tokens": 437,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 368,
+        "completion_tokens": 37,
+        "total_tokens": 405,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 331,
+        "completion_tokens": 44,
+        "total_tokens": 375,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 353,
+        "completion_tokens": 33,
+        "total_tokens": 386,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 384,
+        "completion_tokens": 37,
+        "total_tokens": 421,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 337,
+        "completion_tokens": 48,
+        "total_tokens": 385,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 343,
+        "completion_tokens": 36,
+        "total_tokens": 379,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "status": 200,
+      "usage": {
+        "prompt_tokens": 325,
+        "completion_tokens": 40,
+        "total_tokens": 365,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

@@ -56,6 +56,21 @@ def test_temperature_kwargs_omits_the_key_entirely_when_unset():
 
 
 @pytest.mark.asyncio
+async def test_openai_reasoning_effort_is_opt_in(monkeypatch):
+    client = _openai_client()
+    monkeypatch.setattr(settings, "openai_reasoning_effort", "")
+    await llm._openai_complete(client, [{"role": "user", "content": "verdict"}], 150)
+    assert "reasoning_effort" not in client.post.call_args.kwargs["json"]
+    monkeypatch.setattr(settings, "openai_reasoning_effort", "none")
+    monkeypatch.setattr(settings, "openai_chat_model", "gpt-5.5")
+    await llm._openai_complete(client, [{"role": "user", "content": "verdict"}], 150, temperature=0)
+    payload = client.post.call_args.kwargs["json"]
+    assert payload["reasoning_effort"] == "none"
+    assert payload["model"] == "gpt-5.5"
+    assert payload["max_completion_tokens"] == 150
+
+
+@pytest.mark.asyncio
 async def test_default_call_sends_no_temperature(monkeypatch):
     """Existing callers must keep the provider default. This is the regression guard
     against pinning leaking into the synthesizer."""

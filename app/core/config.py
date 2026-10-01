@@ -34,6 +34,9 @@ class Settings(BaseSettings):
 
     openai_api_key: str = ""
     openai_chat_model: str = "gpt-5.6-luna"  # used when llm_provider="openai"
+    # Blank preserves the model default. Short classification evals can select
+    # none on compatible models so hidden reasoning does not consume their cap.
+    openai_reasoning_effort: Literal["", "none", "low", "medium", "high", "xhigh"] = ""
 
     mistral_api_key: str = ""
     mistral_chat_model: str = "mistral-small-latest"  # used when llm_provider="mistral"

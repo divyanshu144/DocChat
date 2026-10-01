@@ -66,6 +66,15 @@ async def test_openai_stream_omits_stream_options_when_no_sink():
 
 
 @pytest.mark.asyncio
+async def test_openai_stream_threads_selected_reasoning_effort():
+    client = _sse_stream_client(_USAGE_SSE_LINES)
+    with patch.object(llm.settings, "openai_reasoning_effort", "none"):
+        tokens = [t async for t in llm._openai_stream(client, [{"role": "user", "content": "hi"}], 50)]
+    assert tokens == ["hel", "lo"]
+    assert client.stream.call_args.kwargs["json"]["reasoning_effort"] == "none"
+
+
+@pytest.mark.asyncio
 async def test_openai_stream_requests_usage_when_sink_given():
     client = _sse_stream_client(_USAGE_SSE_LINES)
     sink: dict = {}
