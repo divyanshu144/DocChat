@@ -29,6 +29,29 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Fixed in this branch (2026-10-01) — Part 2 A, step 3: refuse the default JWT secret
+
+`app/main.py`'s `lifespan` now refuses to start if `JWT_SECRET_KEY` is still the
+shipped default (`change-me-in-production-use-a-long-random-string`) and `DEBUG` is
+not true. Pulled the check into its own `_refuse_default_secret_in_production()`
+function rather than leaving it inline, since `TestClient(app)` without a `with` block
+(the pattern every test file in this repo already uses) never actually runs the
+lifespan, confirmed empirically before writing this, so a guard that only lived inside
+`lifespan` would be completely untested by the existing suite. One test drives the real
+`lifespan` context manager directly to prove the guard is actually wired in and runs
+before `create_all_tables`, not just a standalone function nothing calls.
+
+**Operational note:** the `docker-compose` app container currently running locally
+(and any real deployment) does not set `JWT_SECRET_KEY` in `.env` today. Once this
+change is merged, that container will refuse to start on its next restart until a real
+`JWT_SECRET_KEY` is set, or `DEBUG=true` is set for local development. This is the
+intended effect of the fix, not a bug, but worth knowing before restarting.
+
+5 new tests. `ruff check .` clean, `pytest -m "not eval" -q` 302 to 307 passed.
+
+**Part 2 A (auth gaps) is now fully done: auth required everywhere, folders scoped per
+user, decision 003 recorded, default-secret startup guard in place.**
+
 ### Fixed in this branch (2026-10-01) — Part 2 A, step 2: folders scoped per user
 
 `Folder` gained a `user_id` column (nullable, indexed, no FK, mirroring

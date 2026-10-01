@@ -47,7 +47,12 @@ dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
       289 to 302 passed.
 - [x] `decisions.md` entry 003 added (corrects 001's "any authenticated user" wording
       now that it's actually enforced). 302 passed.
-- [ ] Startup refusal if `jwt_secret_key` is still the shipped default and debug=false.
+- [x] Startup refusal if `jwt_secret_key` is still the shipped default and debug=false.
+      5 new tests, one drives the real lifespan context manager directly. 307 passed.
+      Note: the running docker-compose app container will refuse to restart until a
+      real JWT_SECRET_KEY is set in .env, or DEBUG=true for local dev. Intended.
+
+**Part 2 A (auth gaps) complete.**
 
 ### B. Chat streaming and formatting
 - [ ] `chat.py`: whitespace-preserving split (`re.findall(r"\S+\s*|\s+", answer)`).

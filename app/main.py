@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.core.config import settings
+from app.core.config import Settings, settings
 from app.core.database import create_all_tables
 from app.api import auth
 from app.api import chat
@@ -24,9 +24,26 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
 )
 
+_DEFAULT_JWT_SECRET_KEY = Settings.model_fields["jwt_secret_key"].default
+
+
+def _refuse_default_secret_in_production() -> None:
+    """Raise if JWT_SECRET_KEY is still the value shipped in this repo and
+    debug mode is off. A signing key anyone can read from source control
+    must never sign real tokens outside local development. Pulled out as
+    its own function so it is testable without going through the whole
+    FastAPI lifespan (which TestClient only runs when used as a context
+    manager, not how this repo's tests instantiate it)."""
+    if settings.jwt_secret_key == _DEFAULT_JWT_SECRET_KEY and not settings.debug:
+        raise RuntimeError(
+            "JWT_SECRET_KEY is still the default value shipped in this repo. "
+            "Set a real, random JWT_SECRET_KEY in .env before running with DEBUG=false."
+        )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _refuse_default_secret_in_production()
     await create_all_tables()
     logger.info("startup", extra={"app": settings.app_name, "version": settings.version})
     yield
