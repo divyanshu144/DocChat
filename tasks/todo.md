@@ -73,6 +73,13 @@ dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
       drops). Synthesizer short-circuits to a fixed answer on empty retrieved_chunks,
       skipping the LLM call (grounding already handled this case). 4 new tests, 317
       passed.
+- [x] `context_max_chars` drops now log a warning (synthesizer + grounding), with the
+      drop count correctly excluding a partially-included chunk. 6 new tests, 322
+      passed. Found a real pre-existing bug while testing it, not fixed (out of scope
+      for this item): the word-boundary `rsplit(" ", 1)` can land inside the label
+      prefix instead of the chunk body and erase an entire space-free partial chunk.
+      See `tasks/lessons.md` 2026-10-01. **Follow-up, not yet done: fix the rsplit to
+      search within the chunk's own text, not the combined label+text string.**
 - [ ] `chat_history_limit` actually drives `chat.py`'s history query.
 - [ ] Remove dead `youtube_api_key` setting.
 - [ ] `context_max_chars`: log drops, truncate whole-chunk from the low-ranked end.

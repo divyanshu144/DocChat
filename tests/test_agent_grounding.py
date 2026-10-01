@@ -98,3 +98,29 @@ def test_grounding_failure_detection_distinguishes_short_valid_answers():
         "I don't have an answer to clean.",
         "A much longer original answer that should not be replaced by a meta failure.",
     ) is True
+
+
+def _big_chunk(label: str, size: int) -> dict:
+    return {"text": label * size, "metadata": {"filename": "doc.pdf"}, "source_type": "pdf"}
+
+
+def test_format_context_logs_a_warning_when_chunks_are_dropped_for_budget(caplog):
+    from app.agent.nodes.grounding import _format_context
+
+    chunks = [_big_chunk("a", 100), _big_chunk("b", 100), _big_chunk("c", 100)]
+    with patch("app.agent.nodes.grounding.settings.context_max_chars", 150), \
+         caplog.at_level("WARNING"):
+        _format_context(chunks)
+
+    assert any("dropped" in record.message for record in caplog.records)
+
+
+def test_format_context_does_not_log_when_everything_fits(caplog):
+    from app.agent.nodes.grounding import _format_context
+
+    chunks = [_big_chunk("a", 10), _big_chunk("b", 10)]
+    with patch("app.agent.nodes.grounding.settings.context_max_chars", 12000), \
+         caplog.at_level("WARNING"):
+        _format_context(chunks)
+
+    assert not any("dropped" in record.message for record in caplog.records)

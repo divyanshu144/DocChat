@@ -1,7 +1,11 @@
+import logging
+
 from app.agent.state import AgentState
 from app.core.config import settings
 from app.core.sources import citation_label
 from app.services.llm import chat_complete
+
+logger = logging.getLogger(__name__)
 
 _SYSTEM = """\
 You are a grounding verifier. Your only job is to remove ungrounded sentences from an answer.
@@ -31,14 +35,23 @@ Context:
 def _format_context(chunks: list[dict]) -> str:
     parts = []
     remaining = settings.context_max_chars
-    for chunk in chunks:
+    for i, chunk in enumerate(chunks):
         meta = chunk.get("metadata", {})
         label = citation_label(chunk.get("source_type", "unknown"), meta)
         text = chunk["text"].strip()
         entry = f"{label}\n{text}"
         if len(entry) > remaining:
-            if remaining > 500:
+            included_partial = remaining > 500
+            if included_partial:
                 parts.append(entry[:remaining].rsplit(" ", 1)[0])
+            dropped = len(chunks) - i - (1 if included_partial else 0)
+            if dropped > 0:
+                logger.warning(
+                    "[GROUNDING] context_max_chars=%d dropped %d/%d retrieved "
+                    "chunk(s) that did not fit (already rank-ordered, so these "
+                    "were the lowest-ranked)",
+                    settings.context_max_chars, dropped, len(chunks),
+                )
             break
         parts.append(entry)
         remaining -= len(entry)

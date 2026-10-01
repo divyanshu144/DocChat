@@ -29,6 +29,26 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### DONE (2026-10-01) — Part 2 C, step 2: log when context_max_chars drops chunks
+
+`_format_chunks` (synthesizer.py) and `_format_context` (grounding.py) silently
+dropped retrieved chunks that didn't fit the character budget, with no trace anywhere
+that it happened. Both now log a warning with how many chunks were dropped out of how
+many retrieved, whenever any are. The drop count correctly excludes a chunk that still
+got a partial slice included (remaining budget > 500 chars) — only chunks truly never
+reached count as dropped. Chunks were already rank-ordered coming in from the retriever
+(the rerank already sorted them), so what gets cut is already the lowest-ranked tail,
+not a random one; the real gap was the missing visibility, which is what this fixes.
+
+6 new tests across both files (3 each: logs on drop, silent when everything fits, drop
+count excludes the partially-included chunk). One test assertion had to be rewritten
+after an actual run revealed a pre-existing quirk in the partial-inclusion slicing
+(`entry[:remaining].rsplit(" ", 1)[0]` can strip an entire space-free partial chunk if
+its tail has no space to rsplit on) — not something this change introduced, and out of
+scope to fix here, but worth knowing about if that code is touched again.
+
+`ruff check .` clean, `pytest -m "not eval" -q` 317 to 322 passed.
+
 ### DONE (2026-10-01) — Part 2 C, step 1: retrieval_min_score + empty-context answer
 
 `retrieval_min_score` (config.py, default 0.3) was defined and never read anywhere.
