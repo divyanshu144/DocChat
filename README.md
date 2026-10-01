@@ -80,6 +80,168 @@ cd frontend
 npm run build
 ```
 
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| API framework | FastAPI |
+| Agent orchestration | LangGraph (StateGraph) |
+| Vector store | Qdrant (REST API · cosine HNSW index) |
+| Embeddings | fastembed ONNX · `BAAI/bge-small-en-v1.5` · 384-dim |
+| LLM | Groq API · `llama-3.3-70b-versatile` (OpenAI/Mistral fallback; optional self-hosted vLLM provider — see [Inference benchmarking](#inference-benchmarking)) |
+| Streaming | Server-Sent Events via FastAPI `StreamingResponse` |
+| Conversation store | PostgreSQL + SQLAlchemy 2.0 async |
+| Auth | JWT (python-jose) + bcrypt · access + refresh tokens |
+| PDF extraction | pymupdf |
+| YouTube transcripts | youtube-transcript-api · pytube |
+| Web scraping | httpx · trafilatura |
+| Observability | LangSmith (auto-enabled when `LANGSMITH_API_KEY` is set) |
+| Frontend | React 18 + Vite + TypeScript |
+| Containerisation | Docker Compose |
+
+---
+
+## Features
+
+- **JWT authentication** — sign up / log in with email + password; access tokens (30 min) + refresh tokens (7 days) with automatic silent refresh
+- **Multi-source ingestion** — drag-and-drop PDFs, paste YouTube URLs, or scrape any web page; all sources share a single chat interface
+- **Sources drawer** — a slide-in panel from the right side of the screen for ingesting and selecting sources; never compresses the chat area
+- **Per-source filtering** — check individual sources in the drawer to restrict retrieval to only those sources; an orange badge on the Sources button shows how many are active
+- **Agentic retrieval** — the Planner node selects which collections are relevant before querying; the Grounding node verifies claims; the Critic node can trigger a replan loop if answer quality is too low
+- **Citation tags** — answers include inline `[PDF — filename]`, `[YouTube — title]`, `[Web — url]` tags rendered as colour-coded chips
+- **Source type filter chips** — toggle PDF / YouTube / Web collections per query without re-ingesting
+- **Conversation folders** — create named folders to organise chats; drag-and-drop conversations into folders; open a new chat scoped to a folder with the `+` button on the folder header
+- **Session persistence** — conversations survive page refresh; the last active conversation is automatically restored from `localStorage`
+- **Token streaming** — answers appear word-by-word; a blinking cursor shows the stream is live
+- **LangSmith tracing** — every agent run produces a full trace (nodes, token counts, latencies) when `LANGSMITH_API_KEY` is set
+
+---
+
+## Evaluation posture
+
+This project is built to be judged on more than a happy-path demo:
+
+| Criterion | Evidence in the repo |
+|---|---|
+| Working document Q&A | End-to-end ingestion, vector search, cited synthesis, source filters, persisted conversations, and SSE streaming. |
+| Trust and product UX | Inline citation chips, per-answer citation coverage, active corpus/collection scope in the composer, source drawer, folders, and conversation continuity. |
+| Engineering quality | FastAPI/LangGraph module boundaries, typed React components, JWT refresh flow, Docker Compose, Qdrant/PostgreSQL separation, ruff + pytest gates, and benchmark/eval scripts. |
+| Observability | LangSmith tracing when configured, health endpoint, structured eval output, and source/citation state visible in the UI. |
+
+Current local verification baseline:
+
+```bash
+venv/bin/python -m ruff check .
+venv/bin/python -m pytest -m "not eval" -q   # 246 passed, 8 deselected
+```
+
+The critic benchmark is intentionally separate because it hits the live LLM:
+
+```bash
+venv/bin/python eval/benchmark.py
+```
+
+---
+
+## Inference benchmarking
+
+DocChat also carries a self-hosted-inference benchmarking harness, built to measure
+serving performance under load rather than just answer quality — `eval/inference_benchmark.py`
+sweeps TTFT, decode throughput, and cost across a concurrency range for any configured
+provider (`groq`, `openai`, `mistral`, or a self-hosted vLLM server via the `local`
+provider above), using the same `chat_stream` seam the app itself calls.
+
+```bash
+python eval/inference_benchmark.py --providers local \
+  --prompts-file data/bench_prompts.jsonl --concurrency 1,4,16,64,128 \
+  --max-tokens 1400 --gpu-cost-per-hr 1.09
+```
+
+What makes the numbers trustworthy, not just fast-looking:
+
+- **Realistic prompts** — `eval/capture_bench_prompts.py` captures DocChat's actual
+  planner→retriever→synthesizer request shape (3.7k-6.8k input tokens, real retrieval
+  context), not a toy 20-90 token query.
+- **Cache-busting by default** — every request gets a unique token prepended
+  client-side, so a concurrency sweep can't silently measure its own KV-cache hits
+  instead of real inference.
+- **Live vLLM `/metrics` instrumentation** — prefix-cache hit rate, KV cache usage,
+  queue depth, and preemption count are scraped during each cell, so a busting claim is
+  backed by the server's own counters, not just code review.
+- **A positive control before any sweep is trusted** — `eval/positive_control.py` sends
+  one prompt twice with busting off (expect a real cache hit) and twice with busting on
+  (expect ~0%) and refuses to proceed if that split isn't observed.
+
+**Headline finding:** at realistic prompt sizes, hosted-API concurrency limits bind
+before raw latency does — OpenAI returned `429` on the majority of requests at
+concurrency 4+ on this account's tier, while a self-hosted GPU has no such ceiling, only
+its own KV-cache capacity. A second finding came from the harness catching its own
+measurement bug: an early sweep's local TTFT was suspiciously flat under load; the
+cache-busting + `/metrics` work above was built specifically to test that suspicion, and
+confirmed it — see `eval/BENCHMARK_RESULTS.md` for the full sweep-by-sweep writeup,
+including the self-correction.
+
+---
+
+## Project structure
+
+```
+app/
+├── agent/
+│   ├── graph.py           # Compiled LangGraph StateGraph — entry point: agent_graph.ainvoke()
+│   ├── state.py           # AgentState TypedDict (includes source_ids filter field)
+│   └── nodes/
+│       ├── planner.py     # Source collection selection
+│       ├── retriever.py   # Qdrant semantic search with optional source_id filter
+│       ├── synthesizer.py # Groq answer generation (streaming)
+│       ├── grounding.py   # Claim verification against retrieved chunks
+│       └── critic.py      # Quality gate + replan trigger
+├── api/
+│   ├── auth.py            # POST /auth/signup, /auth/login, /auth/refresh, /auth/logout, GET /auth/me
+│   ├── chat.py            # POST /chat — runs agent, saves history, streams SSE
+│   ├── conversations.py   # GET/PATCH /conversations — list, detail, move to folder
+│   ├── folders.py         # CRUD /folders
+│   ├── health.py
+│   └── ingest.py          # POST /ingest/{pdf,youtube,web} · GET/DELETE /sources
+├── core/
+│   ├── qdrant.py          # QdrantClient singleton + get_qdrant_collection()
+│   ├── config.py          # Pydantic Settings — all env vars
+│   ├── database.py        # Async SQLAlchemy engine, startup migration, get_db
+│   ├── deps.py            # FastAPI dependencies: get_current_user
+│   └── security.py        # JWT encode/decode, bcrypt hash/verify
+├── models/
+│   ├── conversation.py    # Folder + Conversation + Message SQLAlchemy models
+│   ├── user.py            # User SQLAlchemy model
+│   └── refresh_token.py   # RefreshToken SQLAlchemy model (hashed, expiry)
+├── services/
+│   ├── embedder.py        # fastembed wrapper (shared by ingestion + retrieval)
+│   ├── ingestion/
+│   │   ├── pdf.py         # pymupdf → chunks → Qdrant pdf_chunks
+│   │   ├── youtube.py     # transcript-api + pytube → Qdrant youtube_chunks
+│   │   └── web.py         # httpx + trafilatura → Qdrant web_chunks
+│   └── llm.py             # AsyncGroq client — chat_complete() and chat_stream()
+├── static/                # Built React SPA (generated by `npm run build`)
+│   ├── index.html
+│   └── assets/
+└── main.py                # FastAPI app factory, middleware, router registration
+
+frontend/                  # React 18 + Vite + TypeScript source
+├── src/
+│   ├── api.ts             # Typed fetch wrapper; ssePost for SSE streaming
+│   ├── types.ts           # TypeScript interfaces (Source, TokenResponse, …)
+│   ├── App.tsx            # Root: auth gate, lifted state, layout, drawer state
+│   ├── styles.css         # Design system — dark theme, CSS custom properties
+│   └── components/
+│       ├── AuthScreen.tsx   # Login / signup form
+│       ├── Sidebar.tsx      # Folders, conversations, drag-and-drop, context menu
+│       ├── SourcesDrawer.tsx# Slide-in right drawer: ingest + source selection
+│       └── ChatPanel.tsx    # SSE streaming chat with filter chips + Sources button
+├── vite.config.ts         # base: '/static/', outDir: '../app/static'
+└── package.json
+```
+
+---
+
 ## Architecture Overview
 
 ```text
@@ -321,6 +483,46 @@ The current Docker Compose setup is good for local development. To productionise
 - Persist partial ingestion state so failed jobs can resume or be retried safely.
 - Test SSE behavior through the actual load balancer, because proxy buffering/timeouts can break streaming.
 
+### LLM Inference Serving
+
+The points above are generic web-tier scaling. The LLM call itself scales differently,
+and the [inference benchmarking](#inference-benchmarking) work in this repo measured
+exactly where it breaks — these points are grounded in that data, not generic advice:
+
+- **The real ceiling is KV-cache capacity, not CPU or request count.** A concurrency
+  sweep against a self-hosted vLLM instance (L40S 48GB) showed KV cache usage climbing
+  from 1.6% at concurrency 1 to 99.4% at concurrency 128, with `num_requests_waiting`
+  peaking at 96 — the GPU was queueing, not idling. Autoscale a self-hosted GPU pool on
+  vLLM's own `/metrics` (`num_requests_waiting`, `kv_cache_usage_perc`), not on CPU
+  utilization or raw request count, which stay low right up until the cache is full.
+- **Admission control has to act before the client gives up.** At 99.4% KV usage, 13 of
+  128 requests in that sweep failed with client-side `ReadTimeout`/`PoolTimeout` — the
+  server queued them past the client's patience rather than rejecting them early. A
+  production router should shed load (fast 429/503 with retry-after) once KV usage
+  crosses a threshold (e.g. 90%), instead of letting vLLM's own queue silently grow.
+- **Context length is a capacity lever, not just a quality one.** KV footprint scales
+  with tokens-in-flight; DocChat's real retrieval-augmented prompts run 3.7k-6.8k input
+  tokens. Trimming retrieved context (fewer/shorter chunks) directly raises how many
+  concurrent requests fit in a fixed KV budget — a tuning knob most request-count-based
+  capacity planning misses entirely.
+- **Continuous batching trades per-request speed for aggregate throughput — size SLAs
+  around that, not raw tok/s.** The same sweep measured per-request decode speed
+  dropping from 48.7 tok/s (c=1) to 4.3 tok/s (c=128) while aggregate throughput kept
+  climbing — expected behavior, but a dashboard that only shows aggregate tok/s hides
+  the p50/p95 latency users actually feel under load.
+- **A single GPU's ceiling is a hard wall, not a soft limit** — once KV cache is full,
+  only more GPU capacity (another replica behind a router, a bigger GPU, or
+  quantization to shrink the per-request memory footprint) fixes it; waiting doesn't.
+  AWQ/GPTQ quantization is a planned follow-up specifically to measure that tradeoff
+  against the FP16/bf16 numbers already collected.
+- **Benchmark dashboards need to separate real throughput from cache-inflated
+  throughput.** Production traffic will organically hit vLLM's prefix cache on shared
+  system prompts — real signal, not a bug — but a load-testing or capacity-planning
+  harness that reuses prompts across measurement runs will silently measure its own
+  cache instead of the GPU's real capacity, exactly the self-caught bug documented in
+  `eval/BENCHMARK_RESULTS.md`. Any inference dashboard should track prefix-cache hit
+  rate alongside throughput so the two numbers are never read as the same thing.
+
 ## Engineering Standards Followed
 
 - Kept clear module boundaries: API routers, core infrastructure, services, agent nodes, and frontend components are separate.
@@ -384,3 +586,158 @@ python -m pytest
 ```
 
 The full-suite failures were not caused by the chat/folder/auth fixes; they are live LLM evaluator tests that should be split from deterministic CI.
+
+---
+
+## API reference
+
+All endpoints (except `/api/v1/health`, `/api/v1/auth/signup`, `/api/v1/auth/login`, `/api/v1/auth/refresh`) require a Bearer token in the `Authorization` header.
+
+### Auth
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/auth/signup` | Create account and return `access_token` + `refresh_token` |
+| `POST` | `/api/v1/auth/login` | Log in; returns `access_token` + `refresh_token` |
+| `POST` | `/api/v1/auth/refresh` | Exchange refresh token for new access token |
+| `POST` | `/api/v1/auth/logout` | Revoke refresh token |
+| `GET` | `/api/v1/auth/me` | Current user info |
+
+**Login example:**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "secret"}'
+# → {"access_token": "eyJ...", "refresh_token": "eyJ...", "token_type": "bearer"}
+```
+
+### Ingest
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/ingest/pdf` | Upload a PDF (`multipart/form-data`, field `file`). |
+| `POST` | `/api/v1/ingest/youtube` | Ingest a YouTube video (`{"url": "..."}`). |
+| `POST` | `/api/v1/ingest/web` | Scrape a web page (`{"url": "..."}`). |
+| `GET` | `/api/v1/sources` | List all ingested sources. |
+| `DELETE` | `/api/v1/sources/{source_id}` | Delete a source and its chunks from Qdrant. |
+
+There's also an async, job-based path (`POST /api/v1/ingest/{pdf,youtube,web}/jobs` +
+`GET /api/v1/ingest/jobs/{job_id}`) for persisted ingestion jobs — added alongside the
+synchronous routes above; not yet documented here in detail.
+
+**PDF example:**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/ingest/pdf \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@paper.pdf"
+```
+
+### Chat
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/chat` | Send a query; returns an SSE stream. Pass `conversation_id` to continue a conversation; omit to start a new one. |
+
+**Request body:**
+
+```json
+{
+  "query": "What are the key findings?",
+  "conversation_id": "optional-uuid",
+  "sources": ["pdf", "youtube"],
+  "source_ids": ["abc-123", "def-456"]
+}
+```
+
+- `sources` — filter which Qdrant collections the agent queries (`pdf`, `youtube`, `web`). Omit to query all three.
+- `source_ids` — restrict retrieval to specific ingested documents by their `source_id`. Omit (or pass `[]`) to search across all sources in the selected collections.
+
+**Response:** SSE stream — one token per `data:` line, `[DONE]` at end, `[ERROR]` on failure. The response header `X-Conversation-Id` carries the conversation UUID for subsequent requests.
+
+```
+data: The
+
+data:  key
+
+data:  findings are...
+
+data: [DONE]
+```
+
+### Conversations
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/conversations` | List all conversations (id, title, folder_id, created_at). |
+| `GET` | `/api/v1/conversations/{id}` | Get a conversation with full message history. |
+| `PATCH` | `/api/v1/conversations/{id}` | Move to a folder (`{"folder_id": "uuid"}`) or unassign (`{"folder_id": null}`). |
+
+### Folders
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/folders` | Create a folder (`{"name": "My Project"}`). |
+| `GET` | `/api/v1/folders` | List all folders with conversation counts. |
+| `PATCH` | `/api/v1/folders/{id}` | Rename a folder (`{"name": "New Name"}`). |
+| `DELETE` | `/api/v1/folders/{id}` | Delete a folder; its conversations become uncategorised. |
+
+### Health
+
+```
+GET /api/v1/health  →  {"status": "ok", "version": "2.0.0"}
+```
+
+---
+
+## Configuration
+
+All settings load from environment variables or a `.env` file.
+
+| Variable | Default | Description |
+|---|---|---|
+| `LLM_PROVIDER` | `groq` | Chat provider: `groq`, `openai`, `mistral`, or `local` (self-hosted, e.g. vLLM) |
+| `FALLBACK_LLM_PROVIDER` | `openai` | Cross-provider fallback for retryable Groq failures; requires `OPENAI_API_KEY` |
+| `GROQ_API_KEY` | *(required for Groq)* | Groq API key |
+| `OPENAI_API_KEY` | *(required for OpenAI)* | OpenAI API key |
+| `LOCAL_BASE_URL` | *(empty)* | Base URL of a self-hosted OpenAI-compatible server (e.g. a vLLM pod); required for `LLM_PROVIDER=local` |
+| `LOCAL_CHAT_MODEL` | *(empty)* | Model name as served by the local endpoint |
+| `LOCAL_API_KEY` | *(empty)* | Bearer token for the local endpoint, if it requires one |
+| `JWT_SECRET_KEY` | *(required)* | Secret for signing JWTs — use a long random string |
+| `DATABASE_URL` | `postgresql+asyncpg://docchat:docchat@localhost:5432/docchat` | SQLAlchemy async DSN |
+| `QDRANT_HOST` | `localhost` | Qdrant host (use `qdrant` inside Docker Compose) |
+| `QDRANT_PORT` | `6333` | Qdrant REST port |
+| `CHAT_MODEL` | `llama-3.3-70b-versatile` | Groq model ID |
+| `GROQ_FALLBACK_CHAT_MODEL` | *(empty)* | Optional same-provider Groq fallback before cross-provider fallback |
+| `OPENAI_CHAT_MODEL` | `gpt-5.6-luna` | OpenAI model ID |
+| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | fastembed model name |
+| `EMBEDDING_DIM` | `384` | Vector dimension (must match the embedding model) |
+| `RETRIEVAL_MIN_SCORE` | `0.3` | Minimum cosine similarity for retrieved chunks |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token lifetime |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime |
+| `LANGSMITH_API_KEY` | `None` | Enables LangSmith tracing when set |
+| `LANGSMITH_PROJECT` | `docchat-agent` | LangSmith project name |
+| `DEBUG` | `false` | Enable SQLAlchemy query logging |
+
+---
+
+## Database schema
+
+```
+users  ──< refresh_tokens
+users  ──< conversations  ──< messages
+folders  ──< conversations
+```
+
+Schema columns are added automatically at startup via idempotent migrations (using `information_schema.columns` on PostgreSQL). No manual schema changes are needed when upgrading.
+
+---
+
+## Folder & conversation organisation
+
+- **New Folder** — click the button in the sidebar, type a name, press Enter
+- **New chat in folder** — hover over a folder name; click the `+` button that appears; the next message you send creates a conversation automatically assigned to that folder
+- **Move by drag-and-drop** — drag any conversation item onto a folder header; the folder highlights with a dashed border while hovering; drop to move
+- **Move via menu** — hover over a conversation, click `⋯`, select a target folder or "Uncategorized"
+- **Delete folder** — `DELETE /api/v1/folders/{id}`; conversations are uncategorised, not deleted
