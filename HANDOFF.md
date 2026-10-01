@@ -29,6 +29,23 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Built in this branch (2026-10-01) — Phase 3 spec: quantization comparison
+
+Spec: `docs/superpowers/specs/2026-10-01-quantization-comparison-design.md`. Compares
+FP16 against AWQ (and GPTQ if a maintained build exists) on Qwen2.5-7B-Instruct, one pod
+serving all three sequentially rather than three pods. The quality side is the point:
+there is no existing local-FP16 baseline for `eval/benchmark.py`'s critic accuracy
+numbers anywhere in this repo (the recorded 5/5 precision/recall history used Groq's
+hosted model), so the FP16 serving's own `eval/benchmark.py` run is the baseline this
+whole phase's quality comparison rests on, not a sanity check.
+
+New `eval/quantization_compare.py`: reads two servings' rows out of
+`data/inference_benchmark.jsonl` by timestamp window (the same provider name, `local`,
+writes every serving to the same file) and prints a speed/cost delta table. Pure data
+transformation, no network calls. 13 new tests. Stopped after the spec and these
+dry-run tests, per the task's own instruction, waiting for a go before any pod.
+`pytest -m "not eval" -q` 259 to 272 passed, `ruff check .` clean.
+
 ### Fixed in this branch (2026-10-01) — stale "unverified" comment on vLLM metric names
 
 The module docstring already said the `_VLLM_METRIC_CANDIDATES` names were verified
