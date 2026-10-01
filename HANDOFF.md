@@ -29,6 +29,20 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Part 1 (inference track) closed out for now (2026-10-01)
+
+Asked about network volume `owdj19ss50` (50GB, `US-TX-3`, still holds cached
+Qwen2.5-7B-Instruct weights from the Fourth sweep). User chose to keep it, since Phase
+3/4's live sweeps would reuse the cached weights. Not deleted, still incurring its own
+small storage cost.
+
+**Part 1 status:** items 1 (`--groq-model`), 2 (blocked e2e check), 3 (metric-name
+comment fix), 5 (write-up), and 6 (this cleanup) are done. Item 4 (Phase 3 quantization
+comparison, Phase 4 batching proof) is spec-plus-dry-run-tests complete and explicitly
+stopped, waiting for a go with GPU, hourly rate, duration, and cost cap before any pod
+is created for either sweep. Moving on to Part 2 (codebase review fixes) now; will
+surface the Phase 3/4 pod request again once Part 2 reaches a natural stopping point.
+
 ### Built in this branch (2026-10-01) — Phase 5 write-up
 
 `docs/inference-writeup.md`: a short engineering write-up built only from numbers

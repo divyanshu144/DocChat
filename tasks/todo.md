@@ -26,8 +26,11 @@ off `feat/openai-sse-chat-quality`. One commit per item. Nothing pushed, nothing
 - [x] 5. `docs/inference-writeup.md` written from `eval/BENCHMARK_RESULTS.md` numbers
       only. README's Inference benchmarking section updated to match (dropped the "no
       such ceiling" overclaim, linked the write-up). 276 passed, no code changed.
-- [ ] 6. Cleanup: ask before deleting network volume `owdj19ss50`. Update this file and
-      HANDOFF.md to close out the track.
+- [x] 6. Asked about network volume `owdj19ss50`. User chose to keep it (Phase 3/4
+      would reuse its cached weights). Not deleted.
+
+**Part 1 status: items 1, 2, 3, 5, 6 done. Item 4 (Phase 3 + Phase 4) is spec-plus-
+dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
 
 ## Part 2 - codebase review fixes, in order
 
