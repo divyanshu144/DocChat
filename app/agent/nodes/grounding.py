@@ -3,6 +3,7 @@ import logging
 from app.agent.state import AgentState
 from app.core.config import settings
 from app.core.sources import citation_label
+from app.agent.context import truncate_chunk_body
 from app.services.llm import chat_complete
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,8 @@ def _format_context(chunks: list[dict]) -> str:
         if len(entry) > remaining:
             included_partial = remaining > 500
             if included_partial:
-                parts.append(entry[:remaining].rsplit(" ", 1)[0])
+                prefix = entry[:-len(text)] if text else entry
+                parts.append(prefix + truncate_chunk_body(text, max(0, remaining - len(prefix))))
             dropped = len(chunks) - i - (1 if included_partial else 0)
             if dropped > 0:
                 logger.warning(
