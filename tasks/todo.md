@@ -59,14 +59,14 @@ dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
 - [x] `_sse()` frames multi-line payloads as multiple `data:` lines per SSE spec, committed.
 - [x] Backend test (6 new, including a full real-answer round-trip through the endpoint).
       307 to 313 passed.
-- [ ] **NOT STARTED — do this next:** `frontend/src/api.ts`'s `readStream()` must
-      accumulate consecutive `data:` lines per event and join with `\n` before yielding
-      (currently yields per-line immediately, would still drop newlines on the frontend
-      even though the backend now sends them correctly).
-- [ ] Delete `normalizeMessageText` in `ChatPanel.tsx` and its call sites, after the
-      above lands and streamed/reloaded text renders identically without it.
-- [ ] Frontend test (vitest) for stream reconstruction.
-- [ ] `npm run build` into `app/static`.
+- [x] `frontend/src/api.ts`'s `readStream()` now accumulates consecutive `data:` lines
+      per event and joins with `\n` on the blank-line terminator.
+- [x] Deleted `normalizeMessageText` in `ChatPanel.tsx` and its one call site.
+- [x] 2 new frontend tests. `npm test`: 3 files, 6 passed.
+- [x] `npm run build` into `app/static`, confirmed via `git status` (old bundle
+      removed, new one added).
+
+**Part 2 B complete.**
 
 ### C. Retrieval correctness
 - [ ] Wire `retrieval_min_score` into `retriever.py`; empty-context path says sources

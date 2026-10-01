@@ -29,10 +29,7 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
-### IN PROGRESS (2026-10-01) — Part 2 B: chat streaming whitespace fix
-
-**Backend half done and committed. Frontend half NOT done yet — do this next if
-resuming.** `app/api/chat.py`: `answer.split()` (dropped every newline, the actual
+### DONE (2026-10-01) — Part 2 B: chat streaming whitespace fix, fully complete `app/api/chat.py`: `answer.split()` (dropped every newline, the actual
 cause of `ChatPanel.tsx`'s `normalizeMessageText` regex patch existing at all) replaced
 with `_TOKEN_SPLIT_RE = re.compile(r"\S+\s*|\s+")`, which keeps each run of whitespace
 (including newlines) attached to the token stream. `_sse()` now frames a multi-line
@@ -45,18 +42,24 @@ answer through the full endpoint and decodes the SSE response back with a small 
 decoder (mirrors what `frontend/src/api.ts` needs to do), proving the answer reconstructs
 byte for byte. `ruff check .` clean, `pytest -m "not eval" -q` 307 to 313 passed.
 
-**Still to do for Part 2 B (not started):**
-1. `frontend/src/api.ts`'s `readStream()` currently yields on every single `data:` line
-   immediately — it needs to accumulate consecutive `data:` lines for one event and
-   join them with `"\n"` before yielding, or a multi-line answer will render with the
-   newlines dropped again on the frontend side even though the backend now sends them
-   correctly.
-2. Delete `normalizeMessageText` in `frontend/src/components/ChatPanel.tsx` (lines
-   ~39-46, the hardcoded-phrase regex patch) and every call site, once (1) is done and
-   streamed/reloaded text renders identically without it.
-3. A frontend test (vitest, matching `frontend/test/api.test.ts`'s existing pattern)
-   proving the stream reader reconstructs a multi-line answer correctly.
-4. `npm run build` into `app/static` once the above lands.
+Backend half: see the previous entry (`_TOKEN_SPLIT_RE`, `_sse`'s multi-line framing).
+
+Frontend half: `frontend/src/api.ts`'s `readStream()` now accumulates consecutive
+`data:` lines for one event into an array and joins them with `"\n"` only when the
+blank-line event terminator is seen, instead of yielding on every single `data:` line
+immediately (which would have kept dropping newlines on the frontend even after the
+backend started sending them correctly). Deleted `normalizeMessageText` in
+`frontend/src/components/ChatPanel.tsx` entirely — it was a hardcoded-phrase regex
+patch guessing paragraph breaks back from a stream that had already lost them;
+`renderMessageHtml` already splits on real `\n` and now gets real ones to split on.
+
+2 new frontend tests (vitest): a multi-line token event (3 consecutive `data:` lines)
+reconstructs with the newlines in the right place, and a stray blank line with no
+preceding data doesn't emit a spurious empty event. `npm test`: 3 files, 6 passed.
+`npm run build` run for real into `app/static` (old hashed bundle removed by vite,
+new one added, confirmed via `git status`).
+
+**Part 2 B is fully done.**
 
 ### Fixed in this branch (2026-10-01) — Part 2 A, step 3: refuse the default JWT secret
 

@@ -111,6 +111,11 @@ export async function ssePost(path: string, body: unknown): Promise<SseResult> {
     const decoder = new TextDecoder();
     let buf = '';
     let eventType = 'token';
+    // A token's own newlines are now sent as multiple consecutive "data: "
+    // lines (per the SSE spec), one per line of the value — accumulate them
+    // here and only join + yield once the blank-line event terminator is
+    // seen, instead of treating every "data: " line as its own event.
+    let dataLines: string[] = [];
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -123,7 +128,13 @@ export async function ssePost(path: string, body: unknown): Promise<SseResult> {
           continue;
         }
         if (line.startsWith('data: ')) {
-          const data = line.slice(6);          // keep trailing space — it's the word separator
+          dataLines.push(line.slice(6));
+          continue;
+        }
+        if (line === '') {
+          if (dataLines.length === 0) continue;
+          const data = dataLines.join('\n'); // keep trailing/internal whitespace — it's real content
+          dataLines = [];
           const trimmed = data.trimEnd();
           if (trimmed === '[DONE]') return;
           if (eventType === 'error') throw new Error(trimmed || 'Stream error');

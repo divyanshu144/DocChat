@@ -77,4 +77,57 @@ describe('api client', () => {
       { type: 'token', data: 'world' },
     ]);
   });
+
+  it('reconstructs a multi-line token event by joining its data: lines with newlines', async () => {
+    localStorage.setItem('docchat_token', 'access');
+    const encoder = new TextEncoder();
+    const body = new ReadableStream({
+      start(controller) {
+        // One "event: token" with 3 consecutive "data:" lines -- this is
+        // how the backend now frames a token containing a paragraph break
+        // (e.g. "First.\n\nSecond.") per the SSE spec, instead of a single
+        // data: line with a literal newline inside it (which would be
+        // invalid SSE framing).
+        controller.enqueue(encoder.encode('event: token\ndata: First.\ndata: \ndata: Second.\n\n'));
+        controller.enqueue(encoder.encode('event: done\ndata: [DONE]\n\n'));
+        controller.close();
+      },
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, {
+      status: 200,
+      headers: { 'X-Conversation-Id': 'conv-2' },
+    })));
+
+    const { ssePost } = await import('../src/api');
+    const result = await ssePost('/chat', { query: 'hello' });
+    const events = [];
+    for await (const event of result.stream) events.push(event);
+
+    expect(events).toEqual([
+      { type: 'token', data: 'First.\n\nSecond.' },
+    ]);
+  });
+
+  it('does not emit a spurious event for a blank line with no preceding data', async () => {
+    localStorage.setItem('docchat_token', 'access');
+    const encoder = new TextEncoder();
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode('event: token\ndata: ok\n\n\n'));
+        controller.enqueue(encoder.encode('event: done\ndata: [DONE]\n\n'));
+        controller.close();
+      },
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, {
+      status: 200,
+      headers: { 'X-Conversation-Id': 'conv-3' },
+    })));
+
+    const { ssePost } = await import('../src/api');
+    const result = await ssePost('/chat', { query: 'hello' });
+    const events = [];
+    for await (const event of result.stream) events.push(event);
+
+    expect(events).toEqual([{ type: 'token', data: 'ok' }]);
+  });
 });
