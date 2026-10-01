@@ -5,7 +5,7 @@ from urllib.parse import urlparse, parse_qs
 import uuid as _uuid
 from app.core.sources import source_collection
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
-from qdrant_client.models import PointStruct
+from app.services.ingestion.storage import build_points, replace_source_points
 from app.services.embedder import get_embedder
 
 COLLECTION = source_collection()
@@ -14,7 +14,7 @@ CHUNK_DURATION_SECONDS = 60
 
 def _source_id_for_video(video_id: str) -> str:
     # Idempotency scope: canonical YouTube video identity. Transcript changes for
-    # the same video overwrite same-index chunks; no version tracking is done here.
+    # the same video replace all chunks for that source identity.
     return str(_uuid.uuid5(_uuid.NAMESPACE_URL, f"docchat:youtube:{video_id}"))
 
 
@@ -92,37 +92,15 @@ async def ingest_youtube(url: str) -> str:
         loop.run_in_executor(None, _fetch_transcript, video_id),
     )
 
-    chunks = _chunk_transcript(transcript)
-    embedder = get_embedder()
-    get_qdrant_collection(COLLECTION)
-    client = get_qdrant_client()
-    points: list[PointStruct] = []
-    now = datetime.now(timezone.utc).isoformat()
-
-    for i, chunk in enumerate(chunks):
-        if not embedder:
-            continue
-        emb = embedder.embed_query(chunk["text"])
-        point_id = str(_uuid.uuid5(_uuid.NAMESPACE_DNS, f"{source_id}_{i}"))
-        points.append(PointStruct(
-            id=point_id,
-            vector=emb.tolist(),
-            payload={
-                "text": chunk["text"],
-                "source_id": source_id,
-                "source_type": "youtube",
-                "video_id": meta["video_id"],
-                "video_url": url,
-                "title": meta["title"],
-                "channel": meta["channel"],
-                "timestamp_start": chunk["timestamp_start"],
-                "timestamp_end": chunk["timestamp_end"],
-                "chunk_index": i,
-                "ingested_at": now,
-            },
-        ))
-
-    if points:
-        client.upsert(collection_name=COLLECTION, points=points)
-
+    chunks = await asyncio.to_thread(_chunk_transcript, transcript)
+    embedder = await asyncio.to_thread(get_embedder)
+    points = await asyncio.to_thread(
+        build_points, source_id, chunks, embedder,
+        {"source_type": "youtube", "video_id": meta["video_id"], "video_url": url,
+         "title": meta["title"], "channel": meta["channel"],
+         "ingested_at": datetime.now(timezone.utc).isoformat()},
+    )
+    await asyncio.to_thread(get_qdrant_collection, COLLECTION)
+    client = await asyncio.to_thread(get_qdrant_client)
+    await asyncio.to_thread(replace_source_points, client, COLLECTION, source_id, points)
     return source_id

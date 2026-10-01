@@ -26,7 +26,7 @@ def test_scrape_extracts_content_and_title():
 async def test_ingest_web_stores_chunks():
     mock_client = MagicMock()
     mock_embedder = MagicMock()
-    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+    mock_embedder.embed_independently.return_value = [np.array([0.1] * 384, dtype="float32")]
 
     fake_scraped = {"content": "Article content about AI.", "title": "AI News"}
 
@@ -57,7 +57,7 @@ async def test_ingest_web_stores_chunks():
 async def test_ingest_web_reupload_uses_same_source_and_point_ids_for_normalized_url():
     mock_client = MagicMock()
     mock_embedder = MagicMock()
-    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+    mock_embedder.embed_independently.return_value = [np.array([0.1] * 384, dtype="float32")]
     fake_scraped = {"content": "Article content about AI.", "title": "AI News"}
 
     with (

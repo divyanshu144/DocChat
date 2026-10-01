@@ -50,12 +50,3 @@ class _Embedder:
     def embed_independently(self, texts: list[str]) -> list[np.ndarray]:
         """Embed each text independently."""
         return [e.astype(np.float32) for e in self._fe.embed(texts)]
-
-    def embed_late(
-        self,
-        segment_text: str,
-        chunk_texts: list[str],
-        chunk_char_starts: list[int],
-    ) -> list[np.ndarray]:
-        """Embed chunks. Degrades to independent embedding in v1."""
-        return self.embed_independently(chunk_texts)

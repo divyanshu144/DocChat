@@ -15,7 +15,6 @@ class FakeSegment:
 async def test_ingest_pdf_stores_chunks_in_qdrant():
     mock_client = MagicMock()
     mock_embedder = MagicMock()
-    mock_embedder.embed_late.return_value = [np.array([0.1] * 384, dtype="float32")]
     mock_embedder.embed_independently.return_value = [np.array([0.1] * 384, dtype="float32")]
 
     fake_segments = [FakeSegment(text="Sample text", page_number=1, section_heading="Intro")]
@@ -29,7 +28,7 @@ async def test_ingest_pdf_stores_chunks_in_qdrant():
         patch("app.services.ingestion.pdf._extract_segments", return_value=fake_segments),
         patch("app.services.ingestion.pdf._chunk_segments", return_value=fake_chunks),
         patch("app.services.ingestion.pdf._file_sha256", return_value="abc123"),
-        patch("app.services.ingestion.pdf._embed_chunks_late",
+        patch("app.services.ingestion.pdf._embed_chunks_independently",
               return_value=[np.array([0.1] * 384, dtype="float32")]),
     ):
         from app.services.ingestion.pdf import ingest_pdf
@@ -63,7 +62,7 @@ async def test_ingest_pdf_reupload_uses_same_source_and_point_ids():
         patch("app.services.ingestion.pdf._extract_segments", return_value=fake_segments),
         patch("app.services.ingestion.pdf._chunk_segments", return_value=fake_chunks),
         patch("app.services.ingestion.pdf._file_sha256", return_value="same-content"),
-        patch("app.services.ingestion.pdf._embed_chunks_late", return_value=[embedding]),
+        patch("app.services.ingestion.pdf._embed_chunks_independently", return_value=[embedding]),
     ):
         from app.services.ingestion.pdf import ingest_pdf
         source_id_1 = await ingest_pdf("/fake/path.pdf", "test.pdf", "application/pdf")
@@ -92,7 +91,7 @@ async def test_ingest_pdf_reports_progress_phases():
         patch("app.services.ingestion.pdf._extract_segments", return_value=fake_segments),
         patch("app.services.ingestion.pdf._chunk_segments", return_value=fake_chunks),
         patch("app.services.ingestion.pdf._file_sha256", return_value="progress-content"),
-        patch("app.services.ingestion.pdf._embed_chunks_late", return_value=[embedding]),
+        patch("app.services.ingestion.pdf._embed_chunks_independently", return_value=[embedding]),
     ):
         from app.services.ingestion.pdf import ingest_pdf
         await ingest_pdf(

@@ -70,6 +70,7 @@ async def test_server_lifespan_closes_retriever_client_on_failure(server_type):
     with (
         patch("app.main._refuse_default_secret_in_production"),
         patch("app.main.create_all_tables", new=AsyncMock()),
+        patch("app.main.ingest.recover_interrupted_ingest_jobs", new=AsyncMock()),
     ):
         with pytest.raises(RuntimeError, match="handler failed"):
             async with context(None):

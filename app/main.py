@@ -46,6 +46,7 @@ def _refuse_default_secret_in_production() -> None:
 async def lifespan(app: FastAPI):
     _refuse_default_secret_in_production()
     await create_all_tables()
+    await ingest.recover_interrupted_ingest_jobs()
     logger.info("startup", extra={"app": settings.app_name, "version": settings.version})
     try:
         yield

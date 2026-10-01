@@ -3,13 +3,15 @@ import hashlib
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
+from typing import Awaitable, Callable
+import inspect
 
 import uuid as _uuid
 from app.core.sources import source_collection
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
 from qdrant_client.models import PointStruct
 from app.services.embedder import get_embedder
+from app.services.ingestion.storage import embed_chunks, replace_source_points
 
 COLLECTION = source_collection()
 CHUNK_SIZE = 1500
@@ -146,28 +148,18 @@ def _chunk_segments(segments: list[_Segment]) -> list[dict]:
     return chunks
 
 
-def _embed_chunks_late(raw_chunks: list[dict], segments: list[_Segment], embedder) -> list:
-    results: list = [None] * len(raw_chunks)
-    i = 0
-    while i < len(raw_chunks):
-        seg_idx = raw_chunks[i].get("seg_idx")
-        j = i
-        while j < len(raw_chunks) and raw_chunks[j].get("seg_idx") == seg_idx:
-            j += 1
-        group = raw_chunks[i:j]
-        chunk_texts = [c["text"] for c in group]
-        char_starts = [c.get("char_start", 0) for c in group]
-        if seg_idx is not None and seg_idx < len(segments):
-            embs = embedder.embed_late(segments[seg_idx].text, chunk_texts, char_starts)
-        else:
-            embs = embedder.embed_independently(chunk_texts)
-        for k, emb in enumerate(embs):
-            results[i + k] = emb
-        i = j
-    return results
+def _embed_chunks_independently(raw_chunks: list[dict], embedder) -> list:
+    return embed_chunks(embedder, [chunk["text"] for chunk in raw_chunks])
 
 
-ProgressCallback = Callable[[str, str], None]
+ProgressCallback = Callable[[str, str], Awaitable[None] | None]
+
+
+async def _report_progress(progress: ProgressCallback | None, phase: str, message: str) -> None:
+    if progress:
+        result = progress(phase, message)
+        if inspect.isawaitable(result):
+            await result
 
 
 async def ingest_pdf(
@@ -178,32 +170,29 @@ async def ingest_pdf(
 ) -> str:
     """Extract, chunk, embed, and store a document in Qdrant. Returns source_id."""
     loop = asyncio.get_running_loop()
-    if progress:
-        progress("hashing", "Reading file")
+    await _report_progress(progress, "hashing", "Reading file")
     content_hash = await loop.run_in_executor(None, _file_sha256, file_path)
     source_id = _source_id_from_content_hash(content_hash)
 
-    if progress:
-        progress("extracting", "Extracting text")
+    await _report_progress(progress, "extracting", "Extracting text")
     segments = await loop.run_in_executor(None, _extract_segments, file_path, content_type)
-    if progress:
-        progress("chunking", f"Chunking {len(segments)} segments")
+    await _report_progress(progress, "chunking", f"Chunking {len(segments)} segments")
     raw_chunks = await loop.run_in_executor(None, _chunk_segments, segments)
 
-    embedder = get_embedder()
+    embedder = await asyncio.to_thread(get_embedder)
     if embedder:
-        if progress:
-            progress("embedding", f"Embedding {len(raw_chunks)} chunks")
+        await _report_progress(progress, "embedding", f"Embedding {len(raw_chunks)} chunks")
         embeddings = await loop.run_in_executor(
-            None, _embed_chunks_late, raw_chunks, segments, embedder
+            None, _embed_chunks_independently, raw_chunks, embedder
         )
     else:
-        embeddings = [None] * len(raw_chunks)
+        raise RuntimeError("Embedding service unavailable; source was not indexed")
 
-    if progress:
-        progress("indexing", "Indexing chunks")
-    get_qdrant_collection(COLLECTION)
-    client = get_qdrant_client()
+    if not raw_chunks:
+        raise ValueError("Source contains no readable chunks")
+    await _report_progress(progress, "indexing", "Indexing chunks")
+    await asyncio.to_thread(get_qdrant_collection, COLLECTION)
+    client = await asyncio.to_thread(get_qdrant_client)
     points: list[PointStruct] = []
     now = datetime.now(timezone.utc).isoformat()
 
@@ -226,7 +215,6 @@ async def ingest_pdf(
             },
         ))
 
-    if points:
-        client.upsert(collection_name=COLLECTION, points=points)
+    await asyncio.to_thread(replace_source_points, client, COLLECTION, source_id, points)
 
     return source_id

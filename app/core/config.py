@@ -1,6 +1,7 @@
 from pathlib import Path
 from functools import lru_cache
 from typing import Literal
+from pydantic import Field
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -58,6 +59,8 @@ class Settings(BaseSettings):
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
     context_max_chars: int = 12000
+    ingest_batch_size: int = Field(default=64, ge=1)
+    upload_max_bytes: int = Field(default=50 * 1024 * 1024, ge=1)
 
     # Sampling temperature for the nodes whose output is a LABEL rather than prose
     # (critic, planner). Pinned to 0 so a verdict does not move between identical

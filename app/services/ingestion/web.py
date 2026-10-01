@@ -10,7 +10,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 import uuid as _uuid
 from app.core.sources import source_collection
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
-from qdrant_client.models import PointStruct
+from app.services.ingestion.storage import build_points, replace_source_points
 from app.services.embedder import get_embedder
 
 COLLECTION = source_collection()
@@ -38,7 +38,7 @@ def _normalize_url(url: str) -> str:
 
 def _source_id_for_url(url: str) -> str:
     # Idempotency scope: canonical URL identity. Content changes at the same URL
-    # overwrite same-index chunks; no document-version cleanup is done here.
+    # replace all chunks for that source identity.
     return str(_uuid.uuid5(_uuid.NAMESPACE_URL, f"docchat:web:{_normalize_url(url)}"))
 
 
@@ -61,35 +61,15 @@ async def ingest_web(url: str) -> str:
     domain = urlparse(normalized_url).netloc
 
     scraped = await loop.run_in_executor(None, _scrape, url)
-    chunk_texts = _splitter.split_text(scraped["content"])
+    chunk_texts = await asyncio.to_thread(_splitter.split_text, scraped["content"])
 
-    embedder = get_embedder()
-    get_qdrant_collection(COLLECTION)
-    client = get_qdrant_client()
-    points: list[PointStruct] = []
-    now = datetime.now(timezone.utc).isoformat()
-
-    for i, text in enumerate(chunk_texts):
-        if not text.strip() or not embedder:
-            continue
-        emb = embedder.embed_query(text)
-        point_id = str(_uuid.uuid5(_uuid.NAMESPACE_DNS, f"{source_id}_{i}"))
-        points.append(PointStruct(
-            id=point_id,
-            vector=emb.tolist(),
-            payload={
-                "text": text,
-                "source_id": source_id,
-                "source_type": "web",
-                "url": normalized_url,
-                "title": scraped["title"],
-                "domain": domain,
-                "chunk_index": i,
-                "scraped_at": now,
-            },
-        ))
-
-    if points:
-        client.upsert(collection_name=COLLECTION, points=points)
-
+    embedder = await asyncio.to_thread(get_embedder)
+    points = await asyncio.to_thread(
+        build_points, source_id, [{"text": text} for text in chunk_texts], embedder,
+        {"source_type": "web", "url": normalized_url, "title": scraped["title"],
+         "domain": domain, "scraped_at": datetime.now(timezone.utc).isoformat()},
+    )
+    await asyncio.to_thread(get_qdrant_collection, COLLECTION)
+    client = await asyncio.to_thread(get_qdrant_client)
+    await asyncio.to_thread(replace_source_points, client, COLLECTION, source_id, points)
     return source_id
