@@ -10,7 +10,76 @@ This README is written as an engineering handoff. It includes what I built, why 
 
 Prerequisites:
 
-<<<<<<< HEAD
+- Docker Desktop
+- Node.js 18+ if you want to rebuild the frontend bundle
+- A Groq API key, unless you switch `LLM_PROVIDER` to another configured provider
+
+```bash
+cp .env.example .env
+# Set at minimum:
+# GROQ_API_KEY=...
+# JWT_SECRET_KEY=<long-random-string>
+
+cd frontend
+npm install
+npm run build
+cd ..
+
+docker compose up --build
+```
+
+Open:
+
+- App: `http://localhost:8081`
+- API docs: `http://localhost:8081/docs`
+- Qdrant dashboard: `http://localhost:6333/dashboard`
+
+### Local Development
+
+Run Postgres and Qdrant locally:
+
+```bash
+docker run -p 6333:6333 qdrant/qdrant
+
+docker run \
+  -e POSTGRES_USER=docchat \
+  -e POSTGRES_PASSWORD=docchat \
+  -e POSTGRES_DB=docchat \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
+
+Install and run the backend:
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+export DATABASE_URL=postgresql+asyncpg://docchat:docchat@localhost:5432/docchat
+export QDRANT_HOST=localhost
+export QDRANT_PORT=6333
+export GROQ_API_KEY=...
+export JWT_SECRET_KEY=...
+
+uvicorn app.main:app --reload
+```
+
+Run the frontend in dev mode:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Build the frontend into the FastAPI static directory:
+
+```bash
+cd frontend
+npm run build
+```
+
 ## Tech stack
 
 | Layer | Technology |
@@ -172,90 +241,6 @@ frontend/                  # React 18 + Vite + TypeScript source
 ```
 
 ---
-
-## Setup
-
-### Docker Compose (recommended)
-
-**Prerequisites:** Docker Desktop, a [Groq API key](https://console.groq.com)
-
-```bash
-# 1. Clone the repo
-git clone <repo-url>
-cd docchat
-
-# 2. Configure environment
-=======
-- Docker Desktop
-- Node.js 18+ if you want to rebuild the frontend bundle
-- A Groq API key, unless you switch `LLM_PROVIDER` to another configured provider
-
-```bash
->>>>>>> c4731b1c9c0ceabf3ad4cd5156696639057c3cc4
-cp .env.example .env
-# Set at minimum:
-# GROQ_API_KEY=...
-# JWT_SECRET_KEY=<long-random-string>
-
-cd frontend
-npm install
-npm run build
-cd ..
-
-docker compose up --build
-```
-
-Open:
-
-- App: `http://localhost:8081`
-- API docs: `http://localhost:8081/docs`
-- Qdrant dashboard: `http://localhost:6333/dashboard`
-
-### Local Development
-
-Run Postgres and Qdrant locally:
-
-```bash
-docker run -p 6333:6333 qdrant/qdrant
-
-docker run \
-  -e POSTGRES_USER=docchat \
-  -e POSTGRES_PASSWORD=docchat \
-  -e POSTGRES_DB=docchat \
-  -p 5432:5432 \
-  postgres:16-alpine
-```
-
-Install and run the backend:
-
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-export DATABASE_URL=postgresql+asyncpg://docchat:docchat@localhost:5432/docchat
-export QDRANT_HOST=localhost
-export QDRANT_PORT=6333
-export GROQ_API_KEY=...
-export JWT_SECRET_KEY=...
-
-uvicorn app.main:app --reload
-```
-
-Run the frontend in dev mode:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Build the frontend into the FastAPI static directory:
-
-```bash
-cd frontend
-npm run build
-```
 
 ## Architecture Overview
 
@@ -600,7 +585,87 @@ python -m pytest
 # 124 passed, 4 live critic-eval failures in this local environment
 ```
 
-<<<<<<< HEAD
+The full-suite failures were not caused by the chat/folder/auth fixes; they are live LLM evaluator tests that should be split from deterministic CI.
+
+---
+
+## API reference
+
+All endpoints (except `/api/v1/health`, `/api/v1/auth/signup`, `/api/v1/auth/login`, `/api/v1/auth/refresh`) require a Bearer token in the `Authorization` header.
+
+### Auth
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/auth/signup` | Create account and return `access_token` + `refresh_token` |
+| `POST` | `/api/v1/auth/login` | Log in; returns `access_token` + `refresh_token` |
+| `POST` | `/api/v1/auth/refresh` | Exchange refresh token for new access token |
+| `POST` | `/api/v1/auth/logout` | Revoke refresh token |
+| `GET` | `/api/v1/auth/me` | Current user info |
+
+**Login example:**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "secret"}'
+# → {"access_token": "eyJ...", "refresh_token": "eyJ...", "token_type": "bearer"}
+```
+
+### Ingest
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/ingest/pdf` | Upload a PDF (`multipart/form-data`, field `file`). |
+| `POST` | `/api/v1/ingest/youtube` | Ingest a YouTube video (`{"url": "..."}`). |
+| `POST` | `/api/v1/ingest/web` | Scrape a web page (`{"url": "..."}`). |
+| `GET` | `/api/v1/sources` | List all ingested sources. |
+| `DELETE` | `/api/v1/sources/{source_id}` | Delete a source and its chunks from Qdrant. |
+
+There's also an async, job-based path (`POST /api/v1/ingest/{pdf,youtube,web}/jobs` +
+`GET /api/v1/ingest/jobs/{job_id}`) for persisted ingestion jobs — added alongside the
+synchronous routes above; not yet documented here in detail.
+
+**PDF example:**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/ingest/pdf \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@paper.pdf"
+```
+
+### Chat
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/chat` | Send a query; returns an SSE stream. Pass `conversation_id` to continue a conversation; omit to start a new one. |
+
+**Request body:**
+
+```json
+{
+  "query": "What are the key findings?",
+  "conversation_id": "optional-uuid",
+  "sources": ["pdf", "youtube"],
+  "source_ids": ["abc-123", "def-456"]
+}
+```
+
+- `sources` — filter which Qdrant collections the agent queries (`pdf`, `youtube`, `web`). Omit to query all three.
+- `source_ids` — restrict retrieval to specific ingested documents by their `source_id`. Omit (or pass `[]`) to search across all sources in the selected collections.
+
+**Response:** SSE stream — one token per `data:` line, `[DONE]` at end, `[ERROR]` on failure. The response header `X-Conversation-Id` carries the conversation UUID for subsequent requests.
+
+```
+data: The
+
+data:  key
+
+data:  findings are...
+
+data: [DONE]
+```
+
 ### Conversations
 
 | Method | Path | Description |
@@ -676,6 +741,3 @@ Schema columns are added automatically at startup via idempotent migrations (usi
 - **Move by drag-and-drop** — drag any conversation item onto a folder header; the folder highlights with a dashed border while hovering; drop to move
 - **Move via menu** — hover over a conversation, click `⋯`, select a target folder or "Uncategorized"
 - **Delete folder** — `DELETE /api/v1/folders/{id}`; conversations are uncategorised, not deleted
-=======
-The full-suite failures were not caused by the chat/folder/auth fixes; they are live LLM evaluator tests that should be split from deterministic CI.
->>>>>>> c4731b1c9c0ceabf3ad4cd5156696639057c3cc4
