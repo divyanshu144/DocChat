@@ -29,6 +29,21 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Built in this branch (2026-10-01) — Phase 5 write-up
+
+`docs/inference-writeup.md`: a short engineering write-up built only from numbers
+already in `eval/BENCHMARK_RESULTS.md`, no new claim added. Tells the measurement
+mistakes in order (wrong workload, a wall-time bug that inflated one throughput number
+over 6x, cache-contaminated latency), the corrected findings (hosted rate limits bind
+before latency, self-hosting trades the account-tier ceiling for a KV-cache one you can
+see and size yourself, cost is idle-time-dominated, decode slowdown under load matches a
+memory-bandwidth calculation), what was never tested (the A100's real KV limit,
+quantization, a direct serial-vs-concurrent proof, a second serving engine, a clean Groq
+baseline at real prompt sizes), and which cost figures used placeholder rates. Updated
+the README's "Inference benchmarking" section to match the corrected framing (dropped
+the "no such ceiling" overclaim) and link to the new write-up. `ruff check .` clean,
+`pytest -m "not eval" -q` 276 passed (no code changed).
+
 ### Built in this branch (2026-10-01) — Phase 4 spec: batching proof
 
 Spec: `docs/superpowers/specs/2026-10-01-batching-proof-design.md`. Every sweep so far

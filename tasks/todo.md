@@ -23,9 +23,9 @@ off `feat/openai-sse-chat-quality`. One commit per item. Nothing pushed, nothing
       New `--serial` flag + `mode` row tag in `eval/inference_benchmark.py`, 4 dry-run
       tests including one that actually proves no overlap, not just call count. 272 to
       276 passed. **STOPPED here, waiting for a go before any pod for 4a or 4b.**
-- [ ] 5. `docs/inference-writeup.md` from `eval/BENCHMARK_RESULTS.md` numbers only,
-      including the measurement-mistake story. Update README's Inference benchmarking
-      section to match.
+- [x] 5. `docs/inference-writeup.md` written from `eval/BENCHMARK_RESULTS.md` numbers
+      only. README's Inference benchmarking section updated to match (dropped the "no
+      such ceiling" overclaim, linked the write-up). 276 passed, no code changed.
 - [ ] 6. Cleanup: ask before deleting network volume `owdj19ss50`. Update this file and
       HANDOFF.md to close out the track.
 

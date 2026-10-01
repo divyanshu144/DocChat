@@ -173,13 +173,21 @@ What makes the numbers trustworthy, not just fast-looking:
   (expect ~0%) and refuses to proceed if that split isn't observed.
 
 **Headline finding:** at realistic prompt sizes, hosted-API concurrency limits bind
-before raw latency does — OpenAI returned `429` on the majority of requests at
-concurrency 4+ on this account's tier, while a self-hosted GPU has no such ceiling, only
-its own KV-cache capacity. A second finding came from the harness catching its own
-measurement bug: an early sweep's local TTFT was suspiciously flat under load; the
-cache-busting + `/metrics` work above was built specifically to test that suspicion, and
-confirmed it — see `eval/BENCHMARK_RESULTS.md` for the full sweep-by-sweep writeup,
-including the self-correction.
+before raw latency does. OpenAI returned `429` on the majority of requests at
+concurrency 4+ on this account's tier. Self-hosting removes that account-tier ceiling,
+but it does not remove queueing under load: a corrected, cache-busted sweep showed the
+GPU's own KV cache climbing to 99.4% full at high concurrency, with real client-side
+timeouts once it saturated. The honest framing is that self-hosting trades someone
+else's account-tier quota for a ceiling you can see, size, and control yourself, not
+"no ceiling at all."
+
+A second finding came from the harness catching its own measurement mistakes before
+trusting its own output: a wrong workload (40-100x smaller than DocChat's real request
+shape), a wall-time bug that inflated one throughput number by over 6x, and a
+cache-contaminated latency measurement were each found and fixed, with direct evidence,
+inside this same body of work. See `docs/inference-writeup.md` for the short version of
+that story and the corrected findings, or `eval/BENCHMARK_RESULTS.md` for the full
+sweep-by-sweep data behind it.
 
 ---
 
