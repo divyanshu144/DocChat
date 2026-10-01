@@ -345,8 +345,27 @@ def _expanded_cases() -> list[PipelineCase]:
 CASES: list[PipelineCase] = _expanded_cases()
 
 
-def _collection_to_source(collection_name: str) -> str:
-    return collection_name.removesuffix("_chunks")
+def _fixture_search(query: str, limit: int, qdrant_filter=None) -> list[dict]:
+    """Apply the normalized source_type payload filter to synthetic fixtures."""
+    query = query.lower()
+    if any(term in query for term in ("database migration", "migration framework", "alembic")):
+        return []
+    if "compare" in query or all(term in query for term in ("pdf", "youtube", "web")):
+        sources = ["pdf", "youtube", "web"]
+    elif any(term in query for term in ("youtube", "transcript", "streamed", "browser", "frontend", "tokens")):
+        sources = ["youtube"]
+    elif any(term in query for term in ("web", "http", "content extraction", "article", "folders", "folder", "chats")):
+        sources = ["web"]
+    else:
+        sources = ["pdf"]
+    if qdrant_filter:
+        for condition in qdrant_filter.must or []:
+            if condition.key == "source_type":
+                sources = [source for source in sources if source in condition.match.any]
+    return sorted([
+        {**row, "payload": {**row["payload"], "source_type": source}}
+        for source in sources for row in CHUNKS[source]
+    ], key=lambda row: row["score"], reverse=True)[:limit]
 
 
 def _score(case: PipelineCase, state: dict, latency_ms: float) -> PipelineCaseResult:
@@ -424,6 +443,7 @@ async def _run_case_manual(case: PipelineCase, *, allow_retry: bool) -> tuple[Pi
 
     state = {
         "query": case.query,
+        "original_query": case.query,
         "conversation_id": f"eval-{case.label}",
         "sources_to_use": ["pdf", "youtube", "web"],
         "source_ids": [],
@@ -459,19 +479,7 @@ async def run_eval(*, allow_retry: bool = True, limit: int | None = None) -> lis
     fake_embedder = FakeEmbedder()
 
     async def fake_search(collection_name: str, query_vector: list, limit: int, qdrant_filter=None) -> list:
-        source = _collection_to_source(collection_name)
-        query = fake_embedder.last_query.lower()
-        rows = CHUNKS.get(source, [])
-
-        if "database migration" in query:
-            return []
-        if "compare" in query or ("pdf" in query and "youtube" in query and "web" in query):
-            return rows[:limit]
-        if "youtube" in query or "transcript" in query or "streamed" in query or "browser" in query:
-            return rows[:limit] if source == "youtube" else []
-        if "web" in query or "http" in query or "content extraction" in query or "folders" in query:
-            return rows[:limit] if source == "web" else []
-        return rows[:limit] if source == "pdf" else []
+        return _fixture_search(fake_embedder.last_query, limit, qdrant_filter)
 
     results: list[PipelineCaseResult] = []
     with ExitStack() as stack:
@@ -483,6 +491,7 @@ async def run_eval(*, allow_retry: bool = True, limit: int | None = None) -> lis
             print(f"[EVAL {'optimized' if allow_retry else 'baseline'}] {index}/{total} {case.label}", flush=True)
             state = {
                 "query": case.query,
+                "original_query": case.query,
                 "conversation_id": f"eval-{case.label}",
                 "sources_to_use": ["pdf", "youtube", "web"],
                 "source_ids": [],
@@ -504,26 +513,14 @@ async def run_compare(limit: int | None = None) -> tuple[list[PipelineCaseResult
     fake_embedder = FakeEmbedder()
 
     async def fake_search(collection_name: str, query_vector: list, limit: int, qdrant_filter=None) -> list:
-        source = _collection_to_source(collection_name)
-        query = fake_embedder.last_query.lower()
-        rows = CHUNKS.get(source, [])
-
-        if "database migration" in query or "migration framework" in query or "alembic" in query:
-            return []
-        if "compare" in query or ("pdf" in query and "youtube" in query and "web" in query):
-            return rows[:limit]
-        if "youtube" in query or "transcript" in query or "streamed" in query or "browser" in query or "frontend" in query or "tokens" in query:
-            return rows[:limit] if source == "youtube" else []
-        if "web" in query or "http" in query or "content extraction" in query or "article" in query or "folders" in query or "folder" in query or "chats" in query:
-            return rows[:limit] if source == "web" else []
-        return rows[:limit] if source == "pdf" else []
+        return _fixture_search(fake_embedder.last_query, limit, qdrant_filter)
 
     import app.services.llm as llm_service
 
     output_cap = int(os.getenv("E2E_EVAL_MAX_TOKENS", "220"))
 
-    async def capped_chat_complete(messages: list[dict], max_tokens: int = 1024) -> str:
-        return await llm_service.chat_complete(messages, max_tokens=min(max_tokens, output_cap))
+    async def capped_chat_complete(messages: list[dict], max_tokens: int = 1024, **kwargs) -> str:
+        return await llm_service.chat_complete(messages, max_tokens=min(max_tokens, output_cap), **kwargs)
 
     baseline: list[PipelineCaseResult] = []
     optimized: list[PipelineCaseResult] = []
@@ -582,7 +579,7 @@ async def async_main() -> int:
     parser = argparse.ArgumentParser(description="Run formal DocChat end-to-end pipeline eval.")
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--limit", type=int, default=None, help="Run only the first N cases.")
-    parser.add_argument("--compare", action="store_true", help="Run baseline without retry and optimized with retry.")
+    parser.add_argument("--compare", action="store_true", help="Paired first-pass versus retried answer; both arms call the critic.")
     args = parser.parse_args()
 
     if args.compare:

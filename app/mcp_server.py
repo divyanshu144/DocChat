@@ -38,6 +38,7 @@ async def query_documents(
 
     state: AgentState = {
         "query": query,
+        "original_query": query,
         "conversation_id": "",
         "conversation_history": [],
         "sources_to_use": ["pdf", "youtube", "web"],

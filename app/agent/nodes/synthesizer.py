@@ -114,7 +114,7 @@ async def synthesizer_node(state: AgentState) -> dict:
                 conversation_history=_format_history(state.get("conversation_history", [])),
             ),
         },
-        {"role": "user", "content": state["query"]},
+        {"role": "user", "content": state.get("original_query", state["query"])},
     ]
     answer = await chat_complete(messages, max_tokens=1400)
     return {"answer": answer}

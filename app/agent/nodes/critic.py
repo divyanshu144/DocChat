@@ -62,7 +62,7 @@ def _open_rejection(state: AgentState, reason: str) -> dict:
         "rejection_id": str(uuid4()),
         "conversation_id": state.get("conversation_id", ""),
         "rejected_at": datetime.now(timezone.utc).isoformat(),
-        "query": state["query"],
+        "query": state.get("original_query", state["query"]),
         "context": _context_from(state),
         "rejected_answer": state["answer"],
         "rejected_reason": reason,
@@ -115,7 +115,7 @@ async def critic_node(state: AgentState) -> dict:
             "pending_rejection": None,
         }
 
-    prompt = CRITIC_PROMPT.format(query=state["query"], answer=state["answer"])
+    prompt = CRITIC_PROMPT.format(query=state.get("original_query", state["query"]), answer=state["answer"])
     response = await chat_complete(
         [{"role": "user", "content": prompt}],
         max_tokens=150,

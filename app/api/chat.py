@@ -125,6 +125,7 @@ async def chat(
 
     initial_state: AgentState = {
         "query": req.query,
+        "original_query": req.query,
         "conversation_id": conv.id,
         "conversation_history": history,
         "sources_to_use": req.sources or ["pdf", "youtube", "web"],
