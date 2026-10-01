@@ -425,3 +425,23 @@ and the actual content gone. Not fixed here (out of scope for the logging-only t
 but worth a follow-up: `rsplit` should search within the chunk's own text, not the
 combined `entry` string that includes the label, or fall back to a hard character cut
 when no space is found within some reasonable distance of the end.
+
+---
+
+## 2026-10-01 completion notes
+
+- The default `.venv` lacked pytest/ruff; this project's working environment is
+  `venv/`. Use its explicit executables rather than assuming a directory name.
+- A startup lifecycle test that mocks schema creation must also isolate the new
+  interrupted-job recovery query. Recovery itself is tested against real SQLite;
+  do not let an offline lifecycle test accidentally connect to Docker DNS names.
+- Independent embeddings were hidden behind `embed_late`, which ignored segment
+  context. That name and its dead parameters are removed; docs describe what runs.
+- A critic parse fallback accepts without a real verdict. Benchmarks must record
+  malformed/empty responses as errors, not score the fallback as a good verdict.
+- GPT-5.5 defaults to reasoning that can exhaust a tiny classification output cap.
+  For the approved short critic diagnostic, explicitly selected reasoning=none;
+  live usage confirmed zero reasoning tokens and no truncated/empty verdicts.
+- The e2e harness still looked up synthetic fixtures by per-type collection names
+  after production switched to source_chunks. Its adapter now applies payload source
+  filters. Its compare mode measures first pass versus retry, not critic on/off.
