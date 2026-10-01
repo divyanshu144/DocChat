@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.models.conversation import Conversation, Message
+from app.models.conversation import Conversation, Folder, Message
 from app.models.user import User
 
 router = APIRouter()
@@ -82,6 +82,15 @@ async def move_conversation(
     current_user: User = Depends(get_current_user),
 ):
     conv = await _get_owned_conversation(conv_id, db, current_user)
+    if body.folder_id is not None:
+        folder_result = await db.execute(
+            select(Folder).where(
+                Folder.id == body.folder_id,
+                Folder.user_id == current_user.id,
+            )
+        )
+        if folder_result.scalar_one_or_none() is None:
+            raise HTTPException(404, "Folder not found")
     conv.folder_id = body.folder_id
     await db.commit()
     return {"id": conv.id, "title": conv.title, "folder_id": conv.folder_id}

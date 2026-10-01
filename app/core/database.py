@@ -41,21 +41,30 @@ async def create_all_tables() -> None:
         await conn.run_sync(_migrate)
 
 
-def _migrate(conn) -> None:
+def _table_columns(conn, table_name: str) -> set[str]:
     from sqlalchemy import text
     if conn.dialect.name == "sqlite":
-        cols = {row[1] for row in conn.execute(text("PRAGMA table_info(conversations)")).fetchall()}
-    else:
-        rows = conn.execute(text(
-            "SELECT column_name FROM information_schema.columns "
-            "WHERE table_schema = 'public' AND table_name = 'conversations'"
-        )).fetchall()
-        cols = {row[0] for row in rows}
+        return {row[1] for row in conn.execute(text(f"PRAGMA table_info({table_name})")).fetchall()}
+    rows = conn.execute(text(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_schema = 'public' AND table_name = :table_name"
+    ), {"table_name": table_name}).fetchall()
+    return {row[0] for row in rows}
+
+
+def _migrate(conn) -> None:
+    from sqlalchemy import text
+    cols = _table_columns(conn, "conversations")
     if "folder_id" not in cols:
         conn.execute(text("ALTER TABLE conversations ADD COLUMN folder_id VARCHAR REFERENCES folders(id)"))
     if "user_id" not in cols:
         conn.execute(text("ALTER TABLE conversations ADD COLUMN user_id VARCHAR"))
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conversations_user_id ON conversations (user_id)"))
+
+    folder_cols = _table_columns(conn, "folders")
+    if "user_id" not in folder_cols:
+        conn.execute(text("ALTER TABLE folders ADD COLUMN user_id VARCHAR"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_folders_user_id ON folders (user_id)"))
 
 
 async def get_db():

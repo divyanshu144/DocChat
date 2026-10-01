@@ -37,11 +37,16 @@ dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
 ### A. Auth gaps
 - [x] `Depends(get_current_user)` on all `app/api/ingest.py` (9) + `app/api/folders.py`
       (4) routes. 13 new 401 tests. 276 to 289 passed.
+- [x] `Folder.user_id` column + `_migrate()` extension (mirror `conversations.user_id`).
+      Verified for real against SQLite (not mocked): adds, idempotent, indexed, no-op
+      on current schema. Postgres branch unchanged query pattern, not live-verified
+      (DROP TABLE blocked by the safety hook even for a scratch table).
+- [x] Scope folder queries by user; conversation-move verifies folder ownership
+      (this was the one real gap: a conversation owner could move it into someone
+      else's folder). 7 cross-user isolation tests against a real SQLite database.
+      289 to 302 passed.
 - [ ] `decisions.md` entry 003 (corrects 001's "any authenticated user" wording).
-- [ ] `Folder.user_id` column + `_migrate()` extension (mirror `conversations.user_id`).
-- [ ] Scope folder queries by user; conversation-move verifies folder ownership.
 - [ ] Startup refusal if `jwt_secret_key` is still the shipped default and debug=false.
-- [ ] Tests: 401 on every newly-guarded route, cross-user folder isolation.
 
 ### B. Chat streaming and formatting
 - [ ] `chat.py`: whitespace-preserving split (`re.findall(r"\S+\s*|\s+", answer)`).

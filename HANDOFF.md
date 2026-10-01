@@ -29,6 +29,37 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Fixed in this branch (2026-10-01) — Part 2 A, step 2: folders scoped per user
+
+`Folder` gained a `user_id` column (nullable, indexed, no FK, mirroring
+`Conversation.user_id`'s exact shape). `app/core/database.py`'s `_migrate` extended with
+the same pattern already used for `conversations.user_id`, refactored the duplicated
+sqlite/postgres column-introspection logic into one `_table_columns(conn, table_name)`
+helper used by both tables' checks rather than copy-pasting it a third time.
+
+`app/api/folders.py`: `create_folder` sets `user_id`, `list_folders` filters by it,
+`rename_folder`/`delete_folder` now go through a new `_get_owned_folder` helper
+(mirrors `app/api/conversations.py`'s existing `_get_owned_conversation`) that 404s
+instead of letting a caller touch someone else's folder by id. `app/api/conversations.py`'s
+`move_conversation` now checks the target folder belongs to the same user before
+assigning it, closing the one real gap found in the plan: a conversation owner could
+previously move their own conversation into a folder owned by someone else.
+
+Verified the SQLite side of `_migrate` for real (temporary in-memory database, not a
+mock): adds the column, is idempotent on a second run, creates the index, and is a
+no-op on an already-current schema. Could not verify the Postgres branch live (the
+local safety hook correctly blocks `DROP TABLE` even for a scratch table), but the
+query pattern is unchanged from the one `conversations.user_id` already used, just
+parameterized to accept `folders` too.
+
+Cross-user isolation proven against a real (temporary, in-memory) SQLite database, not
+mocks, calling the actual route functions directly with two seeded users and one
+seeded folder/conversation each: user B cannot see, rename, or delete user A's folder,
+and user A cannot move their own conversation into a folder user B owns.
+
+13 new tests (5 migration, 1 model, 7 cross-user isolation). `ruff check .` clean,
+`pytest -m "not eval" -q` 289 to 302 passed.
+
 ### Fixed in this branch (2026-10-01) — Part 2 A, step 1: auth on ingest and folders
 
 Every route in `app/api/ingest.py` (9 routes) and `app/api/folders.py` (4 routes) had

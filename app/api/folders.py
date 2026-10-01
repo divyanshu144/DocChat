@@ -21,13 +21,30 @@ class FolderRename(BaseModel):
     name: str
 
 
+async def _get_owned_folder(
+    folder_id: str,
+    db: AsyncSession,
+    current_user: User,
+) -> Folder:
+    result = await db.execute(
+        select(Folder).where(
+            Folder.id == folder_id,
+            Folder.user_id == current_user.id,
+        )
+    )
+    folder = result.scalar_one_or_none()
+    if not folder:
+        raise HTTPException(404, "Folder not found")
+    return folder
+
+
 @router.post("/folders", status_code=201)
 async def create_folder(
     body: FolderCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    folder = Folder(id=str(_uuid.uuid4()), name=body.name.strip())
+    folder = Folder(id=str(_uuid.uuid4()), name=body.name.strip(), user_id=current_user.id)
     db.add(folder)
     await db.commit()
     await db.refresh(folder)
@@ -39,7 +56,11 @@ async def list_folders(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Folder).order_by(Folder.created_at))
+    result = await db.execute(
+        select(Folder)
+        .where(Folder.user_id == current_user.id)
+        .order_by(Folder.created_at)
+    )
     folders = result.scalars().all()
 
     counts: dict[str, int] = {}
@@ -69,9 +90,7 @@ async def rename_folder(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    folder = await db.get(Folder, folder_id)
-    if not folder:
-        raise HTTPException(404, "Folder not found")
+    folder = await _get_owned_folder(folder_id, db, current_user)
     folder.name = body.name.strip()
     await db.commit()
     await db.refresh(folder)
@@ -84,9 +103,7 @@ async def delete_folder(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    folder = await db.get(Folder, folder_id)
-    if not folder:
-        raise HTTPException(404, "Folder not found")
+    folder = await _get_owned_folder(folder_id, db, current_user)
     await db.execute(
         update(Conversation).where(Conversation.folder_id == folder_id).values(folder_id=None)
     )

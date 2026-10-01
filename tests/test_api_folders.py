@@ -27,6 +27,7 @@ def client():
         result_mock = MagicMock()
         result_mock.scalars.return_value.all.return_value = []
         result_mock.all.return_value = []
+        result_mock.scalar_one_or_none.return_value = None
         session.execute = AsyncMock(return_value=result_mock)
         yield session
 
