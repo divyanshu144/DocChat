@@ -86,9 +86,6 @@ class Settings(BaseSettings):
     # set this explicitly rather than debugging it twice.
     langsmith_endpoint: str = ""
 
-    # YouTube (optional)
-    youtube_api_key: str = ""
-
     # DB connection pool (PostgreSQL only)
     db_pool_size: int = 10
     db_max_overflow: int = 20

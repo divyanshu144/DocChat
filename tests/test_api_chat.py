@@ -61,6 +61,29 @@ def client():
         del app.state.test_db_session
 
 
+def test_chat_history_query_uses_configured_chat_history_limit(client):
+    """settings.chat_history_limit must actually drive the query, not a
+    hardcoded number -- was dead config before this fix."""
+    from app.core.config import settings
+
+    with patch.object(settings, "chat_history_limit", 3), \
+         patch("app.api.chat.agent_graph") as mock_graph:
+        async def fake_astream(*_args, **_kwargs):
+            yield {"synthesizer": {"answer": "ok"}}
+
+        mock_graph.astream = fake_astream
+        client.post("/api/v1/chat", json={"query": "hi"})
+
+    from app.main import app
+    session = app.state.test_db_session
+    history_call = next(
+        call for call in session.execute.call_args_list
+        if "messages" in str(call.args[0]).lower()
+    )
+    compiled = str(history_call.args[0].compile(compile_kwargs={"literal_binds": True}))
+    assert "LIMIT 3" in compiled
+
+
 def test_chat_streams_sse_answer(client):
     with patch("app.api.chat.agent_graph") as mock_graph:
         async def fake_astream(*_args, **_kwargs):

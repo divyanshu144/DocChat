@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.conversation import Conversation, Message, MessageRole
@@ -114,7 +115,7 @@ async def chat(
         select(Message)
         .where(Message.conversation_id == conv.id)
         .order_by(Message.created_at.desc())
-        .limit(10)
+        .limit(settings.chat_history_limit)
     )
     recent_messages = list(reversed(history_result.scalars().all()))
     history = [
