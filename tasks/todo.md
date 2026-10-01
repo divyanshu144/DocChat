@@ -2,7 +2,8 @@
 
 Plan: [completion plan](../docs/superpowers/plans/2026-10-01-hardening-completion.md).
 Original plan: `/Users/divyanshu/.claude/plans/silly-forging-deer.md`.
-Branch: `chore/inference-complete-and-hardening`. Nothing pushed or merged.
+Branch: `chore/inference-complete-and-hardening`, pushed and merged without conflicts
+into the repository's default `master` branch. Merge `77a2abb` is on `origin/master`.
 Current checks: 368 non-eval Python tests passed, 8 live evals deselected, Ruff clean;
 frontend 3 files / 6 tests passed. Approved GPT-5.5 diagnostic: 20/20 cases passed.
 

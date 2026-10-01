@@ -1,6 +1,6 @@
 # DocChat session handoff
 
-Updated: 2026-10-01. Branch: `chore/inference-complete-and-hardening`.
+Updated: 2026-10-01. Branch: `master` (merged from `chore/inference-complete-and-hardening`).
 Current checklist: [tasks/todo.md](tasks/todo.md).
 
 ## Status
@@ -73,8 +73,11 @@ not evidence that the retry loop improves end-to-end answers.
 
 ## History and next action
 
-All current authorized checklist items are complete. Review the local commits and
-reports; nothing has been pushed or merged. Unrelated `Claude outputs/` is untouched.
+All current authorized checklist items are complete. The hardening branch was pushed
+and merged into the repository's default `master` branch without conflicts. Merge
+commit `77a2abb` is published on `origin/master`. Checks on the integrated branch:
+368 Python tests passed, 6 frontend tests passed, and Ruff clean.
+Unrelated `Claude outputs/` is untouched.
 Older handoff: [archive](tasks/archive/handoff-before-hardening-completion-2026-10-01.md).
 Older inference checklist: [archive](tasks/archive/inference-todo-prior-sessions.md).
 Historical counts and obsolete pending entries there are not current instructions.
