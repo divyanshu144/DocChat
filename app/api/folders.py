@@ -6,7 +6,9 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.deps import get_current_user
 from app.models.conversation import Conversation, Folder
+from app.models.user import User
 
 router = APIRouter()
 
@@ -20,7 +22,11 @@ class FolderRename(BaseModel):
 
 
 @router.post("/folders", status_code=201)
-async def create_folder(body: FolderCreate, db: AsyncSession = Depends(get_db)):
+async def create_folder(
+    body: FolderCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     folder = Folder(id=str(_uuid.uuid4()), name=body.name.strip())
     db.add(folder)
     await db.commit()
@@ -29,7 +35,10 @@ async def create_folder(body: FolderCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/folders")
-async def list_folders(db: AsyncSession = Depends(get_db)):
+async def list_folders(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(select(Folder).order_by(Folder.created_at))
     folders = result.scalars().all()
 
@@ -54,7 +63,12 @@ async def list_folders(db: AsyncSession = Depends(get_db)):
 
 
 @router.patch("/folders/{folder_id}")
-async def rename_folder(folder_id: str, body: FolderRename, db: AsyncSession = Depends(get_db)):
+async def rename_folder(
+    folder_id: str,
+    body: FolderRename,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     folder = await db.get(Folder, folder_id)
     if not folder:
         raise HTTPException(404, "Folder not found")
@@ -65,7 +79,11 @@ async def rename_folder(folder_id: str, body: FolderRename, db: AsyncSession = D
 
 
 @router.delete("/folders/{folder_id}", status_code=204)
-async def delete_folder(folder_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_folder(
+    folder_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     folder = await db.get(Folder, folder_id)
     if not folder:
         raise HTTPException(404, "Folder not found")

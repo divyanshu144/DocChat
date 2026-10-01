@@ -35,7 +35,8 @@ dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
 ## Part 2 - codebase review fixes, in order
 
 ### A. Auth gaps
-- [ ] `Depends(get_current_user)` on all `app/api/ingest.py` + `app/api/folders.py` routes.
+- [x] `Depends(get_current_user)` on all `app/api/ingest.py` (9) + `app/api/folders.py`
+      (4) routes. 13 new 401 tests. 276 to 289 passed.
 - [ ] `decisions.md` entry 003 (corrects 001's "any authenticated user" wording).
 - [ ] `Folder.user_id` column + `_migrate()` extension (mirror `conversations.user_id`).
 - [ ] Scope folder queries by user; conversation-move verifies folder ownership.

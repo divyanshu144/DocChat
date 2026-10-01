@@ -29,6 +29,22 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Fixed in this branch (2026-10-01) — Part 2 A, step 1: auth on ingest and folders
+
+Every route in `app/api/ingest.py` (9 routes) and `app/api/folders.py` (4 routes) had
+zero authentication. Any caller, logged in or not, could ingest, delete, or list sources,
+and create, rename, delete, or list folders. Added `Depends(get_current_user)` to all
+13 routes. Folders are not yet scoped per user (that is the next commit, since it needs
+a schema change); this step only requires that the caller is authenticated at all.
+
+13 new tests (9 for ingest, 4 for folders) asserting 401 with no Authorization header,
+using a client with no dependency override so the real auth check runs. The existing
+happy-path tests for both files now override `get_current_user` (mirroring the pattern
+`app/api/conversations.py`'s tests already used), since without the override they would
+now 401 instead of testing what they are meant to test.
+
+`ruff check .` clean, `pytest -m "not eval" -q` 276 to 289 passed.
+
 ### Part 1 (inference track) closed out for now (2026-10-01)
 
 Asked about network volume `owdj19ss50` (50GB, `US-TX-3`, still holds cached

@@ -9,10 +9,12 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import AsyncSessionLocal, get_db
+from app.core.deps import get_current_user
 from app.core.sources import LEGACY_SOURCE_COLLECTIONS, source_collection, source_metadata
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from app.models.ingest_job import IngestJob, IngestJobStatusValue
+from app.models.user import User
 from app.services.ingestion.pdf import ingest_pdf, SUPPORTED_TYPES
 from app.services.ingestion.youtube import ingest_youtube
 from app.services.ingestion.web import ingest_web
@@ -150,7 +152,10 @@ async def _run_url_ingest_job(job_id: str, source_type: str, url: str) -> None:
 
 
 @router.post("/ingest/pdf", response_model=IngestResponse)
-async def ingest_pdf_endpoint(file: UploadFile = File(...)):
+async def ingest_pdf_endpoint(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
     if file.content_type not in SUPPORTED_TYPES:
         raise HTTPException(400, f"Unsupported file type: {file.content_type}")
 
@@ -176,6 +181,7 @@ async def start_pdf_ingest_job(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     if file.content_type not in SUPPORTED_TYPES:
         raise HTTPException(400, f"Unsupported file type: {file.content_type}")
@@ -206,7 +212,11 @@ async def start_pdf_ingest_job(
 
 
 @router.get("/ingest/jobs/{job_id}", response_model=IngestJobStatus)
-async def get_ingest_job(job_id: str, db: AsyncSession = Depends(get_db)):
+async def get_ingest_job(
+    job_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     job = await db.get(IngestJob, job_id)
     if not job:
         raise HTTPException(404, f"Ingest job {job_id} not found")
@@ -222,6 +232,7 @@ async def start_youtube_ingest_job(
     req: UrlRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     job_id = str(_uuid.uuid4())
     db.add(IngestJob(
@@ -245,6 +256,7 @@ async def start_web_ingest_job(
     req: UrlRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     job_id = str(_uuid.uuid4())
     db.add(IngestJob(
@@ -260,7 +272,10 @@ async def start_web_ingest_job(
 
 
 @router.post("/ingest/youtube", response_model=IngestResponse)
-async def ingest_youtube_endpoint(req: UrlRequest):
+async def ingest_youtube_endpoint(
+    req: UrlRequest,
+    current_user: User = Depends(get_current_user),
+):
     try:
         source_id = await ingest_youtube(req.url)
     except Exception as exc:
@@ -269,7 +284,10 @@ async def ingest_youtube_endpoint(req: UrlRequest):
 
 
 @router.post("/ingest/web", response_model=IngestResponse)
-async def ingest_web_endpoint(req: UrlRequest):
+async def ingest_web_endpoint(
+    req: UrlRequest,
+    current_user: User = Depends(get_current_user),
+):
     try:
         source_id = await ingest_web(req.url)
     except Exception as exc:
@@ -278,7 +296,7 @@ async def ingest_web_endpoint(req: UrlRequest):
 
 
 @router.get("/sources")
-async def list_sources():
+async def list_sources(current_user: User = Depends(get_current_user)):
     client = get_qdrant_client()
     sources = []
     seen_ids: set[str] = set()
@@ -310,7 +328,10 @@ async def list_sources():
 
 
 @router.delete("/sources/{source_id}")
-async def delete_source(source_id: str):
+async def delete_source(
+    source_id: str,
+    current_user: User = Depends(get_current_user),
+):
     client = get_qdrant_client()
     deleted = False
     source_filter = Filter(must=[FieldCondition(key="source_id", match=MatchValue(value=source_id))])
