@@ -19,8 +19,10 @@ off `feat/openai-sse-chat-quality`. One commit per item. Nothing pushed, nothing
       a per-field note on which names matched as-is.
 - [x] 4a. Phase 3 spec written (`docs/superpowers/specs/2026-10-01-quantization-comparison-design.md`).
       New `eval/quantization_compare.py` + 13 dry-run tests, no pod. 259 to 272 passed.
-- [ ] 4b. Phase 4 spec (serial vs concurrent throughput curve). STOP, ask for go before
-      any live sweep for both 4a and 4b.
+- [x] 4b. Phase 4 spec written (`docs/superpowers/specs/2026-10-01-batching-proof-design.md`).
+      New `--serial` flag + `mode` row tag in `eval/inference_benchmark.py`, 4 dry-run
+      tests including one that actually proves no overlap, not just call count. 272 to
+      276 passed. **STOPPED here, waiting for a go before any pod for 4a or 4b.**
 - [ ] 5. `docs/inference-writeup.md` from `eval/BENCHMARK_RESULTS.md` numbers only,
       including the measurement-mistake story. Update README's Inference benchmarking
       section to match.

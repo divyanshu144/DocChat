@@ -29,6 +29,27 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### Built in this branch (2026-10-01) — Phase 4 spec: batching proof
+
+Spec: `docs/superpowers/specs/2026-10-01-batching-proof-design.md`. Every sweep so far
+only ever showed vLLM's concurrent throughput climbing with load, which is evidence
+continuous batching does something but never a direct before/after at the same batch
+size. New `--serial` flag on `eval/inference_benchmark.py`: runs a concurrency level's
+requests strictly one at a time (`_run_concurrency_level` gained a `serial: bool` param
+that awaits in a loop instead of `asyncio.gather`), so the resulting wall time is a true
+no-batching baseline directly comparable to a normal run at the same concurrency. Each
+output row is now tagged `mode: "serial"` or `"concurrent"` so the two can be told apart
+in `data/inference_benchmark.jsonl`.
+
+4 new tests, including one that actually proves serial mode prevents overlap (tracks a
+live in-flight counter, asserts it never exceeds 1) rather than just counting calls, plus
+a sanity check that concurrent mode does overlap (so the serial test's methodology means
+something). Stopped after the spec and these dry-run tests, no pod, per the task's own
+instruction. `pytest -m "not eval" -q` 272 to 276 passed, `ruff check .` clean.
+
+**Both Phase 3 and Phase 4 are now spec-plus-dry-run-complete. Waiting for a go before
+any pod is created for either live sweep.**
+
 ### Built in this branch (2026-10-01) — Phase 3 spec: quantization comparison
 
 Spec: `docs/superpowers/specs/2026-10-01-quantization-comparison-design.md`. Compares

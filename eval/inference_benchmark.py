@@ -69,6 +69,14 @@ not the older `vllm:gpu_cache_usage_perc` (kept as a fallback candidate).
 matched their first-guess candidate name as-is. If a metric name is wrong on
 some other vLLM version, `_scrape_vllm_metrics` degrades to None for that
 field rather than crashing.
+
+SERIAL MODE (--serial, Phase 4 batching proof, default off): runs each
+concurrency level's requests one at a time instead of together, so the
+resulting wall time is a true no-batching baseline at that batch size,
+directly comparable to a normal (concurrent) run at the same concurrency.
+Each output row is tagged with `mode` ("serial" or "concurrent") so the two
+can be told apart once both exist in the same JSONL file. See
+docs/superpowers/specs/2026-10-01-batching-proof-design.md.
 """
 
 import argparse
@@ -540,7 +548,11 @@ async def _run_request(messages: list[dict], max_tokens: int, bust_cache: bool =
 
 
 async def _run_concurrency_level(
-    prompts: list[list[dict]], concurrency: int, max_tokens: int, bust_cache: bool = True
+    prompts: list[list[dict]],
+    concurrency: int,
+    max_tokens: int,
+    bust_cache: bool = True,
+    serial: bool = False,
 ) -> list[dict]:
     """Fire `concurrency` requests at once, cycling through `prompts` if
     concurrency exceeds the prompt count.
@@ -549,9 +561,20 @@ async def _run_concurrency_level(
     sequentially rather than firing just one request — a single sample can't
     produce a percentile, and a "concurrency=1" row with n=1 was exactly the
     degenerate case flagged in the first sweep (2026-09-30).
+
+    `serial` (Phase 4, batching proof): when True and concurrency > 1, awaits
+    each request in a loop instead of `asyncio.gather`, so no two requests
+    ever overlap -- a true no-batching baseline at the same batch size N,
+    directly comparable to the concurrent (default) mode's wall time at that
+    same N. concurrency == 1 is unaffected, since it is already sequential.
     """
     if concurrency == 1:
         return [await _run_request(m, max_tokens, bust_cache) for m in prompts]
+    if serial:
+        return [
+            await _run_request(prompts[i % len(prompts)], max_tokens, bust_cache)
+            for i in range(concurrency)
+        ]
     tasks = [
         _run_request(prompts[i % len(prompts)], max_tokens, bust_cache)
         for i in range(concurrency)
@@ -619,6 +642,7 @@ async def _run_provider(
     openai_model_override: str | None,
     bust_cache: bool = True,
     groq_model_override: str | None = None,
+    serial: bool = False,
 ) -> list[dict]:
     """Sweep one provider across every concurrency level.
 
@@ -633,6 +657,12 @@ async def _run_provider(
     `settings.chat_model` (the setting Groq actually reads, see
     `llm._active_model`) for the duration of this function, restored in the
     `finally` block below regardless of outcome.
+
+    `serial` (Phase 4, batching proof): threaded into `_run_concurrency_level`
+    unchanged, and tagged on each output row as `mode` ("serial" or
+    "concurrent") so a serial run and a concurrent run at the same
+    concurrency level can be told apart once both exist in the same JSONL
+    file.
 
     For `provider == "local"`, each cell's requests run alongside a ~1s
     poll of vLLM's `/metrics` (see `_poll_metrics_during`) — the resulting
@@ -666,14 +696,18 @@ async def _run_provider(
                     raw_results, metric_samples = await asyncio.wait_for(
                         _poll_metrics_during(
                             metrics_url,
-                            _run_concurrency_level(prompts, concurrency, max_tokens, bust_cache),
+                            _run_concurrency_level(
+                                prompts, concurrency, max_tokens, bust_cache, serial
+                            ),
                         ),
                         timeout=_CELL_TIMEOUT_S,
                     )
                     vllm_metrics = _summarize_vllm_metrics(metric_samples)
                 else:
                     raw_results = await asyncio.wait_for(
-                        _run_concurrency_level(prompts, concurrency, max_tokens, bust_cache),
+                        _run_concurrency_level(
+                            prompts, concurrency, max_tokens, bust_cache, serial
+                        ),
                         timeout=_CELL_TIMEOUT_S,
                     )
                     vllm_metrics = None
@@ -709,6 +743,7 @@ async def _run_provider(
                 {
                     "provider": provider,
                     "concurrency": concurrency,
+                    "mode": "serial" if serial else "concurrent",
                     "summary": summary,
                     "cost_usd": cost,
                     "cost_per_1m_output_tokens_local": local_cost_per_1m,
@@ -837,6 +872,17 @@ async def main() -> None:
             "pass this when a cache hit is genuinely what you want to measure."
         ),
     )
+    parser.add_argument(
+        "--serial",
+        action="store_true",
+        help=(
+            "Phase 4 batching proof: run each concurrency level's requests strictly "
+            "one at a time (no overlap) instead of firing them together, so the "
+            "resulting wall time is a true no-batching baseline at that batch size -- "
+            "directly comparable to a normal (concurrent) run at the same "
+            "concurrency. See docs/superpowers/specs/2026-10-01-batching-proof-design.md."
+        ),
+    )
     args = parser.parse_args()
     bust_cache = not args.allow_prefix_cache
 
@@ -868,7 +914,8 @@ async def main() -> None:
 
     print(
         f"\nInference benchmark — {len(prompts)} prompts, concurrency {concurrency_levels}, "
-        f"cache-busting {'ON' if bust_cache else 'OFF (--allow-prefix-cache)'}\n"
+        f"cache-busting {'ON' if bust_cache else 'OFF (--allow-prefix-cache)'}, "
+        f"mode {'serial' if args.serial else 'concurrent'}\n"
     )
 
     all_rows: list[dict] = []
@@ -886,6 +933,7 @@ async def main() -> None:
                 args.openai_model,
                 bust_cache,
                 groq_model_override=args.groq_model,
+                serial=args.serial,
             )
         except _CellTimeoutError as exc:
             all_rows.extend(exc.rows)
