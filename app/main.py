@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import Settings, settings
 from app.core.database import create_all_tables
+from app.agent.nodes.retriever import close_retriever_client
 from app.api import auth
 from app.api import chat
 from app.api import conversations
@@ -46,7 +47,10 @@ async def lifespan(app: FastAPI):
     _refuse_default_secret_in_production()
     await create_all_tables()
     logger.info("startup", extra={"app": settings.app_name, "version": settings.version})
-    yield
+    try:
+        yield
+    finally:
+        await close_retriever_client()
 
 
 app = FastAPI(

@@ -5,6 +5,79 @@ from app.agent.state import AgentState
 from app.agent.nodes.retriever import retriever_node
 
 
+@pytest.mark.asyncio
+async def test_search_reuses_client_and_reads_current_settings(monkeypatch):
+    import httpx
+    from app.agent.nodes import retriever
+
+    requests = []
+
+    def handle(request):
+        requests.append(request)
+        return httpx.Response(200, json={"result": [_search_hit("chunk")]})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handle))
+    with patch.object(retriever.httpx, "AsyncClient", return_value=client) as factory:
+        try:
+            monkeypatch.setattr(retriever.settings, "qdrant_host", "first-host")
+            monkeypatch.setattr(retriever.settings, "qdrant_port", 6333)
+            assert await retriever._search("source_chunks", [0.1], 8) == [_search_hit("chunk")]
+            monkeypatch.setattr(retriever.settings, "qdrant_host", "second-host")
+            monkeypatch.setattr(retriever.settings, "qdrant_port", 7333)
+            await retriever._search("source_chunks", [0.1], 8)
+            factory.assert_called_once_with(timeout=30.0)
+            assert requests[0].url.host == "first-host"
+            assert requests[1].url.host == "second-host"
+            assert requests[1].url.port == 7333
+            assert not client.is_closed
+        finally:
+            await retriever.close_retriever_client()
+    assert client.is_closed
+    await retriever.close_retriever_client()  # shutdown is idempotent
+
+
+def test_retriever_clients_are_not_shared_between_event_loops():
+    import asyncio
+    from app.agent.nodes import retriever
+
+    async def use_client():
+        client = retriever._get_http_client()
+        assert retriever._get_http_client() is client
+        return client
+
+    first_loop = asyncio.new_event_loop()
+    second_loop = asyncio.new_event_loop()
+    try:
+        first = first_loop.run_until_complete(use_client())
+        second = second_loop.run_until_complete(use_client())
+        assert first is not second
+        assert not first.is_closed and not second.is_closed
+    finally:
+        first_loop.run_until_complete(retriever.close_retriever_client())
+        second_loop.run_until_complete(retriever.close_retriever_client())
+        first_loop.close()
+        second_loop.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("server_type", ["api", "mcp"])
+async def test_server_lifespan_closes_retriever_client_on_failure(server_type):
+    from app.agent.nodes import retriever
+    from app.main import lifespan
+    from app.mcp_server import _lifespan
+
+    context = lifespan if server_type == "api" else _lifespan
+    with (
+        patch("app.main._refuse_default_secret_in_production"),
+        patch("app.main.create_all_tables", new=AsyncMock()),
+    ):
+        with pytest.raises(RuntimeError, match="handler failed"):
+            async with context(None):
+                client = retriever._get_http_client()
+                raise RuntimeError("handler failed")
+    assert client.is_closed
+
+
 def _search_hit(text: str, score: float = 0.8, **payload_extra):
     return {
         "score": score,
