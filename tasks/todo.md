@@ -45,7 +45,8 @@ dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
       (this was the one real gap: a conversation owner could move it into someone
       else's folder). 7 cross-user isolation tests against a real SQLite database.
       289 to 302 passed.
-- [ ] `decisions.md` entry 003 (corrects 001's "any authenticated user" wording).
+- [x] `decisions.md` entry 003 added (corrects 001's "any authenticated user" wording
+      now that it's actually enforced). 302 passed.
 - [ ] Startup refusal if `jwt_secret_key` is still the shipped default and debug=false.
 
 ### B. Chat streaming and formatting
