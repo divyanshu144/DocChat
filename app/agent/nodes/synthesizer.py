@@ -74,7 +74,22 @@ def _format_history(history: list[dict]) -> str:
     ) or "none"
 
 
+_NO_CONTEXT_ANSWER = (
+    "The ingested sources do not contain information relevant to this question. "
+    "Try rephrasing the question, selecting different sources, or ingesting a "
+    "source that covers this topic."
+)
+
+
 async def synthesizer_node(state: AgentState) -> dict:
+    if not state["retrieved_chunks"]:
+        # Guaranteed, not left to the model's own judgment: zero retrieved
+        # chunks (e.g. everything filtered out by retrieval_min_score) means
+        # there is nothing to synthesize from, so skip the LLM call entirely
+        # rather than trusting the prompt's "say what's missing" instruction
+        # to hold every time.
+        return {"answer": _NO_CONTEXT_ANSWER}
+
     context = _format_chunks(state["retrieved_chunks"])
     messages = [
         {

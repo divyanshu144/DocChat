@@ -80,6 +80,20 @@ async def test_synthesizer_formats_pdf_citation():
 
 
 @pytest.mark.asyncio
+async def test_synthesizer_returns_no_context_answer_without_calling_llm():
+    """Guaranteed behavior, not left to the model's own judgment: zero
+    retrieved chunks must short-circuit to a fixed answer, never an LLM
+    call that could ignore its "say what's missing" instruction."""
+    from app.agent.nodes.synthesizer import _NO_CONTEXT_ANSWER, synthesizer_node
+
+    with patch("app.agent.nodes.synthesizer.chat_complete", new=AsyncMock()) as mock_llm:
+        result = await synthesizer_node(_make_state(retrieved_chunks=[]))
+
+    assert result["answer"] == _NO_CONTEXT_ANSWER
+    mock_llm.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 async def test_critic_approves_good_answer():
     from app.agent.nodes.critic import critic_node
     with patch("app.agent.nodes.critic.chat_complete",

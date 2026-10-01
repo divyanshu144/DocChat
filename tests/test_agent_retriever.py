@@ -121,6 +121,58 @@ async def test_retriever_reranks_lexical_matches_above_weaker_vector_hits():
 
 
 @pytest.mark.asyncio
+async def test_retriever_drops_chunks_below_retrieval_min_score():
+    mock_embedder = MagicMock()
+    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+
+    with (
+        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[
+            _search_hit("below threshold", score=0.1),
+        ])),
+        patch("app.agent.nodes.retriever.get_embedder", return_value=mock_embedder),
+        patch("app.agent.nodes.retriever.settings.retrieval_min_score", 0.3),
+    ):
+        result = await retriever_node(_base_state())
+
+    assert result["retrieved_chunks"] == []
+
+
+@pytest.mark.asyncio
+async def test_retriever_keeps_chunks_at_or_above_retrieval_min_score():
+    mock_embedder = MagicMock()
+    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+
+    with (
+        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[
+            _search_hit("exactly at threshold", score=0.3),
+        ])),
+        patch("app.agent.nodes.retriever.get_embedder", return_value=mock_embedder),
+        patch("app.agent.nodes.retriever.settings.retrieval_min_score", 0.3),
+    ):
+        result = await retriever_node(_base_state())
+
+    assert len(result["retrieved_chunks"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_retriever_filters_a_mix_of_high_and_low_score_hits():
+    mock_embedder = MagicMock()
+    mock_embedder.embed_query.return_value = np.array([0.1] * 384, dtype="float32")
+
+    with (
+        patch("app.agent.nodes.retriever._search", new=AsyncMock(return_value=[
+            _search_hit("good hit", score=0.8),
+            _search_hit("noise hit", score=0.05),
+        ])),
+        patch("app.agent.nodes.retriever.get_embedder", return_value=mock_embedder),
+        patch("app.agent.nodes.retriever.settings.retrieval_min_score", 0.3),
+    ):
+        result = await retriever_node(_base_state())
+
+    assert [c["text"] for c in result["retrieved_chunks"]] == ["good hit"]
+
+
+@pytest.mark.asyncio
 async def test_retriever_does_not_write_to_stdout(capsys):
     """No print() calls should survive in retriever_node — they corrupt the MCP stdio channel."""
     mock_embedder = MagicMock()

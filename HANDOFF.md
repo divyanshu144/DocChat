@@ -29,6 +29,23 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### DONE (2026-10-01) — Part 2 C, step 1: retrieval_min_score + empty-context answer
+
+`retrieval_min_score` (config.py, default 0.3) was defined and never read anywhere.
+`app/agent/nodes/retriever.py`'s `retriever_node` now drops any Qdrant hit scoring
+below it before the lexical rerank runs, filtering on the real cosine score rather
+than the rerank's blended one. Logs how many hits were dropped when any are.
+
+`app/agent/nodes/synthesizer.py`'s `synthesizer_node` now short-circuits to a fixed
+`_NO_CONTEXT_ANSWER` when `retrieved_chunks` is empty, skipping the LLM call entirely —
+a guaranteed behavior instead of relying on the prompt's "say what's missing"
+instruction holding every time (it probably would, but "probably" isn't the same as
+"guaranteed," and skipping the call also saves the cost). `grounding_node` already
+short-circuited on empty chunks before this work; no change needed there.
+
+4 new tests (3 retriever score-filtering, 1 synthesizer short-circuit). `ruff check .`
+clean, `pytest -m "not eval" -q` 313 to 317 passed.
+
 ### DONE (2026-10-01) — Part 2 B: chat streaming whitespace fix, fully complete `app/api/chat.py`: `answer.split()` (dropped every newline, the actual
 cause of `ChatPanel.tsx`'s `normalizeMessageText` regex patch existing at all) replaced
 with `_TOKEN_SPLIT_RE = re.compile(r"\S+\s*|\s+")`, which keeps each run of whitespace

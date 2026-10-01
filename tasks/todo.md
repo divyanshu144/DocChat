@@ -69,8 +69,10 @@ dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
 **Part 2 B complete.**
 
 ### C. Retrieval correctness
-- [ ] Wire `retrieval_min_score` into `retriever.py`; empty-context path says sources
-      don't contain the answer instead of synthesizing from nothing.
+- [x] Wired `retrieval_min_score` into `retriever.py` (filters before rerank, logs
+      drops). Synthesizer short-circuits to a fixed answer on empty retrieved_chunks,
+      skipping the LLM call (grounding already handled this case). 4 new tests, 317
+      passed.
 - [ ] `chat_history_limit` actually drives `chat.py`'s history query.
 - [ ] Remove dead `youtube_api_key` setting.
 - [ ] `context_max_chars`: log drops, truncate whole-chunk from the low-ranked end.

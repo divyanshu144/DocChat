@@ -73,6 +73,7 @@ async def retriever_node(state: AgentState) -> dict:
     logger.debug("[RETRIEVER] query=%r sources=%s source_ids=%s", state["query"], source_types, source_ids)
 
     all_chunks: list[dict] = []
+    dropped_low_score = 0
     try:
         hits = await _search(
             source_collection(),
@@ -82,14 +83,23 @@ async def retriever_node(state: AgentState) -> dict:
         )
         logger.debug("[RETRIEVER] %s -> %d hits", source_collection(), len(hits))
         for hit in hits:
+            score = hit.get("score", 0.0)
+            if score < settings.retrieval_min_score:
+                dropped_low_score += 1
+                continue
             payload = dict(hit.get("payload") or {})
             source_type = payload.get("source_type") or "unknown"
             all_chunks.append({
                 "text": payload.pop("text", ""),
                 "metadata": payload,
                 "source_type": source_type,
-                "score": hit.get("score", 0.0),
+                "score": score,
             })
+        if dropped_low_score:
+            logger.debug(
+                "[RETRIEVER] dropped %d/%d hits below retrieval_min_score=%.2f",
+                dropped_low_score, len(hits), settings.retrieval_min_score,
+            )
     except Exception as exc:
         logger.exception("[RETRIEVER ERROR] collection=%s error=%s", source_collection(), exc)
 
