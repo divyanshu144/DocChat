@@ -2,7 +2,30 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 
-from app.api.chat import _run_agent_with_status
+from app.api.chat import _TOKEN_SPLIT_RE, _run_agent_with_status, _sse
+
+
+def _decode_sse_events(raw: str) -> list[tuple[str, str]]:
+    """Minimal SSE decoder for tests: returns [(event, data), ...], joining
+    consecutive data: lines within one event with "\\n" -- the same
+    reconstruction frontend/src/api.ts's stream reader does. Used to prove
+    an answer round-trips through _sse's encoding byte for byte. Matches
+    _sse's own framing exactly: every data line is "data: " plus content,
+    even when content is empty."""
+    events = []
+    event_type = "message"
+    data_lines: list[str] = []
+    for line in raw.split("\n"):
+        if line.startswith("event: "):
+            event_type = line[len("event: "):]
+        elif line.startswith("data: "):
+            data_lines.append(line[len("data: "):])
+        elif line == "":
+            if data_lines:
+                events.append((event_type, "\n".join(data_lines)))
+            event_type = "message"
+            data_lines = []
+    return events
 
 
 @pytest.fixture
@@ -139,3 +162,56 @@ def test_chat_never_streams_empty_saved_answer(client):
     assert "couldn't" in response.text
     assert "usable" in response.text
     assert "event: token" in response.text
+
+
+# ---------------------------------------------------------------------------
+# _sse / _TOKEN_SPLIT_RE (Part 2 B): whitespace-preserving streaming
+# ---------------------------------------------------------------------------
+
+
+def test_sse_single_line_data_is_unchanged_shape():
+    assert _sse("status", "Reading your question") == (
+        "event: status\ndata: Reading your question\n\n"
+    )
+
+
+def test_sse_multiline_data_becomes_multiple_data_lines():
+    raw = _sse("token", "hello\nworld")
+    assert raw == "event: token\ndata: hello\ndata: world\n\n"
+
+
+def test_sse_decoder_reconstructs_multiline_data_with_newline_join():
+    raw = _sse("token", "hello\nworld")
+    events = _decode_sse_events(raw)
+    assert events == [("token", "hello\nworld")]
+
+
+def test_token_split_preserves_a_single_newline_between_words():
+    pieces = _TOKEN_SPLIT_RE.findall("hello\nworld")
+    assert "".join(pieces) == "hello\nworld"
+    assert any("\n" in p for p in pieces)
+
+
+def test_token_split_preserves_a_paragraph_break():
+    text = "First paragraph.\n\nSecond paragraph."
+    pieces = _TOKEN_SPLIT_RE.findall(text)
+    assert "".join(pieces) == text
+
+
+def test_answer_with_newlines_round_trips_through_the_full_sse_stream(client):
+    """The actual fix end to end: an answer with embedded newlines, sent
+    through the real token-splitting and SSE-encoding path this endpoint
+    uses, reconstructs byte for byte on the decoding side."""
+    answer = "Line one.\n\nLine two has a list:\n- item a\n- item b\n\nLine three."
+    with patch("app.api.chat.agent_graph") as mock_graph:
+        async def fake_astream(*_args, **_kwargs):
+            yield {"synthesizer": {"answer": answer}}
+
+        mock_graph.astream = fake_astream
+        response = client.post("/api/v1/chat", json={"query": "multi-line please"})
+
+    assert response.status_code == 200
+    events = _decode_sse_events(response.text)
+    token_events = [data for event, data in events if event == "token"]
+    reconstructed = "".join(token_events)
+    assert reconstructed == answer

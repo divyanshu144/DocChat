@@ -29,6 +29,35 @@ built to work around (see the Second sweep entry below). The override only touch
 existing OpenAI override tests. `pytest -m "not eval" -q` 257 to 259 passed, `ruff check .`
 clean.
 
+### IN PROGRESS (2026-10-01) — Part 2 B: chat streaming whitespace fix
+
+**Backend half done and committed. Frontend half NOT done yet — do this next if
+resuming.** `app/api/chat.py`: `answer.split()` (dropped every newline, the actual
+cause of `ChatPanel.tsx`'s `normalizeMessageText` regex patch existing at all) replaced
+with `_TOKEN_SPLIT_RE = re.compile(r"\S+\s*|\s+")`, which keeps each run of whitespace
+(including newlines) attached to the token stream. `_sse()` now frames a multi-line
+payload as consecutive `data:` lines per the SSE spec (one line per line of the value)
+instead of putting a literal `\n` inside one `data:` line, which would have broken the
+stream. A payload with no newline encodes exactly as before, unchanged shape.
+
+6 new tests in `tests/test_api_chat.py`, including one that sends a real multi-paragraph
+answer through the full endpoint and decodes the SSE response back with a small test
+decoder (mirrors what `frontend/src/api.ts` needs to do), proving the answer reconstructs
+byte for byte. `ruff check .` clean, `pytest -m "not eval" -q` 307 to 313 passed.
+
+**Still to do for Part 2 B (not started):**
+1. `frontend/src/api.ts`'s `readStream()` currently yields on every single `data:` line
+   immediately — it needs to accumulate consecutive `data:` lines for one event and
+   join them with `"\n"` before yielding, or a multi-line answer will render with the
+   newlines dropped again on the frontend side even though the backend now sends them
+   correctly.
+2. Delete `normalizeMessageText` in `frontend/src/components/ChatPanel.tsx` (lines
+   ~39-46, the hardcoded-phrase regex patch) and every call site, once (1) is done and
+   streamed/reloaded text renders identically without it.
+3. A frontend test (vitest, matching `frontend/test/api.test.ts`'s existing pattern)
+   proving the stream reader reconstructs a multi-line answer correctly.
+4. `npm run build` into `app/static` once the above lands.
+
 ### Fixed in this branch (2026-10-01) — Part 2 A, step 3: refuse the default JWT secret
 
 `app/main.py`'s `lifespan` now refuses to start if `JWT_SECRET_KEY` is still the

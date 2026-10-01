@@ -1,5 +1,6 @@
 import uuid as _uuid
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 from collections.abc import AsyncGenerator
 from typing import cast
@@ -36,8 +37,22 @@ class ChatRequest(BaseModel):
     source_ids: list[str] | None = None  # restrict to specific ingested sources
 
 
+# Splits text into alternating "word plus its trailing whitespace" and
+# "pure whitespace" pieces, so a streamed token carries its real whitespace
+# (including newlines) instead of being rejoined with a single space on
+# the other end. See _sse below for how a piece containing a newline is
+# framed as multiple data: lines per the SSE spec.
+_TOKEN_SPLIT_RE = re.compile(r"\S+\s*|\s+")
+
+
 def _sse(event: str, data: str) -> str:
-    return f"event: {event}\ndata: {data}\n\n"
+    """Format one SSE event. A `data` containing `\\n` cannot ride on a
+    single `data:` line -- the SSE spec represents a multi-line value as
+    consecutive `data:` lines, one per line of the value, which the client
+    is expected to rejoin with `\\n` to reconstruct the original string.
+    A `data` with no newline round-trips through this unchanged."""
+    data_lines = "\n".join(f"data: {line}" for line in data.split("\n"))
+    return f"event: {event}\n{data_lines}\n\n"
 
 
 def _stream_error_message(exc: Exception) -> str:
@@ -162,8 +177,8 @@ async def chat(
         await db.commit()
 
         yield _sse("status", "Writing the response")
-        for word in answer.split():
-            yield _sse("token", f"{word} ")
+        for piece in _TOKEN_SPLIT_RE.findall(answer):
+            yield _sse("token", piece)
         yield _sse("done", "[DONE]")
 
     return StreamingResponse(

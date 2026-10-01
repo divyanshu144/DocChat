@@ -55,11 +55,17 @@ dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
 **Part 2 A (auth gaps) complete.**
 
 ### B. Chat streaming and formatting
-- [ ] `chat.py`: whitespace-preserving split (`re.findall(r"\S+\s*|\s+", answer)`).
-- [ ] `_sse()` frames multi-line payloads as multiple `data:` lines per SSE spec.
-- [ ] `frontend/src/api.ts`: join consecutive `data:` lines with `\n` before yielding.
-- [ ] Delete `normalizeMessageText` in `ChatPanel.tsx` and its call sites entirely.
-- [ ] Backend test (newline round-trip) + frontend test (stream reconstruction).
+- [x] `chat.py`: whitespace-preserving split (`_TOKEN_SPLIT_RE`), committed.
+- [x] `_sse()` frames multi-line payloads as multiple `data:` lines per SSE spec, committed.
+- [x] Backend test (6 new, including a full real-answer round-trip through the endpoint).
+      307 to 313 passed.
+- [ ] **NOT STARTED — do this next:** `frontend/src/api.ts`'s `readStream()` must
+      accumulate consecutive `data:` lines per event and join with `\n` before yielding
+      (currently yields per-line immediately, would still drop newlines on the frontend
+      even though the backend now sends them correctly).
+- [ ] Delete `normalizeMessageText` in `ChatPanel.tsx` and its call sites, after the
+      above lands and streamed/reloaded text renders identically without it.
+- [ ] Frontend test (vitest) for stream reconstruction.
 - [ ] `npm run build` into `app/static`.
 
 ### C. Retrieval correctness
