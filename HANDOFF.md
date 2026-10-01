@@ -3,6 +3,47 @@
 Updated: 2026-10-01. Branch: `master` (merged from `chore/inference-complete-and-hardening`).
 Current checklist: [tasks/todo.md](tasks/todo.md).
 
+## PAUSED: Phase 3 quantization comparison, mid-discussion, no pod created
+
+User said "let's do the quantization part now, let's discuss it first," then paused
+mid-discussion before answering. **Nothing has been created. No pod exists. Pick this
+up by re-asking the three open questions below, don't just proceed on the recommended
+defaults without the user actually confirming them.**
+
+Spec: `docs/superpowers/specs/2026-10-01-quantization-comparison-design.md`. Tooling
+(`eval/quantization_compare.py`) and its dry-run tests already exist and pass (see
+Part 1 item 4a in `tasks/todo.md`) — only the live pod run is outstanding.
+
+**Facts confirmed this session (read-only, no pod), reusable without re-checking:**
+- Both quantized repos the spec names are real on Hugging Face, not assumed:
+  `Qwen/Qwen2.5-7B-Instruct-AWQ` (AWQ 4-bit) and `Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4`
+  (GPTQ 4-bit), both official Qwen releases. So the plan can run all three servings
+  (FP16, AWQ, GPTQ-Int4), not just FP16+AWQ with GPTQ skipped.
+- L40S 48GB stock as of this check: Secure $1.09/hr, Community $0.79/hr, LOW stock,
+  currently only in `US-MO-1` (checked via `get-capacity`/`list-gpu-types` — re-check
+  before creating anything, stock shifts).
+- The cached network volume (`owdj19ss50`, `US-TX-3`, holds FP16 weights from the
+  Fourth sweep) probably will NOT help this run: L40S Secure stock isn't in `US-TX-3`
+  right now, and the volume has no cache for the two new quantized repos anyway, so the
+  time saved would be small even if it did line up. Recommendation worked out so far:
+  don't pin a data center, let it land wherever L40S has stock, skip the volume.
+
+**Three open questions asked, not yet answered — ask again before proceeding:**
+1. Concurrency levels per serving: spec default is `1,16,64` (9 cells total across 3
+   servings) vs. the Fourth sweep's full `1,4,16,64,128` (15 cells, slower/costlier,
+   but directly comparable cell-by-cell to existing data).
+2. GPU: same L40S 48GB as the Fourth sweep (Secure first, Community fallback) vs. a
+   different GPU.
+3. Cost cap to state before creating anything: proposed $5 as a reasonable ceiling
+   (rough estimate: 3 servings x [download + positive control + harness sweep +
+   `eval/benchmark.py` quality run], mostly idle/setup time, ~3-4 hours of pod time at
+   $1.09/hr worst case). Not yet confirmed.
+
+**Next action if resuming:** re-ask these three questions (don't assume the
+recommended options were silently accepted), then write the exact `create-pod` request
+and state GPU/rate/duration/cost cap for explicit go, per the money-safety rules in the
+original task (Terminate not Stop, confirm `list-pods` empty at the end).
+
 ## Status
 
 The authorized codebase hardening and measurement work is complete. Auth gaps,

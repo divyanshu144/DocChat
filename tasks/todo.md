@@ -35,6 +35,13 @@ frontend 3 files / 6 tests passed. Approved GPT-5.5 diagnostic: 20/20 cases pass
 **Part 1 status: items 1, 2, 3, 5, 6 done. Item 4 (Phase 3 + Phase 4) is spec-plus-
 dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
 
+**Phase 3 live sweep: discussion started 2026-10-01, then paused by the user before
+answering. See the "PAUSED" section at the top of HANDOFF.md for the three open
+questions (concurrency levels, GPU choice, cost cap) and the facts already confirmed
+(both AWQ/GPTQ-Int4 repos are real, L40S stock/pricing, the cached volume probably
+won't help this run). No pod created. Resume by re-asking those questions, not by
+assuming the recommended defaults.**
+
 ## Part 2 - codebase review fixes, in order
 
 ### A. Auth gaps
