@@ -1,52 +1,54 @@
 # DocChat session handoff
 
-Updated: 2026-10-01. Branch: `master` (merged from `chore/inference-complete-and-hardening`).
-Current checklist: [tasks/todo.md](tasks/todo.md).
+Updated: 2026-10-02. Branch: `master`. Checklist: [tasks/todo.md](tasks/todo.md).
 
-## PAUSED: Phase 3 quantization comparison, mid-discussion, no pod created
+## Phase 3 complete — no active pod
 
-User said "let's do the quantization part now, let's discuss it first," then paused
-mid-discussion before answering. **Nothing has been created. No pod exists. Pick this
-up by re-asking the three open questions below, don't just proceed on the recommended
-defaults without the user actually confirming them.**
+[Report and artifacts](reports/quantization-2026-10-01/README.md),
+[benchmark entry](eval/BENCHMARK_RESULTS.md), and
+[write-up](docs/inference-writeup.md) are updated. No production code or persistent
+provider configuration changed. No commit made in this resume session.
 
-Spec: `docs/superpowers/specs/2026-10-01-quantization-comparison-design.md`. Tooling
-(`eval/quantization_compare.py`) and its dry-run tests already exist and pass (see
-Part 1 item 4a in `tasks/todo.md`) — only the live pod run is outstanding.
+The prior handoff was stale: original pod `ryy03s0132en85` returned 404 and the pod
+list was empty. AWQ control/quality/speed artifacts already existed locally despite
+being marked pending. Those and the corrected FP16 rows were preserved, including
+FP16's c=64 disconnect. The 8192-context attempt remains excluded.
 
-**Facts confirmed this session (read-only, no pod), reusable without re-checking:**
-- Both quantized repos the spec names are real on Hugging Face, not assumed:
-  `Qwen/Qwen2.5-7B-Instruct-AWQ` (AWQ 4-bit) and `Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4`
-  (GPTQ 4-bit), both official Qwen releases. So the plan can run all three servings
-  (FP16, AWQ, GPTQ-Int4), not just FP16+AWQ with GPTQ skipped.
-- L40S 48GB stock as of this check: Secure $1.09/hr, Community $0.79/hr, LOW stock,
-  currently only in `US-MO-1` (checked via `get-capacity`/`list-gpu-types` — re-check
-  before creating anything, stock shifts).
-- The cached network volume (`owdj19ss50`, `US-TX-3`, holds FP16 weights from the
-  Fourth sweep) probably will NOT help this run: L40S Secure stock isn't in `US-TX-3`
-  right now, and the volume has no cache for the two new quantized repos anyway, so the
-  time saved would be small even if it did line up. Recommendation worked out so far:
-  don't pin a data center, let it land wherever L40S has stock, skip the volume.
+GPTQ ran on replacement `54caxtprn07c1r`, Secure L40S 48GB, EUR-IS-2, $1.09/hr,
+created 2026-10-02 00:30:54 UTC and terminated by 00:39:23 UTC. Delete returned 204;
+subsequent pod list was empty. GPU, driver, CUDA, PyTorch and exact image digest
+matched the original, but host/data-center/network changed. **GPTQ speed differences
+are not a controlled same-host quantization effect.** The replacement log and model
+revision are saved; original AWQ kernel/memory log and FP16/AWQ revisions are missing.
 
-**Three open questions asked, not yet answered — ask again before proceeding:**
-1. Concurrency levels per serving: spec default is `1,16,64` (9 cells total across 3
-   servings) vs. the Fourth sweep's full `1,4,16,64,128` (15 cells, slower/costlier,
-   but directly comparable cell-by-cell to existing data).
-2. GPU: same L40S 48GB as the Fourth sweep (Secure first, Community fallback) vs. a
-   different GPU.
-3. Cost cap to state before creating anything: proposed $5 as a reasonable ceiling
-   (rough estimate: 3 servings x [download + positive control + harness sweep +
-   `eval/benchmark.py` quality run], mostly idle/setup time, ~3-4 hours of pod time at
-   $1.09/hr worst case). Not yet confirmed.
+Original pod's reported charge: $0.5284245586954057. Replacement billing returned no
+records at the final check, which does not mean free compute. `billing-readback.json`
+and `resume-state.json` retain evidence. Original $5 cap was retained; replacement
+ran under nine minutes. Retain network volume `owdj19ss50` (50GB, US-TX-3), confirmed
+present and untouched. No cleanup remains except optional later billing reconciliation.
 
-**Next action if resuming:** re-ask these three questions (don't assume the
-recommended options were silently accepted), then write the exact `create-pod` request
-and state GPU/rate/duration/cost cap for explicit go, per the money-safety rules in the
-original task (Terminate not Stop, confirm `list-pods` empty at the end).
+Results:
+- FP16: 87/88 speed requests; AWQ: 88/88; GPTQ: 88/88. Every cell measured zero
+  prefix-cache hits and zero preemptions. Each serving passed its positive control.
+- AWQ aggregate throughput vs FP16: +105.8% / +59.6% / +15.3% at c=1/16/64.
+- Critic edge cases correct: FP16 1/5, AWQ 3/5, GPTQ 1/5.
+- Corruptions caught/all: FP16 15/15, AWQ 15/15, GPTQ 9/15.
+- GPTQ produced Markdown-fenced JSON on 8/20 cases (2 edge + 6 corruption), rejected
+  by the current strict parser. Its error-excluding recall 1.00 is not 100% overall
+  reliability. Raw responses are retained. No end-to-end quality claim is justified.
+
+13 comparison tests passed this resume session. Comparison reports were generated
+with explicit UTC windows and checked against all nine raw cells. Broader historical
+checks below were not rerun because no production code changed. Unrelated
+`Claude outputs/` remains untouched.
+
+Phase 4 and the grounding/critic redesigns remain deferred. Do not launch more paid
+experiments or change production critic behavior just to improve these scores.
+Previous checkpoint: [archive](tasks/archive/handoff-before-quantization-resume-2026-10-02.md).
 
 ## Status
 
-The authorized codebase hardening and measurement work is complete. Auth gaps,
+The codebase hardening and Phase 3 measurements are complete. Auth gaps,
 folder ownership and default-secret startup refusal were already committed before
 this session. SSE whitespace preservation and frontend decoder/build were also done.
 This completion pass covers:
@@ -98,9 +100,8 @@ qdrant/postgres DNS names. Do not read/print .env secrets in session output.
 
 ## Explicitly deferred
 
-No GPU pod was created in this session. Phase 3 quantization and Phase 4 batching
-live sweeps remain deferred by the user's choice; specs and dry-run tooling are done.
-Last recorded GPU pod was terminated and an empty pod list confirmed in that session.
+Phase 3 measurements are complete with documented limitations. Phase 4 batching
+remains deferred. No pods remain; this was confirmed on 2026-10-02.
 The retained network volume owdj19ss50 (50GB, US-TX-3) has cached Qwen weights and its
 own storage charge; user chose to keep it. Do not delete it without a specific go.
 
@@ -114,7 +115,8 @@ not evidence that the retry loop improves end-to-end answers.
 
 ## History and next action
 
-All current authorized checklist items are complete. The hardening branch was pushed
+The hardening checklist and authorized Phase 3 live measurements are complete.
+The hardening branch was pushed
 and merged into the repository's default `master` branch without conflicts. Merge
 commit `77a2abb` is published on `origin/master`. Checks on the integrated branch:
 368 Python tests passed, 6 frontend tests passed, and Ruff clean.

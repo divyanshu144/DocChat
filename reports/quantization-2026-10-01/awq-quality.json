@@ -1,0 +1,194 @@
+{
+  "generated_at": "2026-10-01T17:49:14.815952+00:00",
+  "provider": "local",
+  "model": "Qwen2.5-7B-Instruct",
+  "reasoning_effort": "",
+  "max_completion_tokens": 150,
+  "temperature": 0.0,
+  "fallback": "none",
+  "edge_metrics": {
+    "tp": 1,
+    "fp": 2,
+    "fn": 0,
+    "tn": 2,
+    "errors": 0,
+    "precision": 0.3333333333333333,
+    "recall": 1.0,
+    "f1": 0.5
+  },
+  "generated_metrics": {
+    "tp": 15,
+    "fp": 0,
+    "fn": 0,
+    "tn": 0,
+    "errors": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "edge_results": [
+    {
+      "label": "correct_admits_gaps",
+      "expected": "good",
+      "got": "poor",
+      "correct": false,
+      "feedback": "The answer fails to disclose that it is dropping part of the query without informing the reader which specific information is missing.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer fails to disclose that it is dropping part of the query without informing the reader which specific information is missing.\"\n}"
+    },
+    {
+      "label": "hedged_but_correct",
+      "expected": "good",
+      "got": "good",
+      "correct": true,
+      "feedback": "",
+      "raw_response": "{\"quality\": \"good\", \"feedback\": \"The answer provides a relevant piece of information about the database used by DocChat and discloses that the exact setup is uncertain.\"}"
+    },
+    {
+      "label": "partially_addresses_multipart",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer does not address the specific chunking strategy used by DocChat for PDFs, nor does it provide the chunk size and overlap.",
+      "raw_response": "{\"quality\": \"poor\", \"feedback\": \"The answer does not address the specific chunking strategy used by DocChat for PDFs, nor does it provide the chunk size and overlap.\"}"
+    },
+    {
+      "label": "correct_but_terse",
+      "expected": "good",
+      "got": "good",
+      "correct": true,
+      "feedback": "",
+      "raw_response": "{\"quality\": \"good\", \"feedback\": \"The answer provides specific details about the LLM used by DocChat, which directly addresses the query.\"}"
+    },
+    {
+      "label": "admits_gaps_with_partial_answer",
+      "expected": "good",
+      "got": "poor",
+      "correct": false,
+      "feedback": "The answer contradicts itself by stating that it doesn't have information about the refresh token expiry time while also mentioning that the access token expires after 30 minutes.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer contradicts itself by stating that it doesn't have information about the refresh token expiry time while also mentioning that the access token expires after 30 minutes.\"\n}"
+    }
+  ],
+  "generated_results": [
+    {
+      "label": "correct_but_terse__contradict_self",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer contradicts itself by first stating the model used and then immediately denying it.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer contradicts itself by first stating the model used and then immediately denying it.\"\n}"
+    },
+    {
+      "label": "admits_gaps_with_partial_answer__contradict_self",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer contradicts itself by stating that access tokens do not expire after 30 minutes, while also asserting that they do.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer contradicts itself by stating that access tokens do not expire after 30 minutes, while also asserting that they do.\"\n}"
+    },
+    {
+      "label": "correct_well_grounded__contradict_self",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer contradicts itself by first stating the correct information and then immediately asserting the opposite.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer contradicts itself by first stating the correct information and then immediately asserting the opposite.\"\n}"
+    },
+    {
+      "label": "correct_multi_part_answer__contradict_self",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer contradicts itself by stating 'DocChat does not support three ingestion sources' at the beginning, which is inconsistent with the subsequent list of three ingestion sources.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer contradicts itself by stating 'DocChat does not support three ingestion sources' at the beginning, which is inconsistent with the subsequent list of three ingestion sources.\"\n}"
+    },
+    {
+      "label": "hedged_but_correct__strip_specifics",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is too vague and uses placeholders, making it unhelpful.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer is too vague and uses placeholders, making it unhelpful.\"\n}"
+    },
+    {
+      "label": "correct_but_terse__strip_specifics",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is too vague and replaces specific details with placeholders.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer is too vague and replaces specific details with placeholders.\"\n}"
+    },
+    {
+      "label": "correct_well_grounded__strip_specifics",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is too vague, with specific details replaced by placeholders, making it impossible to determine which embedding model is used or the vector dimension.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer is too vague, with specific details replaced by placeholders, making it impossible to determine which embedding model is used or the vector dimension.\"\n}"
+    },
+    {
+      "label": "correct_multi_part_answer__strip_specifics",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer is too vague as it replaces specific details with placeholders and does not clearly state which library handles each ingestion source.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer is too vague as it replaces specific details with placeholders and does not clearly state which library handles each ingestion source.\"\n}"
+    },
+    {
+      "label": "correct_multi_part_answer__truncate_enumeration",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer does not provide information about all three ingestion sources and omits details about the library handling each source.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer does not provide information about all three ingestion sources and omits details about the library handling each source.\"\n}"
+    },
+    {
+      "label": "correct_admits_gaps__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer does not address the query about the internal training loss curve for BAAI/bge-small-en-v1.5 and instead provides irrelevant information about access tokens and refresh token expiry.",
+      "raw_response": "{\"quality\": \"poor\", \"feedback\": \"The answer does not address the query about the internal training loss curve for BAAI/bge-small-en-v1.5 and instead provides irrelevant information about access tokens and refresh token expiry.\"}"
+    },
+    {
+      "label": "hedged_but_correct__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer does not address the question about the database used for storing conversations. Instead, it provides details about the model and runtime used.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer does not address the question about the database used for storing conversations. Instead, it provides details about the model and runtime used.\"\n}"
+    },
+    {
+      "label": "correct_but_terse__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer does not address the question about which LLM DocChat uses for generating answers.",
+      "raw_response": "{\"quality\": \"poor\", \"feedback\": \"The answer does not address the question about which LLM DocChat uses for generating answers.\"}"
+    },
+    {
+      "label": "admits_gaps_with_partial_answer__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer does not address the query about access token and refresh token expiry times in DocChat. It instead discusses a different topic and provides no relevant information.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer does not address the query about access token and refresh token expiry times in DocChat. It instead discusses a different topic and provides no relevant information.\"\n}"
+    },
+    {
+      "label": "correct_well_grounded__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer does not address the question about the embedding model used by DocChat or the vector dimension.",
+      "raw_response": "{\n  \"quality\": \"poor\",\n  \"feedback\": \"The answer does not address the question about the embedding model used by DocChat or the vector dimension.\"\n}"
+    },
+    {
+      "label": "correct_multi_part_answer__off_topic_swap",
+      "expected": "poor",
+      "got": "poor",
+      "correct": true,
+      "feedback": "The answer does not provide the three ingestion sources or the library handling each one, and instead gives unrelated information about a specific model.",
+      "raw_response": "{\"quality\": \"poor\", \"feedback\": \"The answer does not provide the three ingestion sources or the library handling each one, and instead gives unrelated information about a specific model.\"}"
+    }
+  ],
+  "http_usage": []
+}

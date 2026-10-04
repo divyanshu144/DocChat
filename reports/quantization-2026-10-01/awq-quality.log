@@ -1,0 +1,77 @@
+
+Diagnostic run — 5 hand-written edge cases + 15 generated corruptions
+
+
+Hand-written edge cases — ambiguous, near the decision boundary
+
+[FAIL] correct_admits_gaps              expected=good  got=poor  | "The answer fails to disclose that it is dropping part of the query without informing the reader which specific information is missing."
+[PASS] hedged_but_correct               expected=good  got=good 
+[PASS] partially_addresses_multipart    expected=poor  got=poor 
+[PASS] correct_but_terse                expected=good  got=good 
+[FAIL] admits_gaps_with_partial_answer  expected=good  got=poor  | "The answer contradicts itself by stating that it doesn't have information about the refresh token expiry time while also mentioning that the access token expires after 30 minutes."
+
+Generated corruptions — label inherited from the transform
+
+[PASS] correct_but_terse__contradict_self                expected=poor  got=poor 
+[PASS] admits_gaps_with_partial_answer__contradict_self  expected=poor  got=poor 
+[PASS] correct_well_grounded__contradict_self            expected=poor  got=poor 
+[PASS] correct_multi_part_answer__contradict_self        expected=poor  got=poor 
+[PASS] hedged_but_correct__strip_specifics               expected=poor  got=poor 
+[PASS] correct_but_terse__strip_specifics                expected=poor  got=poor 
+[PASS] correct_well_grounded__strip_specifics            expected=poor  got=poor 
+[PASS] correct_multi_part_answer__strip_specifics        expected=poor  got=poor 
+[PASS] correct_multi_part_answer__truncate_enumeration   expected=poor  got=poor 
+[PASS] correct_admits_gaps__off_topic_swap               expected=poor  got=poor 
+[PASS] hedged_but_correct__off_topic_swap                expected=poor  got=poor 
+[PASS] correct_but_terse__off_topic_swap                 expected=poor  got=poor 
+[PASS] admits_gaps_with_partial_answer__off_topic_swap   expected=poor  got=poor 
+[PASS] correct_well_grounded__off_topic_swap             expected=poor  got=poor 
+[PASS] correct_multi_part_answer__off_topic_swap         expected=poor  got=poor 
+
+─────────────────────────────────────────────────────
+EDGE CASES — 3 / 5 correct
+
+  TP (correctly flagged poor)  : 1
+  FP (good flagged as poor)    : 2
+  FN (poor missed as good)     : 0
+  TN (correctly passed good)   : 2
+  Errors (no verdict)          : 0
+
+  Precision : 0.33   (of cases flagged poor, how many were?)
+  Recall    : 1.00   (of poor cases, how many were caught?)
+  F1        : 0.50
+─────────────────────────────────────────────────────
+
+─────────────────────────────────────────────────────
+GENERATED CORRUPTIONS — 15 / 15 correct
+
+  TP (correctly flagged poor)  : 15
+  FP (good flagged as poor)    : 0
+  FN (poor missed as good)     : 0
+  TN (correctly passed good)   : 0
+  Errors (no verdict)          : 0
+
+  Recall    : 1.00   (of poor cases, how many were caught?)
+  Precision : not defined — every case here is labelled poor, so precision
+              is 1.00 by construction and measures nothing.
+─────────────────────────────────────────────────────
+
+  Caught, by transform:
+    contradict_self        4/4
+    off_topic_swap         6/6
+    strip_specifics        4/4
+    truncate_enumeration   1/1
+
+─────────────────────────────────────────────────────
+  Note: edge-case N=5 — still too small to quote externally.
+        That dataset is stacked toward the Critic's known failure modes
+        (over-firing on hedged/partial answers), so it measures edge-case
+        precision, not overall Critic quality in production.
+        The generated set measures the opposite end: whether obvious
+        degradations are caught at all.
+        Reproducibility depends on the MODEL, not just the config: the critic
+        asks for temperature=0, but a model that rejects it (gpt-5.6-luna and
+        the reasoning family) is silently served at its default and verdicts
+        will move between runs. Check the logs for
+        openai_rejected_temperature_retrying_without before trusting a delta.
+─────────────────────────────────────────────────────

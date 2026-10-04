@@ -7,6 +7,70 @@ and appending a dated entry below.
 
 ---
 
+## 2026-10-02 — Phase 3: FP16 / AWQ / GPTQ-Int4
+
+Completed the October 1 FP16/AWQ artifacts with an October 2 GPTQ run.
+[Full report, raw data and logs](../reports/quantization-2026-10-01/README.md).
+
+**Setup:** Qwen2.5-7B-Instruct, vLLM 0.30.0, L40S 48GB, float16 compute,
+max_model_len=16384, GPU utilization setting 0.90, 1,400 speed-output-token cap,
+eight captured DocChat prompts, fallback disabled, prefix caching on and client
+cache busting on. Each serving passed the cache positive control (49.924% off,
+0% on); all nine sweep cells measured 0% hits and zero preemptions.
+
+**Provenance limitation:** FP16/AWQ share the original US-MO-1 pod. That pod was
+already absent on resume, so GPTQ ran on a replacement in EUR-IS-2. GPU, driver,
+CUDA, PyTorch and image digest match, but host/network/location/run time differ.
+GPTQ's speed deltas therefore do not isolate quantization. Its backend was
+Marlin (`auto_gptq`, `MarlinLinearKernel`). Original AWQ backend and FP16/AWQ
+model revisions were not saved; do not infer them from the replacement.
+
+| Format | Concurrency | OK/total | TTFT p50 (s) | Decode tok/s p50 | Aggregate tok/s |
+|---|---:|---:|---:|---:|---:|
+| FP16 | 1 | 8/8 | 0.982 | 48.5 | 40.6 |
+| FP16 | 16 | 16/16 | 7.280 | 17.2 | 142.5 |
+| FP16 | 64 | 63/64 | 26.624 | 5.7 | 180.6 |
+| AWQ | 1 | 8/8 | 0.878 | 119.9 | 83.5 |
+| AWQ | 16 | 16/16 | 6.078 | 29.3 | 227.3 |
+| AWQ | 64 | 64/64 | 25.735 | 6.0 | 208.3 |
+| GPTQ | 1 | 8/8 | 0.600 | 126.2 | 93.7 |
+| GPTQ | 16 | 16/16 | 3.905 | 31.5 | 279.6 |
+| GPTQ | 64 | 64/64 | 16.022 | 8.0 | 290.1 |
+
+One FP16 c=64 request disconnected (`RemoteProtocolError`); retained as measured.
+AWQ aggregate throughput increased 105.8% / 59.6% / 15.3% at c=1/16/64;
+the gain narrowed under load. Single sweeps and varying generated output lengths
+limit interpretation. The archived 8192-context attempt is excluded.
+
+**Critic diagnostic (150-token cap, temperature 0, separate from speed):**
+
+| Format | Edge correct | Edge precision / recall / F1 | Edge errors | Corruptions caught/all | Corruption errors |
+|---|---:|---|---:|---:|---:|
+| FP16 | 1/5 | 0.20 / 1.00 / 0.33 | 0 | 15/15 | 0 |
+| AWQ | 3/5 | 0.33 / 1.00 / 0.50 | 0 | 15/15 | 0 |
+| GPTQ | 1/5 | 0.33 / 1.00 / 0.50 | 2 | 9/15 | 6 |
+
+GPTQ emitted Markdown-fenced JSON on 8/20 cases, rejected by the current strict
+parser. Precision/recall/F1 exclude errors; its printed corruption recall 1.00
+must be read alongside **9/15 caught across all cases (60%)**, not as perfect
+reliability. FP16/AWQ caught all corruptions but falsely rejected four/two
+acceptable edge answers. This is not end-to-end answer quality or critic-loop lift.
+
+**Memory:** FP16 server log reports model-loading allocation 14.29 GiB and KV
+capacity 429,552 tokens; GPTQ reports 5.27 GiB and 615,456 tokens on the replacement
+host. AWQ allocation log is unavailable. These are not matched peak-VRAM measurements.
+
+**Cost/lifecycle:** per-cell costs use measured batch wall time × $1.09/hour and
+exclude setup/idle time; they are not total account charges. Original pod reported
+$0.5284245586954057; replacement billing records had not appeared at final check.
+Replacement `54caxtprn07c1r` was terminated by 00:39:23 UTC; pod list confirmed
+empty. Retained volume `owdj19ss50` is untouched. Phase 4 remains deferred.
+
+13 comparison tests passed. Reports generated with explicit timestamp windows;
+no production code or persistent provider configuration changed.
+
+---
+
 ## 2026-09-30 — Fourth sweep: cache-busted, /metrics-instrumented — confirms the warning above
 
 **Verdict on the Third sweep's cache-inflation warning: CONFIRMED.** This sweep repeats

@@ -1,0 +1,9 @@
+------------------------------------------------------------------------------
+Positive control: proving cache-busting + /metrics instrumentation works
+------------------------------------------------------------------------------
+
+Metric names found on this server: queries=vllm:prefix_cache_queries_total  hits=vllm:prefix_cache_hits_total
+Busting OFF (2x identical prompt): prefix cache hit rate = 0.49924448473859173
+Busting ON  (2x unique prompt):    prefix cache hit rate = 0.0
+------------------------------------------------------------------------------
+PASS: OFF showed a real cache hit, ON showed near-zero. Instrumentation verified.

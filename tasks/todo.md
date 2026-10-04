@@ -25,22 +25,34 @@ frontend 3 files / 6 tests passed. Approved GPT-5.5 diagnostic: 20/20 cases pass
 - [x] 4b. Phase 4 spec written (`docs/superpowers/specs/2026-10-01-batching-proof-design.md`).
       New `--serial` flag + `mode` row tag in `eval/inference_benchmark.py`, 4 dry-run
       tests including one that actually proves no overlap, not just call count. 272 to
-      276 passed. **STOPPED here, waiting for a go before any pod for 4a or 4b.**
+      276 passed. **Phase 3 subsequently authorized; Phase 4 remains deferred.**
 - [x] 5. `docs/inference-writeup.md` written from `eval/BENCHMARK_RESULTS.md` numbers
       only. README's Inference benchmarking section updated to match (dropped the "no
       such ceiling" overclaim, linked the write-up). 276 passed, no code changed.
 - [x] 6. Asked about network volume `owdj19ss50`. User chose to keep it (Phase 3/4
       would reuse its cached weights). Not deleted.
 
-**Part 1 status: items 1, 2, 3, 5, 6 done. Item 4 (Phase 3 + Phase 4) is spec-plus-
-dry-run-tests complete, STOPPED, waiting for a go before any live pod sweep.**
+**Part 1 status: items 1, 2, 3, 5, 6 done. Item 4 tooling/specs complete.
+Phase 3 live measurements are complete; Phase 4 remains deferred.**
 
-**Phase 3 live sweep: discussion started 2026-10-01, then paused by the user before
-answering. See the "PAUSED" section at the top of HANDOFF.md for the three open
-questions (concurrency levels, GPU choice, cost cap) and the facts already confirmed
-(both AWQ/GPTQ-Int4 repos are real, L40S stock/pricing, the cached volume probably
-won't help this run). No pod created. Resume by re-asking those questions, not by
-assuming the recommended defaults.**
+**Phase 3 live measurements COMPLETE (2026-10-02), with documented limitations.**
+Original pod was absent on resume. FP16/AWQ artifacts were recovered locally; GPTQ
+ran on replacement `54caxtprn07c1r` in EUR-IS-2, then it was terminated. Empty pod
+list confirmed. Retained network volume is untouched. Original pod charge reported
+$0.5284245586954057; replacement billing had no records yet (not zero-cost evidence).
+
+- [x] Replacement GPU/CUDA verified; same original image/driver/versions.
+- [x] FP16 positive control + critic diagnostic + corrected sweep retained (87/88; c=64 disconnect).
+- [x] AWQ positive control + critic diagnostic + sweep retained (88/88).
+- [x] GPTQ positive control + critic diagnostic + sweep completed (88/88 speed; 8/20 critic parse failures).
+- [x] Comparison report using explicit windows, benchmark entry and write-up completed.
+- [x] Available logs/revision saved; original AWQ log and FP16/AWQ revisions missing and disclosed.
+- [x] Replacement terminated, empty pod list confirmed, billing readback saved. Network volume retained.
+
+Artifacts: `reports/quantization-2026-10-01/`. Initial 8192-context attempt excluded.
+GPTQ's replacement host prevents a controlled same-host speed comparison. The critic
+diagnostic is not end-to-end answer quality. 13 comparison tests passed; no production
+code changed. Phase 4 remains deferred.
 
 ## Part 2 - codebase review fixes, in order
 
@@ -146,7 +158,9 @@ assuming the recommended defaults.**
 
 ## Deferred follow-ups (outside completed hardening scope)
 
-- GPU Phase 3/4 live sweeps: user chose to defer. Specs and offline tooling are done.
+- Phase 3 evidence gaps: original AWQ backend/memory log and FP16/AWQ revisions unavailable;
+  GPTQ ran on another host. Reported transparently; no additional paid run planned.
+- GPU Phase 4 live sweep: deferred. Specs and offline tooling are done.
 - Grounding-verdict and context-aware critic implementations, plus their paid
   latency/quality and critic-on/off ablations: original plan stops at the specs.
   Review the two dated specs before giving a separate implementation/run go.
