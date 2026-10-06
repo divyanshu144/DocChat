@@ -13,11 +13,9 @@ from app.services import llm
 @pytest.fixture(autouse=True)
 def _reset_client_cache():
     """The module caches a client globally — reset around every test."""
-    llm._client = None
-    llm._client_provider = None
+    llm._clients.clear()
     yield
-    llm._client = None
-    llm._client_provider = None
+    llm._clients.clear()
 
 
 def _groq_client(content="from groq"):
@@ -38,6 +36,7 @@ def _mistral_client(content="from mistral"):
 
 def _openai_client(content="from openai"):
     resp = MagicMock()
+    resp.status_code = 200
     resp.json.return_value = {"choices": [{"message": {"content": content}}]}
     client = AsyncMock()
     client.post = AsyncMock(return_value=resp)

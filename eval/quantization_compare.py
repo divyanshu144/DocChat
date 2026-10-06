@@ -112,16 +112,87 @@ def _fmt_comparison_table(
     return "\n".join(lines)
 
 
+def compare_sustained_runs(baseline_dir: Path, variant_dir: Path) -> dict:
+    """Compare schema-v2 runs only when recorded workload/load conditions agree."""
+    def load(directory):
+        manifest = json.loads((directory / "manifest.json").read_text())
+        events = [json.loads(line) for line in (directory / "events.jsonl").read_text().splitlines() if line]
+        if (manifest.get("schema_version") != 2 or not events or events[-1].get("event") != "run_end"
+                or events[-1].get("outcome") != "complete"):
+            raise ValueError("Comparison requires complete schema-v2 runs")
+        if any(event.get("run_id") != manifest["run_id"] for event in events):
+            raise ValueError("Artifact run IDs do not match")
+        report = next((e for e in reversed(events) if e.get("event") == "run_summary"), None)
+        if not report:
+            raise ValueError("Run summary missing")
+        return manifest, report["cells"]
+
+    baseline, b_cells = load(baseline_dir)
+    variant, v_cells = load(variant_dir)
+    for key in ("target", "workload_sha256", "corpus_sha256", "cache_mode", "token_policy", "duration_s",
+                "request_limit", "timeout_s", "warmup_requests", "repeats", "min_samples", "sampling",
+                "concurrency", "arrival_rates", "latency_slo_s", "source"):
+        if key not in baseline or key not in variant or baseline[key] != variant[key]:
+            raise ValueError(f"Incompatible benchmark field: {key}")
+    # Quantization/model checkpoint may differ; the remaining serving conditions must not.
+    for key in ("engine", "image_digest", "gpu_name", "gpu_count", "max_model_len", "compute_dtype"):
+        a, b = baseline.get("deployment", {}).get(key), variant.get("deployment", {}).get(key)
+        if a is None or b is None or a != b:
+            raise ValueError(f"Missing or incompatible deployment field: {key}")
+    if baseline["target"] == "api":
+        for key in ("application_revision", "application_config_sha256"):
+            a, b = baseline["deployment"].get(key), variant["deployment"].get(key)
+            if a is None or b is None or a != b:
+                raise ValueError(f"Missing or incompatible application field: {key}")
+    def index(cells):
+        if any(cell["repeats"] != baseline["repeats"] for cell in cells):
+            raise ValueError("Incomplete repeated cells")
+        indexed = {(cell["concurrency"], cell["arrival_rate"]): cell for cell in cells}
+        expected = {(c, r) for c in baseline["concurrency"] for r in baseline["arrival_rates"]}
+        if len(indexed) != len(cells) or indexed.keys() != expected:
+            raise ValueError("Incomplete or duplicate load levels")
+        return indexed
+    left, right = index(b_cells), index(v_cells)
+    if not left or left.keys() != right.keys():
+        raise ValueError("Run cells differ")
+    rows = []
+    for key in left:
+        a, b = left[key], right[key]
+        changes = {}
+        for name, values in a["statistics"].items():
+            old = values["mean"]
+            new = b["statistics"][name]["mean"]
+            changes[name] = {"baseline": values, "variant": b["statistics"][name],
+                             "change_pct": ((new - old) / old * 100
+                                            if old not in (None, 0) and new is not None else None)}
+        rows.append({"concurrency": key[0], "arrival_rate": key[1], "metrics": changes})
+    return {"baseline_run_id": baseline["run_id"], "variant_run_id": variant["run_id"], "cells": rows,
+            "limits": ["Recorded metadata compatibility does not verify the same physical host or network",
+                       "Success percentiles exclude errors; inspect error-rate changes",
+                       "Speed-only report; no answer-quality or causal quantization claim"]}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--jsonl", type=Path, default=Path("data/inference_benchmark.jsonl"))
-    parser.add_argument("--baseline-since", required=True)
-    parser.add_argument("--baseline-until", required=True)
-    parser.add_argument("--variant-since", required=True)
-    parser.add_argument("--variant-until", required=True)
+    parser.add_argument("--baseline-since")
+    parser.add_argument("--baseline-until")
+    parser.add_argument("--variant-since")
+    parser.add_argument("--variant-until")
     parser.add_argument("--baseline-label", default="fp16")
     parser.add_argument("--variant-label", default="awq")
+    parser.add_argument("--baseline-run", type=Path, help="Schema-v2 artifact directory")
+    parser.add_argument("--variant-run", type=Path, help="Schema-v2 artifact directory")
     args = parser.parse_args()
+    if args.baseline_run or args.variant_run:
+        if not args.baseline_run or not args.variant_run:
+            parser.error("Both --baseline-run and --variant-run are required")
+        if any((args.baseline_since, args.baseline_until, args.variant_since, args.variant_until)):
+            parser.error("Do not mix legacy timestamp windows and schema-v2 directories")
+        print(json.dumps(compare_sustained_runs(args.baseline_run, args.variant_run), indent=2))
+        return
+    if not all((args.baseline_since, args.baseline_until, args.variant_since, args.variant_until)):
+        parser.error("Legacy comparisons require all four timestamp-window arguments")
 
     baseline_rows = _load_summary_rows(args.jsonl, args.baseline_since, args.baseline_until)
     variant_rows = _load_summary_rows(args.jsonl, args.variant_since, args.variant_until)

@@ -1,4 +1,7 @@
-import os, subprocess, sys, json
+import os
+import subprocess
+import sys
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 label=sys.argv[1]
@@ -10,7 +13,8 @@ for step,args in steps:
     with (out/f'{label}-{step}.log').open('w') as f:
         r=subprocess.run(['venv/bin/python',*args],env=env,stdout=f,stderr=subprocess.STDOUT,timeout=1100)
     print('exit',r.returncode,flush=True)
-    if r.returncode: sys.exit(r.returncode)
+    if r.returncode:
+        sys.exit(r.returncode)
     if step=='quality':
         d=json.loads((out/f'{label}-quality.json').read_text())
         print('quality',d['edge_metrics'],d['generated_metrics'],flush=True)

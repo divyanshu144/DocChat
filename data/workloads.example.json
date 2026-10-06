@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "corpus_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "cases": [
+    {
+      "id": "qa-001",
+      "category": "document_qa",
+      "query": "What embedding model and vector dimension does the architecture document specify?",
+      "source_ids": ["replace-with-architecture-source-id"],
+      "max_tokens": 300,
+      "expected_evidence": ["replace-with-labeled-chunk-id"]
+    },
+    {
+      "id": "summary-001",
+      "category": "summarisation",
+      "query": "Summarise the ingestion section, including supported inputs and failure handling.",
+      "source_ids": ["replace-with-architecture-source-id"],
+      "max_tokens": 800
+    },
+    {
+      "id": "long-001",
+      "category": "long_context",
+      "query": "Explain how the documented deployment constraints affect the complete request flow.",
+      "source_ids": ["replace-with-long-document-source-id"],
+      "max_tokens": 1400
+    },
+    {
+      "id": "multi-001",
+      "category": "multi_document",
+      "query": "Compare the architecture document and operations guide on storage and recovery responsibilities.",
+      "source_ids": ["replace-with-architecture-source-id", "replace-with-operations-source-id"],
+      "max_tokens": 1000
+    }
+  ]
+}

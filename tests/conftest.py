@@ -26,19 +26,13 @@ os.environ.setdefault("LANGSMITH_TRACING", "false")
 
 @pytest.fixture(autouse=True)
 def _reset_llm_client_cache():
-    """Drop the cached LLM client around every test.
+    """Isolate mocked client registries across test/event-loop boundaries.
 
-    `app.services.llm` caches one client per provider for the process, but its
-    connection pool binds to the event loop that created it. pytest-asyncio gives
-    each test a fresh loop, so the second test to reach the real client raised
-    `RuntimeError: Event loop is closed` — which made `pytest -m eval` fail four of
-    eight cases for reasons that had nothing to do with the critic, and hid whichever
-    real disagreements were underneath.
+    Production API/MCP/benchmark lifecycles use close_llm_clients(); individual
+    real-transport tests own and close their clients explicitly.
     """
     from app.services import llm
 
-    llm._client = None
-    llm._client_provider = None
+    llm._clients.clear()
     yield
-    llm._client = None
-    llm._client_provider = None
+    llm._clients.clear()

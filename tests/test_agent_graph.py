@@ -4,7 +4,10 @@ from app.agent.state import AgentState
 
 
 @pytest.mark.asyncio
-async def test_graph_runs_full_pipeline():
+async def test_graph_runs_full_pipeline(monkeypatch):
+    from app.core import telemetry
+    records = []
+    monkeypatch.setattr(telemetry, "emit", lambda row: records.append(dict(row)))
     with (
         patch("app.agent.nodes.planner.chat_complete", new=AsyncMock(
             return_value='{"sources_to_use": ["pdf"], "rewritten_query": "attention mechanisms"}')),
@@ -36,8 +39,15 @@ async def test_graph_runs_full_pipeline():
             "iteration": 0,
             "grounding_passed": False,
         }
-        final_state = await agent_graph.ainvoke(initial_state)
+        with telemetry.request_trace("graph-test"):
+            final_state = await agent_graph.ainvoke(initial_state)
 
     assert final_state["answer"] == "Attention allows focus on relevant parts."
     assert final_state["needs_replan"] is False
     assert final_state["grounding_passed"] is True
+
+    names = {r.get("name") for r in records}
+    assert {"planner", "retriever", "synthesizer", "grounding", "critic",
+            "retrieval.embedding", "retrieval.search", "retrieval.reranking"} <= names
+    assert all(r["request_id"] == "graph-test" for r in records)
+    assert all(r["iteration"] == 1 for r in records if "iteration" in r)

@@ -31,6 +31,8 @@ query's failure is reported and skipped rather than aborting the whole run.
 """
 
 import asyncio
+import argparse
+from types import SimpleNamespace
 import json
 import sys
 from pathlib import Path
@@ -87,8 +89,9 @@ def _new_state(query: str) -> AgentState:
     }
 
 
-async def _capture_one(case: CriticCase, tokenizer) -> dict:
+async def _capture_one(case: CriticCase, tokenizer, source_ids=None) -> dict:
     state = _new_state(case.query)
+    state["source_ids"] = source_ids or []
 
     planner_result = await planner_module.planner_node(state)
     state.update(planner_result)  # real sources_to_use + rewritten query
@@ -105,6 +108,8 @@ async def _capture_one(case: CriticCase, tokenizer) -> dict:
     with patch.object(synthesizer_module, "chat_complete", fake_chat_complete):
         await synthesizer_module.synthesizer_node(state)
 
+    if "messages" not in captured:
+        raise ValueError("No synthesis prompt: retrieval returned no context")
     messages = captured["messages"]
     return {
         "id": case.label,
@@ -117,7 +122,46 @@ async def _capture_one(case: CriticCase, tokenizer) -> dict:
     }
 
 
+async def capture_workloads(input_path: Path, output_path: Path):
+    """Capture every case or fail; never silently shrink a comparison workload."""
+    from eval.workloads import load_workloads, Message
+    from app.services.llm import close_llm_clients
+    from app.agent.nodes.retriever import close_retriever_client
+
+    if output_path.exists():
+        raise FileExistsError("Capture output already exists")
+    workloads = load_workloads(input_path, "api")
+    tokenizer = _load_tokenizer()
+    cases = []
+    try:
+        for case in workloads.cases:
+            row = await _capture_one(SimpleNamespace(label=case.id, query=case.query), tokenizer,
+                                     source_ids=case.source_ids)
+            cases.append(case.model_copy(update={"messages": [Message(**m) for m in row["messages"]]}))
+    finally:
+        try:
+            await close_retriever_client()
+        finally:
+            await close_llm_clients()
+    captured = workloads.model_copy(update={"cases": cases})
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("x") as output:
+        output.write(captured.model_dump_json(indent=2))
+    print(f"Captured {len(cases)} cases; workload SHA256 {captured.fingerprint()}")
+
+
 async def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--workloads", type=Path)
+    parser.add_argument("--out", type=Path)
+    args = parser.parse_args()
+    if args.workloads:
+        if not args.out:
+            parser.error("--workloads requires --out (a new JSON manifest path)")
+        await capture_workloads(args.workloads, args.out)
+        return
+    if args.out:
+        parser.error("--out requires --workloads; legacy capture uses its historical JSONL path")
     print(f"Loading {_TOKENIZER_MODEL} tokenizer...")
     tokenizer = _load_tokenizer()
     _OUT_PATH.parent.mkdir(parents=True, exist_ok=True)

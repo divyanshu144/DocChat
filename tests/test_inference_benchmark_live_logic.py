@@ -120,8 +120,7 @@ async def test_run_provider_disables_fallback_for_the_duration():
     with patch.object(settings, "fallback_llm_provider", "openai"), \
          patch.object(settings, "llm_provider", "groq"), \
          patch.object(llm, "chat_stream", fake_chat_stream), \
-         patch.object(llm, "_client", None), \
-         patch.object(llm, "_client_provider", None):
+         patch.object(llm, "_clients", {}):
         await _run_provider(
             "groq", [_HI], [1], max_tokens=10, local_gpu_cost_per_hr=None, openai_model_override=None
         )

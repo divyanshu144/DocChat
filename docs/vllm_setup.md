@@ -1,4 +1,39 @@
-# vLLM Setup & Launch — Self-Hosted `local` Provider
+# vLLM setup: serving foundation (2026-10-04)
+
+For application configuration, timing definitions and readiness, see
+[serving observability](serving-observability.md). The local implementation is
+verified offline; this change did not create a GPU instance or run a live acceptance test.
+
+## Reproducible deployment checklist
+
+1. Copy [the deployment manifest template](../deploy/vllm-manifest.example.json)
+   into your experiment directory. Record an immutable container digest, engine
+   version, model/tokenizer commit revisions and chat-template hash before measuring.
+2. Select GPU memory against weights **and** context/concurrency/KV requirements.
+   A 7B model fitting on a card does not guarantee that 64 long requests fit.
+3. Use one pinned serving environment, separate from DocChat's Python dependencies.
+   Pin model and tokenizer with the selected server version's revision flags. Record
+   exact launch arguments and actual selected quantization/attention kernels.
+4. Prefer a private endpoint or localhost-bound SSH tunnel. Set an API key when the
+   endpoint is exposed. Keep credentials outside manifests and captured logs.
+5. Size context from the rendered chat prompt plus output allowance. The historical
+   8,192-token attempt rejected a real workload; the corrected experiment used 16,384.
+6. Check `/v1/models`, then DocChat's `/api/v1/health/serving`, then a short completion
+   and a real ingested-document question. Record actual usage and finish reasons.
+7. Confirm cleanup/cancellation behavior before load testing. Plan a bounded runtime
+   and save artifacts before terminating rented compute.
+
+No current price or hardware recommendation is implied by the historical example
+below. Verify availability, charges, installed CLI options and compatibility before
+provisioning. Do not use `pip install -U` for a reproducible comparison.
+
+The [October quantization report](../reports/quantization-2026-10-01/README.md)
+records the prior tested image digest and hardware, along with missing revisions and
+same-host comparison limits. Those missing fields must not be guessed.
+
+---
+
+# Historical initial setup example — retained for context
 
 Companion runbook to `docs/superpowers/specs/2026-09-28-inference-benchmarking-design.md`.
 This is manual, operational, and billed — nothing here runs in CI or unattended. Follow it

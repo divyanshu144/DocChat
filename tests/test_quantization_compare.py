@@ -192,3 +192,44 @@ def test_fmt_comparison_table_flags_insufficient_samples():
     ]
     table = _fmt_comparison_table(comparisons, "fp16", "awq")
     assert "insufficient_samples" in table
+
+
+def test_sustained_comparison_rejects_incompatible_or_incomplete_runs(tmp_path):
+    import pytest
+    from eval.quantization_compare import compare_sustained_runs
+    from eval.serving_load import ArtifactWriter
+    baseline = tmp_path / "baseline"
+    variant = tmp_path / "variant"
+    # Only schema/run identity are needed to prove mismatches fail before comparing numbers.
+    for directory in (baseline, variant):
+        writer = ArtifactWriter(directory, {"schema_version": 2, "run_id": directory.name,
+                                           "target": "replay" if directory == baseline else "api"})
+        writer.write({"event": "run_summary", "cells": []})
+        writer.write({"event": "run_end", "outcome": "complete"})
+        writer.close()
+    with pytest.raises(ValueError, match="target"):
+        compare_sustained_runs(baseline, variant)
+    (variant / "events.jsonl").write_text("")
+    with pytest.raises(ValueError, match="complete"):
+        compare_sustained_runs(baseline, variant)
+
+
+def test_sustained_comparison_accepts_matching_recorded_conditions(tmp_path):
+    from eval.quantization_compare import compare_sustained_runs
+    from eval.serving_load import ArtifactWriter, repeat_summary, summarize
+    manifest = {"schema_version": 2, "target": "replay", "workload_sha256": "a", "corpus_sha256": "b",
+                "cache_mode": "bust", "token_policy": "provider_only", "duration_s": 60,
+                "request_limit": 1000, "timeout_s": 120, "warmup_requests": 4, "repeats": 1,
+                "min_samples": 1, "sampling": "default", "concurrency": [1], "arrival_rates": [None],
+                "latency_slo_s": None, "source": {"git_commit": "example"},
+                "deployment": {"engine": "test", "image_digest": "test", "gpu_name": "test",
+                               "gpu_count": 1, "max_model_len": 16384, "compute_dtype": "float16"}}
+    for label, seconds in (("base", 2), ("variant", 1)):
+        writer = ArtifactWriter(tmp_path / label, {**manifest, "run_id": label})
+        summary = summarize([{"status": "ok", "total_s": seconds, "output_tokens": 10}], seconds, min_samples=1)
+        writer.write({"event": "run_summary", "cells": repeat_summary([
+            {"concurrency": 1, "arrival_rate": None, "summary": summary}])})
+        writer.write({"event": "run_end", "outcome": "complete"})
+        writer.close()
+    result = compare_sustained_runs(tmp_path / "base", tmp_path / "variant")
+    assert result["cells"][0]["metrics"]["output_tokens_per_second"]["change_pct"] == 100

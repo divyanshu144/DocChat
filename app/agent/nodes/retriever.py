@@ -6,6 +6,7 @@ import httpx
 from qdrant_client.models import Filter, FieldCondition, MatchAny
 from app.agent.state import AgentState
 from app.core.config import settings
+from app.core.telemetry import span, annotate
 from app.core.sources import source_collection
 from app.services.embedder import get_embedder
 
@@ -78,12 +79,15 @@ def _retrieval_filter(source_types: list[str], source_ids: list[str]):
 
 
 async def retriever_node(state: AgentState) -> dict:
-    embedder = await asyncio.to_thread(get_embedder)
+    with span("retrieval.embedding_init"):
+        embedder = await asyncio.to_thread(get_embedder)
     if not embedder:
+        annotate(retrieval_failed=True, retrieved_chunks_count=0)
         logger.error("retriever: embedder is None — fastembed failed to load")
         return {"retrieved_chunks": []}
 
-    query_emb = (await asyncio.to_thread(embedder.embed_query, state["query"])).tolist()
+    with span("retrieval.embedding"):
+        query_emb = (await asyncio.to_thread(embedder.embed_query, state["query"])).tolist()
     source_ids = state.get("source_ids") or []
     source_types = state.get("sources_to_use") or []
     qdrant_filter = _retrieval_filter(source_types, source_ids)
@@ -93,12 +97,13 @@ async def retriever_node(state: AgentState) -> dict:
     all_chunks: list[dict] = []
     dropped_low_score = 0
     try:
-        hits = await _search(
-            source_collection(),
-            query_emb,
-            max(N_RESULTS_PER_SOURCE * max(len(source_types), 1), MAX_RERANKED_CHUNKS),
-            qdrant_filter,
-        )
+        with span("retrieval.search"):
+            hits = await _search(
+                source_collection(),
+                query_emb,
+                max(N_RESULTS_PER_SOURCE * max(len(source_types), 1), MAX_RERANKED_CHUNKS),
+                qdrant_filter,
+            )
         logger.debug("[RETRIEVER] %s -> %d hits", source_collection(), len(hits))
         for hit in hits:
             score = hit.get("score", 0.0)
@@ -119,6 +124,7 @@ async def retriever_node(state: AgentState) -> dict:
                 dropped_low_score, len(hits), settings.retrieval_min_score,
             )
     except Exception as exc:
+        annotate(retrieval_failed=True)
         logger.exception("[RETRIEVER ERROR] collection=%s error=%s", source_collection(), exc)
 
     seen: set[str] = set()
@@ -128,4 +134,7 @@ async def retriever_node(state: AgentState) -> dict:
             seen.add(chunk["text"])
             unique.append(chunk)
 
-    return {"retrieved_chunks": _rerank(state["query"], unique)}
+    with span("retrieval.reranking", candidates=len(unique)):
+        ranked = _rerank(state["query"], unique)
+    annotate(retrieved_chunks_count=len(ranked))
+    return {"retrieved_chunks": ranked}
