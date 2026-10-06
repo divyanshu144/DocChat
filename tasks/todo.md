@@ -248,10 +248,11 @@ code changed. Phase 4 remains deferred.
 - Grounding-verdict and context-aware critic implementations, plus their paid
   latency/quality and critic-on/off ablations: original plan stops at the specs.
   Review the two dated specs before giving a separate implementation/run go.
-- Network volume `owdj19ss50`: retained by explicit user choice; no deletion planned.
+- Network volume `owdj19ss50`: retained then; deleted 2026-10-06 on the owner's explicit request (204; lists empty).
 
 Historical checklists and handoff logs live under `tasks/archive/`; their counts and
 unchecked items are provenance, not new work.
 
 - [x] Phase 3 report written (reports/gpu-live-2026-10-06.md); README, inference-writeup, HANDOFF updated
-- [ ] Owner decisions: delete volume owdj19ss50? local-to-hosted fallback? commit session artifacts?
+- [x] Owner decisions made: volume owdj19ss50 deleted; session artifacts committed (small files only, events.jsonl local)
+- [ ] Phase 3 follow-up note (not built): local-to-hosted fallback is a production decision

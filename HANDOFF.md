@@ -4,12 +4,12 @@
 
 Report: `reports/gpu-live-2026-10-06.md` (artifacts in `reports/gpu-live-2026-10-06/`, uncommitted). One L40S pod
 (`7mx8ltjpq14vku`, 75.3 min, about $1.37 estimated; provider billing readback incomplete because it lags) was terminated and
-the provider's pod list is empty. Network volume `owdj19ss50` still exists and is NOT deleted; ask before deleting.
+the provider's pod list is empty. Network volume `owdj19ss50` was DELETED on the owner's explicit request after the session (provider returned 204; volume and pod lists are both empty), so any cached model weights are gone and the next session re-downloads the model.
 Measured, single run, single GPU: clean sweep c=1..64 (about 8x throughput to c=32, flat at 64, KV peak 42%, GPU util ~100%
 from c=4 so it is not headroom); SIGSTOP/SIGCONT and hard kill failure-behaviour tests (no request succeeded while the
 fault was active; hard-kill recovery 64.5 s INCLUDES MODEL LOAD; /health/serving matched documentation); prefix caching on
 vs off (c=16: -51% throughput, +111% p95 with it off; c=4 not claimed); serial vs concurrent (c=16: 5.4x, same output tokens).
-Unexplained: this run was 17-27% slower than the earlier FP16 sweep. Open decisions: delete volume owdj19ss50; whether to
+Unexplained: this run was 17-27% slower than the earlier FP16 sweep. Open decisions: whether to
 add a local-to-hosted fallback (not built; a production decision); commit the session artifacts (do not stage the raw
 `reports/heldout-serving-*/events.jsonl` or `Claude outputs/`).
 
@@ -24,7 +24,7 @@ Approved decisions: 100 requests per cell; a **failure-behaviour test** (never t
 is a separate production decision for the Phase 3 report); the main fault is SIGSTOP then SIGCONT of the `vllm serve` process,
 run AFTER the clean sweep with the GPU sampler still running; a hard kill and restart (recovery labelled "includes model load")
 and the extras only if spend is under $2.50 after the core session; hard cap $4.00, stop-and-ask $2.50; re-quote then wait for
-an explicit go; network volume `owdj19ss50` is not deleted (its contents cannot be listed without a paid mount; ask again).
+an explicit go; network volume `owdj19ss50` was not deleted at that point (deleted later; see the section above).
 Live quote 2026-10-06: L40S Secure $1.09/hour, availability LOW, EUR-IS-2 only. **No pod, paid call or spend so far; the
 provider showed 0 pods.** Plan with the exact commands: `docs/superpowers/plans/2026-10-06-live-gpu-session.md`.
 
@@ -297,8 +297,7 @@ qdrant/postgres DNS names. Do not read/print .env secrets in session output.
 
 Phase 3 measurements are complete with documented limitations. Phase 4 batching
 remains deferred. No pods remain; this was confirmed on 2026-10-02.
-The retained network volume owdj19ss50 (50GB, US-TX-3) has cached Qwen weights and its
-own storage charge; user chose to keep it. Do not delete it without a specific go.
+The network volume owdj19ss50 (50GB, US-TX-3) was retained then; it was deleted on 2026-10-06 (see the latest section).
 
 Grounding verdict/removal and context-aware critic redesigns stop at these specs:
 - [Grounding](docs/superpowers/specs/2026-10-01-grounding-verdict-design.md)
