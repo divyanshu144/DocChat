@@ -961,7 +961,10 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["sustained"]:
+    if sys.argv[1:2] == ["failure-behaviour"]:
+        from eval.failure_behaviour import main as failure_main
+        asyncio.run(failure_main(sys.argv[2:]))
+    elif sys.argv[1:2] == ["sustained"]:
         from eval.serving_load import main as sustained_main
         asyncio.run(sustained_main(sys.argv[2:]))
     else:

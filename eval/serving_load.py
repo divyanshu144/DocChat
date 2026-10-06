@@ -22,7 +22,8 @@ from app.core.config import settings
 from app.core.telemetry import request_trace
 from app.services import llm
 from eval.workloads import load_workloads
-from eval.serving_metrics import parse_engine_metrics, counter_changes
+from eval.serving_metrics import (ENGINE_METRIC_PREFIXES, ENGINE_METRIC_STATUS, counter_changes, parse_engine_metrics,
+                                  prefix_cache_summary)
 
 
 class ArtifactWriter:
@@ -42,6 +43,9 @@ class ArtifactWriter:
         self.file.close()
 
 
+P99_MIN_SAMPLES = 100  # p99 needs at least this many successes (and at least min_samples); fewer is just the maximum
+
+
 def percentile(values, p):
     values = sorted(values)
     return values[max(0, math.ceil(len(values) * p) - 1)] if values else None
@@ -55,6 +59,10 @@ def summarize(rows, wall_s, *, min_samples=100, latency_slo=None):
     def p95(key):
         values = [r[key] for r in successful if r.get(key) is not None]
         return percentile(values, .95) if len(values) >= min_samples else None
+    p99_floor = max(min_samples, P99_MIN_SAMPLES)
+
+    def p99(values):
+        return percentile(values, .99) if len(values) >= p99_floor else None
     return {
         "offered": len(rows), "completed_ok": len(successful),
         "errors": sum(r["status"] == "error" for r in rows),
@@ -67,6 +75,8 @@ def summarize(rows, wall_s, *, min_samples=100, latency_slo=None):
         "latency_p50_s": percentile(latencies, .5),
         "latency_p95_s": percentile(latencies, .95) if sufficient else None,
         "ttft_p95_s": p95("ttft_s"), "first_answer_p95_s": p95("first_answer_s"),
+        "latency_p99_s": p99(latencies), "ttft_p99_s": p99([r["ttft_s"] for r in successful if r.get("ttft_s") is not None]),
+        "p99_min_samples": p99_floor,
         "insufficient_samples": not sufficient, "min_percentile_samples": min_samples,
         "known_output_usage_requests": len(known),
         "output_tokens_per_second": (sum(r["output_tokens"] for r in known) / wall_s
@@ -164,6 +174,7 @@ async def run_cell(cases, request, *, concurrency, duration_s, max_requests, tim
     if arrival_rate is not None and arrival_rate <= 0:
         raise ValueError("arrival_rate must be positive")
     started = time.perf_counter()
+    started_wall = datetime.now(timezone.utc)  # wall clock, only used to align external samples
     deadline = started + duration_s
     rows = []
     next_index = 0
@@ -243,7 +254,10 @@ async def run_cell(cases, request, *, concurrency, duration_s, max_requests, tim
                 task.cancel()
         await asyncio.gather(*pending, return_exceptions=True)
         wall = time.perf_counter() - started
+        ended_wall = datetime.now(timezone.utc)
         summary = {"event": "cell_summary", "cell_id": cell_id, "phase": phase,
+                   "window": {"started_at": started_wall.isoformat(), "ended_at": ended_wall.isoformat(),
+                              "clock": "benchmark_client_wall_clock_utc"},
                    "interrupted": interrupted, "concurrency": concurrency, "arrival_rate": arrival_rate,
                    "duration_limit_s": duration_s, "request_limit": max_requests,
                    "stop_reason": "interrupted" if interrupted else (
@@ -259,7 +273,7 @@ async def run_cell(cases, request, *, concurrency, duration_s, max_requests, tim
     return summary
 
 
-async def poll_engine(client, url, write, cell_id, stop, ready=None):
+async def poll_engine(client, url, write, cell_id, stop, ready=None, engine="vllm"):
     first = last = None
     failed = 0
     resets = set()
@@ -268,9 +282,9 @@ async def poll_engine(client, url, write, cell_id, stop, ready=None):
         try:
             response = await client.get(url, timeout=2)
             response.raise_for_status()
-            values = parse_engine_metrics(response.text)
+            values = parse_engine_metrics(response.text, ENGINE_METRIC_PREFIXES[engine])
             if not values:
-                raise ValueError("No vLLM series")
+                raise ValueError(f"No {engine} series")
             if last is not None:
                 for row in counter_changes(last, values):
                     if row["reset"]:
@@ -299,7 +313,7 @@ async def poll_engine(client, url, write, cell_id, stop, ready=None):
         if (row["name"], tuple(sorted(row["labels"].items()))) in resets:
             row.update(reset=True, delta=None)
     write({"event": "engine_counter_changes", "cell_id": cell_id, "failed_scrapes": failed,
-           "changes": changes})
+           "changes": changes, "prefix_cache": prefix_cache_summary(changes, engine)})
 
 
 def positive_int(value):
@@ -338,6 +352,9 @@ def parse_args(argv=None):
     parser.add_argument("--api-base-url", type=http_url, default="http://127.0.0.1:8081/api/v1/")
     parser.add_argument("--auth-token-file", type=Path)
     parser.add_argument("--metrics-url", type=http_url)
+    parser.add_argument("--engine", choices=sorted(ENGINE_METRIC_PREFIXES), default="vllm",
+                        help="serving engine, for metric-name parsing only (the request path is OpenAI-compatible); "
+                             "sglang names are unverified")
     parser.add_argument("--metrics-token-file", type=Path)
     parser.add_argument("--deployment-manifest", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)
@@ -367,6 +384,15 @@ def parse_args(argv=None):
     if args.target == "api" and not args.auth_token_file and not args.validate_only:
         parser.error("API benchmarks require --auth-token-file")
     return args
+
+
+# Only these manifest keys are copied into artifacts (never arbitrary fields, which might hold credentials).
+DEPLOYMENT_FIELDS = {"engine", "image_digest", "engine_version", "model_repository", "model_revision",
+                         "tokenizer_repository", "tokenizer_revision", "chat_template_sha256", "served_model_name",
+                         "gpu_name", "gpu_count", "gpu_memory_mib", "driver", "cuda", "torch", "compute_dtype",
+                         "weight_quantization", "quantization_kernel", "kv_cache_dtype", "max_model_len",
+                         "gpu_memory_utilization", "prefix_caching", "hourly_cost_usd",
+                         "application_revision", "application_config_sha256"}
 
 
 def source_provenance():
@@ -408,12 +434,6 @@ async def main(argv=None):
     deployment = json.loads(args.deployment_manifest.read_text()) if args.deployment_manifest else None
     if deployment is not None and not isinstance(deployment, dict):
         raise ValueError("Deployment manifest must be a JSON object")
-    deployment_fields = {"engine", "image_digest", "engine_version", "model_repository", "model_revision",
-                         "tokenizer_repository", "tokenizer_revision", "chat_template_sha256", "served_model_name",
-                         "gpu_name", "gpu_count", "gpu_memory_mib", "driver", "cuda", "torch", "compute_dtype",
-                         "weight_quantization", "quantization_kernel", "kv_cache_dtype", "max_model_len",
-                         "gpu_memory_utilization", "prefix_caching", "hourly_cost_usd",
-                         "application_revision", "application_config_sha256"}
     # Do not copy arbitrary manifest fields (which might include credentials).
     deployment_hash = hashlib.sha256(args.deployment_manifest.read_bytes()).hexdigest() if args.deployment_manifest else None
     if args.validate_only:
@@ -426,10 +446,11 @@ async def main(argv=None):
     manifest = {"schema_version": 2, "run_id": run_id,
                 "created_at": datetime.now(timezone.utc).isoformat(), "target": args.target,
                 "provider": args.provider if args.target == "replay" else "remote_application",
+                "engine_family": args.engine, "engine_metrics_status": ENGINE_METRIC_STATUS[args.engine],
                 "workload_sha256": workloads.fingerprint(), "corpus_sha256": workloads.corpus_sha256,
                 "corpus_fingerprint_source": "workload_manifest; not checked against live index",
                 "deployment_sha256": deployment_hash, "deployment_verified_by_runner": False,
-                "deployment": {key: value for key, value in (deployment or {}).items() if key in deployment_fields},
+                "deployment": {key: value for key, value in (deployment or {}).items() if key in DEPLOYMENT_FIELDS},
                 "source": source_provenance(),
                 "cases": [{"id": c.id, "split": c.split, "category": c.category, "max_tokens": c.max_tokens,
                            "prompt_sha256": hashlib.sha256(json.dumps([m.model_dump() for m in c.messages],
@@ -482,7 +503,7 @@ async def main(argv=None):
                         stop = asyncio.Event()
                         ready = asyncio.Event()
                         poller = asyncio.create_task(poll_engine(metric_client, args.metrics_url, writer.write,
-                                                                cell_id, stop, ready)) if args.metrics_url else None
+                                                                cell_id, stop, ready, args.engine)) if args.metrics_url else None
                         try:
                             if poller:
                                 await ready.wait()

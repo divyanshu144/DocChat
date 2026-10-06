@@ -78,6 +78,50 @@ all GPU work; verify that behavior during live acceptance.
 200 when found, and `not_applicable` for hosted providers. It is a readiness probe,
 not proof of successful inference or model quality.
 
+## Engine metrics and the per-cell prefix-cache summary
+
+The sustained benchmark polls the engine's `/metrics` for the metric family selected by `--engine`
+(`vllm` by default; `sglang` is unverified, see [benchmarking](benchmarking.md#engine-selection---engine)).
+Each cell's counter changes now also yield a prefix-cache hit-rate summary (tokens queried, hit, and the rate) or
+an explicit `unavailable` reason. It is an engine-side counter ratio for that cell, not a statement about answer
+quality, and it is only as good as the series names for the engine version in use.
+
+## GPU utilization (a separate signal)
+
+vLLM's `/metrics` endpoint does not provide GPU compute utilization, so it is not part of the Prometheus metrics
+above. It is sampled on the GPU host by `eval/gpu_sampler.py` and attached to a finished benchmark run by
+`eval.gpu_utilization` (see [benchmarking](benchmarking.md#gpu-utilization-optional-separate-signal) for the
+runbook). It is content-free: GPU index, utilization, memory and power with timestamps, no prompts or process lists.
+
+**What the number is.** It is the share of the sample period in which at least one kernel was running, so 100 percent
+does not mean the GPU is fully used. One small kernel that is always resident can read 100 percent while most of the
+GPU's compute and memory bandwidth sits idle. The sample period is the driver's own, not this sampler's interval.
+
+**What it does not tell you.** It does not show that the GPU was used efficiently, and a low reading does not show
+where a limit was. It is not memory bandwidth, achieved FLOPs or per-request GPU time. Interpret it beside the other
+signals, never instead of them:
+
+| Signal | Source | Answers |
+|---|---|---|
+| KV-cache usage | vLLM `/metrics` | how close the engine is to cache capacity |
+| Waiting requests / queue depth | vLLM `/metrics` | whether requests are queueing in the engine |
+| GPU utilization | host sampler (this section) | whether any kernel was running during the sample period |
+
+### How to read it
+
+These are prompts for the next check, not diagnoses. Each row says what the combination MAY suggest.
+
+| Utilization | KV-cache pressure | Queue | What it MAY suggest | Check next |
+|---|---|---|---|---|
+| High | Low | Not growing | The GPU may have had work to do while cache capacity may not have been what limited this cell. It does not show the work was efficient. | Whether throughput still rises when concurrency rises across the sweep; per-request decode rate; whether a smaller or quantized model changes throughput. |
+| High | Near 100 percent | Growing | The engine may be at its capacity for this configuration: cache full and requests waiting. | Preemptions and waiting-request counts over the window; whether errors or timeouts rise at that concurrency; whether less retrieved context, fewer concurrent sequences or more capacity changes the picture. |
+| Low | Any | Growing | Requests may be waiting for something other than GPU kernels (scheduling, CPU-side work, cache limits), or the reading may be unreliable. It is not proof of any one cause. | Whether the cell is `ok` and aligned (status, offset provenance, sample count, coverage); KV-cache usage; host CPU; engine limits such as maximum sequences; load-generator rejections and scheduling lag; whether the sampler ran for the whole window. |
+
+Alignment depends on two clocks (the benchmark client's and the GPU host's). The attach step takes an explicit offset
+and records whether it was supplied or assumed to be zero, and it warns when an unmeasured offset meets a short window.
+Samples that do not cover a cell's window leave that cell `unavailable` rather than reporting a biased mean.
+**Status: built and offline-tested with fixtures; no live measurement has been taken yet.**
+
 ## Verification and next phase
 
 Offline tests cover transport payloads, usage tails, malformed/unterminated streams,
@@ -89,3 +133,4 @@ behavior and output compatibility with internal buffering on/off.
 Phase 2 exposes `/api/v1/metrics` and adds an explicit `sustained` benchmark subcommand
 with schema-v2 artifacts. Historical burst statistics retain their original semantics.
 No automatic GPU provisioning, monitoring service or application deployment occurred.
+A GPU utilization sampler and attach step now exist (offline-tested only); no live GPU measurement has occurred.

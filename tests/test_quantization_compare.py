@@ -233,3 +233,107 @@ def test_sustained_comparison_accepts_matching_recorded_conditions(tmp_path):
         writer.close()
     result = compare_sustained_runs(tmp_path / "base", tmp_path / "variant")
     assert result["cells"][0]["metrics"]["output_tokens_per_second"]["change_pct"] == 100
+
+
+# --- optional GPU-utilization column ----------------------------------------------------------
+
+def _matching_runs(tmp_path, variant_target="replay"):
+    from eval.serving_load import ArtifactWriter, repeat_summary, summarize
+    manifest = {"schema_version": 2, "target": "replay", "workload_sha256": "a", "corpus_sha256": "b",
+                "cache_mode": "bust", "token_policy": "provider_only", "duration_s": 60,
+                "request_limit": 1000, "timeout_s": 120, "warmup_requests": 4, "repeats": 1,
+                "min_samples": 1, "sampling": "default", "concurrency": [1], "arrival_rates": [None],
+                "latency_slo_s": None, "source": {"git_commit": "example"},
+                "deployment": {"engine": "test", "image_digest": "test", "gpu_name": "test",
+                               "gpu_count": 1, "max_model_len": 16384, "compute_dtype": "float16"}}
+    for label, seconds in (("base", 2), ("variant", 1)):
+        writer = ArtifactWriter(tmp_path / label, {**manifest, "run_id": label,
+                                                  "target": variant_target if label == "variant" else "replay"})
+        summary = summarize([{"status": "ok", "total_s": seconds, "output_tokens": 10}], seconds, min_samples=1)
+        writer.write({"event": "run_summary", "cells": repeat_summary([
+            {"concurrency": 1, "arrival_rate": None, "summary": summary}])})
+        writer.write({"event": "run_end", "outcome": "complete"})
+        writer.close()
+    return tmp_path / "base", tmp_path / "variant"
+
+
+def _gpu_file(directory, run_id, mean_pct=70.0, status="ok"):
+    """A minimal gpu-utilization.json fixture (placeholder numbers, not a measurement)."""
+    cell = {"concurrency": 1, "arrival_rate": None, "status": status,
+            "per_gpu": {"0": {"status": "ok", "n_samples": 30, "mean_pct": mean_pct, "p95_pct": mean_pct + 10,
+                              "max_pct": mean_pct + 15}} if status == "ok" else {}}
+    if status != "ok":
+        cell["reason"] = "sampler file not found"
+    (directory / "gpu-utilization.json").write_text(json.dumps({"run_id": run_id, "cells": [cell]}))
+
+
+def test_comparison_output_is_unchanged_when_no_gpu_file_exists(tmp_path):
+    from eval.quantization_compare import compare_sustained_runs
+    base, variant = _matching_runs(tmp_path)
+    result = compare_sustained_runs(base, variant)
+    assert all("gpu_utilization" not in row for row in result["cells"])
+    assert len(result["limits"]) == 3 and set(result) == {"baseline_run_id", "variant_run_id", "cells", "limits"}
+
+
+def test_gpu_utilization_is_an_extra_column_that_leaves_every_other_value_alone(tmp_path):
+    from eval.quantization_compare import compare_sustained_runs
+    base, variant = _matching_runs(tmp_path)
+    before = compare_sustained_runs(base, variant)
+    _gpu_file(base, "base", 70.0)
+    _gpu_file(variant, "variant", 55.0)
+    after = compare_sustained_runs(base, variant)
+    column = after["cells"][0]["gpu_utilization"]
+    assert column["baseline"]["per_gpu"]["0"]["mean_pct"] == 70.0
+    assert column["variant"]["per_gpu"]["0"]["mean_pct"] == 55.0
+    assert after["cells"][0]["metrics"] == before["cells"][0]["metrics"]       # nothing else moved
+    assert [r["concurrency"] for r in after["cells"]] == [r["concurrency"] for r in before["cells"]]
+    assert any("not part of comparability checks" in limit for limit in after["limits"])
+
+
+def test_a_gpu_file_on_one_side_marks_the_other_unavailable_with_a_reason(tmp_path):
+    from eval.quantization_compare import compare_sustained_runs
+    base, variant = _matching_runs(tmp_path)
+    _gpu_file(base, "base")
+    column = compare_sustained_runs(base, variant)["cells"][0]["gpu_utilization"]
+    assert column["baseline"]["status"] == "ok"
+    assert column["variant"] == {"status": "unavailable", "reason": "no gpu-utilization.json attached to this run"}
+
+
+def test_unavailable_gpu_data_never_changes_which_runs_are_comparable(tmp_path):
+    import pytest
+    from eval.quantization_compare import compare_sustained_runs
+    base, variant = _matching_runs(tmp_path)
+    plain = compare_sustained_runs(base, variant)
+    _gpu_file(base, "base", status="unavailable")
+    _gpu_file(variant, "variant", mean_pct=12.0)                              # very different GPU data
+    compared = compare_sustained_runs(base, variant)                          # still comparable, same metrics
+    assert compared["cells"][0]["metrics"] == plain["cells"][0]["metrics"]
+    assert compared["cells"][0]["gpu_utilization"]["baseline"]["status"] == "unavailable"
+    # and GPU files cannot rescue runs the existing checks reject
+    other = tmp_path / "other"
+    other.mkdir()
+    b2, v2 = _matching_runs(other, variant_target="api")
+    _gpu_file(b2, "base")
+    _gpu_file(v2, "variant")
+    with pytest.raises(ValueError, match="target"):
+        compare_sustained_runs(b2, v2)
+
+
+def test_foreign_or_unreadable_gpu_files_are_reported_not_raised(tmp_path):
+    from eval.quantization_compare import compare_sustained_runs
+    base, variant = _matching_runs(tmp_path)
+    _gpu_file(base, "some-other-run")
+    (variant / "gpu-utilization.json").write_text("{not json")
+    column = compare_sustained_runs(base, variant)["cells"][0]["gpu_utilization"]
+    assert "different run" in column["baseline"]["reason"]
+    assert "unreadable" in column["variant"]["reason"]
+
+
+def test_quantization_compare_still_has_no_heavy_imports_at_module_load():
+    import ast
+    from pathlib import Path
+    import eval.quantization_compare as module
+    tree = ast.parse(Path(module.__file__).read_text())
+    top_level = {n.module for n in tree.body if isinstance(n, ast.ImportFrom)} | \
+                {a.name for n in tree.body if isinstance(n, ast.Import) for a in n.names}
+    assert not any(name and name.startswith(("eval.", "app.")) for name in top_level)

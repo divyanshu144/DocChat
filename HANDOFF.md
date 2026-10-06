@@ -1,29 +1,90 @@
 # DocChat session handoff
 
-## Latest: LLM-assisted answer-quality review (2026-10-05, uncommitted)
+## In progress: closing the remaining serving gaps (2026-10-06): Phase 0 and Phase 1 done, awaiting approval for Phase 2
 
-STOPPED by user 2026-10-06. Final report (v1 complete + v2 partial): `reports/answer-quality-final-report-v1-v2-2026-10-06.md`.
-v2 partial: Opus 22, astra 66, Groq 53 of 120 (credits/daily cap); no GPTQ coverage; no v2 format conclusions.
-To finish: resume Groq (same command, see report section 9) once its cap/tier allows. Nothing committed.
+Approved decisions: 100 requests per cell; the fault test is named a **failure-behaviour test** (never "failover"), and no
+local-to-hosted fallback is added (a possible fallback is a separate production-behaviour decision, listed for the Phase 3
+report); hard cost cap $4.00 with stop-and-ask at $2.50 and a live price re-quote before renting anything; extras (prefix-cache
+on/off, serial vs concurrent) only if spend is under $2.50; before deleting network volume `owdj19ss50` list what is on it and
+ask again. **No pod, paid call or spend so far.** Plan: `docs/superpowers/plans/2026-10-06-live-gpu-session.md`.
 
-Blinded `gpt-5.6-luna` judge ran over all 120 rows of `reports/quality-review-pack.jsonl`
-(119 ok, 1 schema_error: `review-ec6f5335912c`). The judge rejected `temperature=0`; labels
-use provider-default sampling and are NOT manually spot-checked yet. Full write-up:
-`reports/answer-quality-llm-judge-2026-10-05.md`. Next: spot-check ~10 rows, decide on the
-failed row, optional re-judge for agreement. Do not claim temperature 0 or human evaluation.
-v2 rerun (2026-10-06): Opus v2 halted at 22/120 (credits); gpt-6-astra v2 halted at 66/120 (OpenAI credits exhausted) -> `reports/quality-judge-labels-v2-gpt-6-astra.jsonl`.
-Draft: `reports/answer-quality-v2-report-2026-10-06-DRAFT.md` (Groq gpt-oss-120b v2 temp=0 run halted at 53/120: daily token cap; resume later with same command, output reports/quality-judge-labels-v2-groq-gpt-oss-120b.jsonl; section 7 PENDING; astra aggregate files cover only 66 rows, do not quote). New tools: paired_format_comparison,
-build_disagreement_sheet, refresh_pack_citations (fixed pack copy), compare_judge_labels pairwise mode.
-Final report: `reports/answer-quality-final-report-2026-10-06.md` (corrected answer/abstention/citation labels;
-unsupported-claim counts exploratory; v2 rerun deliberately deferred).
-Audit pass (2026-10-06): `reports/quality-judge-label-audit.{jsonl,md}` hold suggested corrections (LLM-audited, not human-verified;
-original labels untouched). `eval/audit_judge_labels.py` applies per-claim decisions; see the md for the strict/full bounds.
+Phase 1 (offline, TDD, additive, schema stays v2; spec `docs/superpowers/specs/2026-10-06-harness-improvements-design.md`,
+plan `docs/superpowers/plans/2026-10-06-harness-improvements.md`):
+1. p99 latency and TTFT in cell summaries and `capacity_plan` (null below `max(min_samples, 100)` successes; never gates the SLO).
+2. `capacity_plan` cost per request and per 1K output tokens (omitted when no cost is known).
+3. `--engine {vllm,sglang}` (SGLang metric names UNVERIFIED) and a per-cell prefix-cache hit-rate summary.
+4. `quantization_compare --prefix-cache-comparison` (caching on vs off; `bust` mode is labelled a control).
+5. `eval/batching_compare.py`: fixed-batch serial vs concurrent for the legacy rows.
+6. `eval/failure_behaviour.py` + `inference_benchmark failure-behaviour`: error rate before/in-flight/during/after, time to
+   first error, time to recovery, `/health/serving` vs documented behaviour, no-hosted-fallback record; commands run without a
+   shell, only with `--yes-run-fault-commands`, recorded as hashes; the restore always runs once after any attempted inject.
+7. Docs: `docs/benchmarking.md` (one section each) and `docs/serving-observability.md`.
+
+Offline rehearsals against a localhost fake vLLM-style server (real sampler CLI, real sustained run, a real `kill -STOP`
+fault on the real server process, attach, capacity) all ran end to end; the fake's numbers are not measurements. They found
+and fixed: sampler period drift (Phase 0), and the failure-behaviour baseline being polluted by in-flight casualties of the
+fault (now its own window) plus a boundary effect reported as `of_which_finished_after_restore`.
+
+Sampler and GPU-utilization work from the earlier session is unchanged: built, reviewed, offline-tested, live run pending.
+
+## Latest: GPU utilization in the serving benchmark (2026-10-06): built, reviewed, offline-tested, live run pending
+
+Uncommitted working-tree changes on branch `feat/serving-platform-and-quality-review` (last commit `80e7bf1`).
+Spec: `docs/superpowers/specs/2026-10-06-gpu-utilization-design.md`; checklist in `tasks/todo.md`.
+
+Built:
+- `eval/gpu_sampler.py`: standalone, stdlib-only sampler to run ON the GPU host (pynvml, then nvidia-smi, else an
+  explicit "unavailable" header and exit 3). Content-free JSONL; refuses to overwrite.
+- `eval/serving_load.py`: each `cell_summary` now records an optional wall-clock `window` (additive; schema stays v2).
+- `eval/gpu_utilization.py attach`: post-run, aligns samples to each measurement cell's window (warmup excluded) and
+  writes `gpu-utilization.json` (mean, p95, max, sample count per GPU). `unavailable` with a reason when the file is
+  missing, the sampler had no backend, no window was recorded, too few samples, or the window is not covered. Clock
+  offset is operator-supplied and recorded; nothing is filled in or estimated.
+- `eval/quantization_compare.py`: optional `gpu_utilization` column, added only after the comparability checks and never
+  read by them; output is unchanged when no run has the file. `eval/capacity_plan.py` is untouched.
+- Docs: `docs/benchmarking.md` (runbook: start sampler, run sweep, stop, copy back, attach, compare) and
+  `docs/serving-observability.md` (what the number means and does not mean).
+
+Review pass (second session, still offline, no commit): the clock-offset sign is defined once (`OFFSET_CONVENTION` in
+`eval/gpu_utilization.py`, which the report, CLI help and `docs/benchmarking.md` all quote; a test fails if the docs drift)
+and a test fails if the sign is flipped; the attach report carries a `warnings` entry (and the CLI prints it) when the
+offset was assumed zero and a cell window is under 30 s; `attach --dry-check` previews expected vs actual samples and
+sample span vs window span and writes nothing; the docs define utilization as the share of the sample period in which at
+least one kernel was running (100% is not "fully used"), add a hedged "how to read it" table, and add a first-live-run
+checklist with the three likely `unavailable` causes. A test caught one unhedged row in the reading table; fixed.
+
+Verification: `ruff check .` clean; `pytest -m "not eval" -q` 547 passed, 8 deselected (493 before the feature, 534
+after the first pass; 54 new tests in total). Offline CLI smoke: the real sampler on this GPU-less machine wrote the
+unavailable header and exited 3; a fake-reader run aligned and attached against the real wall clock.
+
+Pending: **no live measurement has been taken**. A real run needs an approved GPU endpoint, the sampler copied to the
+pod, and a measured clock offset. Do not quote GPU utilization numbers until then, and do not read it as efficiency.
+
+## Branch state
+
+Committed on `feat/serving-platform-and-quality-review`, not pushed: `ddbfa28` serving platform (adapter, telemetry,
+metrics, sustained benchmarks), `5d845cf` held-out evaluation tooling and reports, `78e64c6` blinded answer-quality
+review, `80e7bf1` docs. Deliberately untracked: `Claude outputs/` (unrelated), `docs/project-walkthrough.md`, and
+`reports/heldout-serving-{awq,gptq}/events.jsonl` (19.6 MB and 18.9 MB raw metric logs; consider Git LFS).
+
+## LLM-assisted answer-quality review (2026-10-05 to 06; committed in `78e64c6`)
+
+Stopped by the user on 2026-10-06. Final report (v1 complete, v2 partial):
+`reports/answer-quality-final-report-v1-v2-2026-10-06.md`. Labels are LLM-assisted and NOT human-verified: every label
+row says `human_verified: false` and the spot-check and disagreement verdict templates are still empty.
+- v1 (`gpt-5.6-luna`) covers all 120 rows (119 parsed; `review-ec6f5335912c` failed twice). Its audit correction layer
+  (`reports/quality-judge-label-audit.{jsonl,md}`, originals untouched) is the basis for answer, abstention and
+  citation results. Unsupported-claim counts are exploratory only (strongly prompt- and judge-sensitive).
+- v2 reruns are partial: Opus 22, gpt-6-astra 66, Groq `gpt-oss-120b` 53 of 120 (credits or daily cap). No v2 judge
+  scored any GPTQ row, so v2 supports no format conclusions. Only the Groq rows applied `temperature=0`.
+- To finish: resume Groq with the command in the final report (section 9) once its cap or tier allows.
+- Do not claim temperature 0 for v1, Opus or astra, or "human evaluation" / "manually spot-checked".
 
 ## Current: Phase 2 benchmarks and metrics (completed locally 2026-10-05)
 
-User authorized Phase 2 after Phase 1. Both phases are implemented but uncommitted;
-last commit is still `04179e4` (benchmark evidence). No push/deployment or paid model
-workload ran. Unrelated `Claude outputs/` is untouched. Prometheus client 0.26.0 was
+User authorized Phase 2 after Phase 1. Both phases are implemented and were committed on
+2026-10-06 as `ddbfa28` (after `04179e4`, benchmark evidence). No push/deployment or paid model
+workload ran for them. Unrelated `Claude outputs/` is untouched. Prometheus client 0.26.0 was
 installed in the existing venv; requirements declare `prometheus-client>=0.21,<1`.
 
 Phase 2 additions:

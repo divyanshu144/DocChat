@@ -503,3 +503,43 @@ when no space is found within some reasonable distance of the end.
 ## 2026-10-06 - Groq judge halted at 53/120 (daily token cap, 200k TPD on-demand)
 - Broke: 120 rows x ~3.5k tokens (incl. reasoning) exceeds the free daily budget; backoff cannot help a daily cap.
 - Next time: estimate tokens before choosing a free-tier judge; the runner now fails fast on "tokens per day" errors and resumes cleanly.
+
+## 2026-10-06 - GPU utilization attach: the cell artifact had no wall-clock window
+- Found: `run_cell` stores only monotonic offsets; only engine-metric samples were UTC-stamped, so external samples
+  (GPU utilization) could not be aligned to a measured cell until a wall-clock `window` was recorded.
+- Also: the comparison mode indexes `run_summary.cells[*].statistics` by name, so any new metric placed there would
+  KeyError on older runs. Optional signals belong in a sibling artifact and an output-only column, after the checks.
+- Gotcha: macOS `sed -i` needs a suffix argument; a failed `sed && python` chain silently skipped the code edit and
+  surfaced as two unrelated test failures. Use Python for in-place edits.
+
+## 2026-10-06 - GPU utilization review: single source for the offset sign; test the docs, not just the code
+- Found: the offset sign convention existed in three wordings (code constant, CLI help, docs) that could drift.
+  Made the constant the only definition; CLI help reads it and a test asserts the docs quote it verbatim.
+- A docs-lint test caught an unhedged row in the "how to read it" table that I had written without "may".
+  Assertions on documentation wording are cheap and catch overclaiming that code review misses.
+- A flipped offset sign makes a cell `unavailable` rather than wrong, so the sign-flip test asserts `unavailable`.
+
+## 2026-10-06 - dress rehearsal found a real sampler defect that unit tests had missed
+- Found: `gpu_sampler.run` slept a full interval AFTER each read, so the real period was interval + read latency
+  (38 samples where ~40 were expected at 0.5 s with a fast fake `nvidia-smi`; a real `nvidia-smi` call is slower, so the
+  shortfall would be larger on a pod). Fixed by scheduling against a fixed monotonic deadline that re-anchors (never
+  bursts) when a read overruns the interval.
+- Method: a localhost fake of vLLM's `/v1/chat/completions` (SSE with a usage chunk) and `/metrics`, a fake
+  `nvidia-smi` on PATH, then the REAL sampler CLI, sustained benchmark and attach. Unit tests with fake readers never
+  exercised the subprocess path or real timing. Rehearse the whole pipeline offline before any paid run.
+- Gotcha: the sandbox denied a command containing `rm -rf` on a variable path; create fresh scratch directories and
+  write files with the Write tool instead of deleting.
+
+## 2026-10-06 - failure-behaviour analysis: windows by dispatch hid the fault's own casualties
+- Found by a unit test, then confirmed in a real rehearsal (kill -STOP on a real server process): classifying requests
+  into before/during/after by DISPATCH time put requests that were in flight when the fault hit into the baseline
+  (1 of 19 "before" failed). Fixed with a separate `in_flight_at_injection` window and `before` meaning "completed before
+  the fault"; in the rehearsal it held exactly the 4 requests matching concurrency 4.
+- The symmetric effect at the restore (requests sent an instant before it and served after it) is real and was large when
+  the 3 s timeout cycle lined up with the restore (4 of 12 "during" requests). Reported as
+  `of_which_finished_after_restore` instead of reclassifying, because for a stall fault most hung requests legitimately
+  finish after the restore and reclassifying would hide the timeouts.
+- Safety invariant worth a test: after any attempted inject the restore runs exactly once even on cancel or error.
+- The sandbox rejects `shlex.split` of a path containing a space (the repo path has one): shell-quote interpreter paths.
+- Process: when asked not to use a word (here "failover"), add a test that greps code and docs for it; I had written it
+  into my own earlier plan and spec before the instruction.

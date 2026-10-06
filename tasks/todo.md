@@ -1,3 +1,57 @@
+## Active: close the remaining inference-serving gaps (2026-10-06, third session)
+
+Goal: honestly measured evidence for (A) GPU utilization, (B) a failure test, (C) a stronger benchmark harness.
+No spend, pod or paid API without explicit approval. No commit. Do not stage raw logs or `Claude outputs/`.
+
+Phase 0: offline readiness (no spend)
+- [x] Baseline ruff + pytest (re-run: ruff clean, 547 passed)
+- [x] Review gpu_sampler / gpu_utilization / serving_load; offline dress rehearsal against a fake server (done)
+- [x] Fix only real bugs, with tests (1 found: sampler period drift; fixed + 2 tests)
+- [x] Live-session run plan: docs/superpowers/plans/2026-10-06-live-gpu-session.md  -> STOPPED, awaiting approval
+
+Phase 1: harness improvements (offline, TDD)  [approved 2026-10-06; spec + plan written]
+Spec: docs/superpowers/specs/2026-10-06-harness-improvements-design.md  Plan: docs/superpowers/plans/2026-10-06-harness-improvements.md
+- [x] 1 p99 latency/TTFT in cell summaries and capacity_plan
+- [x] 2 cost per request and per 1K output tokens in capacity_plan (skip when cost null)
+- [x] 3 engine prefixes (vllm verified on v0.30.0 / sglang UNVERIFIED) + prefix_cache_summary + --engine
+- [x] 4 per-cell prefix_cache event field + compare_prefix_caching (on vs off)
+- [x] 5 compare_batching: fixed-batch serial vs concurrent (legacy rows)
+- [x] 6 failure-behaviour test mode (no hosted fallback added; named failure-behaviour, per the owner)
+- [x] 7 docs/benchmarking.md updated per addition
+- [x] 8 HANDOFF, lessons, gates, diff summary -> STOPPED; awaiting approval before Phase 2
+
+Phase 2: live GPU session  [needs explicit approval; cap $4.00 hard, stop-and-ask $2.50; re-quote price first]   Phase 3: report  [after Phase 2]
+
+## Active: GPU utilization review pass (2026-10-06, second session)
+
+Review and tighten before any real GPU. Small fixes only; offline; no commit; do not touch capacity_plan.py or
+comparability logic. Fake numbers are labelled as illustrations.
+
+- [x] Check 1 findings gathered (git add list + message given in the final report)
+- [x] Check 2: offset sign documented once + sign-flip test; runbook step to measure offset (labelled example);
+      short-window warning when offset is assumed zero
+- [x] Check 3: scan docs/attach output for overclaiming words; add the "share of sample period" sentence; add the
+      "how to read it" table (uses "may")
+- [x] Check 4 (--dry-check built, about 23 lines): first-live-run section (statuses, healthy result, three likely failures + fixes); --dry-check only if
+      under about 30 lines
+- [x] HANDOFF: "built, reviewed, offline-tested, live run pending"; lessons added
+- [x] ruff, pytest (547 passed vs 534: +13), git diff --stat + git add list
+
+## Active: GPU utilization in the serving benchmark (2026-10-06)
+
+Closes one named gap: the sustained benchmark records TTFT, p95, tokens/sec, queue wait and KV-cache
+pressure but not GPU utilization. Optional field; offline-tested only; no GPU launched. No commit.
+Spec: docs/superpowers/specs/2026-10-06-gpu-utilization-design.md
+
+- [x] Spec in docs/superpowers/specs/2026-10-06-gpu-utilization-design.md
+- [x] Record wall-clock window in cell_summary (additive) + test
+- [x] eval/gpu_sampler.py (pynvml, nvidia-smi, unavailable fallback) + tests
+- [x] eval/gpu_utilization.py attach + load helper + tests (normal, warmup, missing, too few, offset, multi-GPU)
+- [x] Optional comparison column; absent-field and comparability tests; capacity unchanged
+- [x] Docs: benchmarking.md section + runbook; serving-observability.md meaning/limits
+- [x] HANDOFF.md refresh (fix stale header; GPU utilization "built, offline-tested, live run pending"); lessons if any
+- [x] ruff, pytest (534 passed vs 493 baseline: +41), git diff --stat; no commit
+
 ## Active: LLM-assisted answer-quality review (2026-10-05)
 
 Labels are LLM-assisted, not human-verified. Judge never sees model/split/case id/file names.

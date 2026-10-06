@@ -296,3 +296,71 @@ async def test_engine_sampling_tracks_resets_between_boundary_samples():
     assert calls == 4
     assert rows[-1]["changes"][0]["reset"]
     assert rows[-1]["changes"][0]["delta"] is None
+
+
+@pytest.mark.asyncio
+async def test_cell_summary_records_a_wall_clock_window_that_brackets_the_requests():
+    from datetime import datetime, timezone
+
+    async def request(case, identifier):
+        await asyncio.sleep(.02)
+        return {"status": "ok"}
+    before = datetime.now(timezone.utc)
+    rows = []
+    report = await run_cell([case()], request, concurrency=1, duration_s=.1, max_requests=3,
+                            timeout_s=1, write=rows.append, cell_id="window")
+    after = datetime.now(timezone.utc)
+    window = report["window"]
+    assert window["clock"] == "benchmark_client_wall_clock_utc"
+    started, ended = datetime.fromisoformat(window["started_at"]), datetime.fromisoformat(window["ended_at"])
+    assert before <= started <= ended <= after
+    assert (ended - started).total_seconds() >= .06          # spans the three sequential requests
+    assert rows[-1]["window"] == window                      # the persisted event carries it too
+
+
+@pytest.mark.asyncio
+async def test_warmup_and_measurement_cells_have_separate_windows():
+    async def request(case, identifier):
+        return {"status": "ok"}
+    rows = []
+    warm = await run_cell([case()], request, concurrency=1, duration_s=1, max_requests=1, timeout_s=1,
+                          write=rows.append, cell_id="x-warmup", phase="warmup")
+    await asyncio.sleep(.05)
+    measured = await run_cell([case()], request, concurrency=1, duration_s=1, max_requests=1, timeout_s=1,
+                              write=rows.append, cell_id="x")
+    assert warm["window"]["ended_at"] <= measured["window"]["started_at"]
+
+
+# --- p99 ------------------------------------------------------------------------------------------
+
+def _ok_rows(count, ttft=True):
+    return [{"status": "ok", "total_s": index / 100, **({"ttft_s": index / 1000} if ttft else {})}
+            for index in range(1, count + 1)]
+
+
+def test_p99_is_reported_only_with_at_least_100_successes():
+    summary = summarize(_ok_rows(100), 10, min_samples=100)
+    assert summary["latency_p99_s"] == pytest.approx(0.99)         # nearest rank: the 99th of 100 (second largest)
+    assert summary["ttft_p99_s"] == pytest.approx(0.099)
+    assert summary["p99_min_samples"] == 100
+
+
+def test_p99_is_null_below_the_floor_even_when_a_lower_min_samples_allows_p95():
+    summary = summarize(_ok_rows(64), 10, min_samples=64)           # the earlier held-out setting
+    assert summary["latency_p95_s"] is not None                    # p95 still available at 64
+    assert summary["latency_p99_s"] is None and summary["ttft_p99_s"] is None
+    assert summary["p99_min_samples"] == 100
+
+
+def test_p99_floor_follows_a_larger_min_samples_and_ttft_counts_only_known_values():
+    assert summarize(_ok_rows(120), 10, min_samples=150)["latency_p99_s"] is None
+    mixed = _ok_rows(100) + [{"status": "ok", "total_s": 5.0}] * 10        # 10 successes without a TTFT
+    summary = summarize(mixed, 10, min_samples=100)
+    assert summary["latency_p99_s"] is not None and summary["ttft_p99_s"] == pytest.approx(0.099)
+    few_ttft = _ok_rows(100)[:50] + [{"status": "ok", "total_s": 1.0}] * 50
+    assert summarize(few_ttft, 10, min_samples=100)["ttft_p99_s"] is None
+
+
+def test_failed_requests_never_enter_the_p99():
+    rows = _ok_rows(100) + [{"status": "error", "total_s": 999.0}]
+    assert summarize(rows, 10, min_samples=100)["latency_p99_s"] == pytest.approx(0.99)

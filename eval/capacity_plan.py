@@ -54,12 +54,19 @@ def estimate_capacity(directories: list[Path], *, latency_slo_s: float | None,
             if len(rates) != len(repeats) or len(p95s) != len(repeats) or len(errors) != len(repeats):
                 raise ValueError(f"{directory} concurrency {concurrency}: missing repeated-cell metrics")
             conservative_rps = min(rates) * headroom
+            p99s = [r.get("latency_p99_s") for r in repeats]
+            ttft_p99s = [r.get("ttft_p99_s") for r in repeats]
             level = {"concurrency": concurrency, "repeats": len(repeats),
                      "requests_per_second_each": rates,
                      "requests_per_second_mean": sum(rates) / len(rates),
                      "requests_per_second_conservative": conservative_rps,
                      "latency_p95_s_each": p95s, "latency_p95_s_worst": max(p95s),
                      "error_rate_worst": max(errors),
+                     # Descriptive only (never gates the SLO): null unless every repeat reached the p99 sample floor.
+                     "latency_p99_s_each": p99s,
+                     "latency_p99_s_worst": max(p99s) if all(v is not None for v in p99s) else None,
+                     "ttft_p99_s_worst": max(ttft_p99s) if all(v is not None for v in ttft_p99s) else None,
+                     "p99_repeats_available": sum(v is not None for v in p99s),
                      "output_tokens_per_second_mean": (sum(token_rates) / len(token_rates)
                                                         if len(token_rates) == len(repeats) else None)}
             level["meets_slo"] = (level["error_rate_worst"] <= max_error_rate and
@@ -71,8 +78,12 @@ def estimate_capacity(directories: list[Path], *, latency_slo_s: float | None,
                         "levels": levels, "selected_level": best}
         if best and hourly_cost is not None:
             rps = best["requests_per_second_conservative"]
+            model_result["cost_per_request_usd"] = hourly_cost / (rps * 3600)
             model_result["cost_per_million_requests_usd"] = hourly_cost / (rps * 3600) * 1_000_000
             token_rate = best["output_tokens_per_second_mean"]
+            model_result["cost_per_1k_output_tokens_usd"] = (
+                hourly_cost / (token_rate * 3600) * 1000 if token_rate else None
+            )
             model_result["cost_per_million_output_tokens_usd"] = (
                 hourly_cost / (token_rate * 3600) * 1_000_000 if token_rate else None
             )
@@ -84,6 +95,10 @@ def estimate_capacity(directories: list[Path], *, latency_slo_s: float | None,
             "assumptions": {"latency_slo_s": latency_slo_s, "max_error_rate": max_error_rate,
                             "headroom": headroom,
                             "conservative_capacity": "minimum observed repeat throughput × headroom",
+                            "cost_basis": ("GPU rental only, from hourly_cost_usd; request cost uses the conservative "
+                                           "requests/s of the selected level, token cost the mean token rate; excludes "
+                                           "storage, egress and idle time"),
+                            "p99": "descriptive; needs at least 100 successes per cell; never used for SLO gating",
                             "gpu_scaling": "linear extrapolation; validate multi-GPU/pod interference separately"},
             "models": models}
 
