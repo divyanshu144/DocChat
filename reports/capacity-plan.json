@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "workload_sha256": "65e6df6515525e1ea78ab54631400f9702b0b7bc4ccc89f2c2846b9c8a6c06a9",
+  "assumptions": {
+    "latency_slo_s": 20.0,
+    "max_error_rate": 0.01,
+    "headroom": 0.7,
+    "conservative_capacity": "minimum observed repeat throughput \u00d7 headroom",
+    "gpu_scaling": "linear extrapolation; validate multi-GPU/pod interference separately"
+  },
+  "models": [
+    {
+      "model": "heldout-serving-fp16",
+      "hourly_cost_per_gpu_usd": 1.09,
+      "levels": [
+        {
+          "concurrency": 1,
+          "repeats": 2,
+          "requests_per_second_each": [
+            0.2696397040421625,
+            0.2719470547174392
+          ],
+          "requests_per_second_mean": 0.27079337937980086,
+          "requests_per_second_conservative": 0.18874779282951373,
+          "latency_p95_s_each": [
+            8.98745333775878,
+            9.114895128645003
+          ],
+          "latency_p95_s_worst": 9.114895128645003,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 39.45094006573748,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 4,
+          "repeats": 2,
+          "requests_per_second_each": [
+            0.9208020761412392,
+            0.9034793500900326
+          ],
+          "requests_per_second_mean": 0.9121407131156358,
+          "requests_per_second_conservative": 0.6324355450630228,
+          "latency_p95_s_each": [
+            10.120597795583308,
+            10.881955672055483
+          ],
+          "latency_p95_s_worst": 10.881955672055483,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 132.51380922502938,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 16,
+          "repeats": 2,
+          "requests_per_second_each": [
+            2.0753715823126178,
+            1.9827443122058863
+          ],
+          "requests_per_second_mean": 2.0290579472592523,
+          "requests_per_second_conservative": 1.3879210185441204,
+          "latency_p95_s_each": [
+            17.698242258280516,
+            16.59936304949224
+          ],
+          "latency_p95_s_worst": 17.698242258280516,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 301.7389929070633,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 32,
+          "repeats": 2,
+          "requests_per_second_each": [
+            2.052316282954908,
+            2.1128699695817326
+          ],
+          "requests_per_second_mean": 2.0825931262683204,
+          "requests_per_second_conservative": 1.4366213980684357,
+          "latency_p95_s_each": [
+            21.781610009260476,
+            20.787002217955887
+          ],
+          "latency_p95_s_worst": 21.781610009260476,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 302.3638698814496,
+          "meets_slo": false
+        },
+        {
+          "concurrency": 64,
+          "repeats": 2,
+          "requests_per_second_each": [
+            2.1123905323394676,
+            2.014666218299833
+          ],
+          "requests_per_second_mean": 2.0635283753196503,
+          "requests_per_second_conservative": 1.4102663528098829,
+          "latency_p95_s_each": [
+            25.865945721045136,
+            26.450358595699072
+          ],
+          "latency_p95_s_worst": 26.450358595699072,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 293.37863564459064,
+          "meets_slo": false
+        }
+      ],
+      "selected_level": {
+        "concurrency": 16,
+        "repeats": 2,
+        "requests_per_second_each": [
+          2.0753715823126178,
+          1.9827443122058863
+        ],
+        "requests_per_second_mean": 2.0290579472592523,
+        "requests_per_second_conservative": 1.3879210185441204,
+        "latency_p95_s_each": [
+          17.698242258280516,
+          16.59936304949224
+        ],
+        "latency_p95_s_worst": 17.698242258280516,
+        "error_rate_worst": 0.0,
+        "output_tokens_per_second_mean": 301.7389929070633,
+        "meets_slo": true
+      },
+      "cost_per_million_requests_usd": 218.15202286898204,
+      "cost_per_million_output_tokens_usd": 1.0034426603625421,
+      "gpu_count_for_target": 4,
+      "estimated_gpu_hourly_cost_usd": 4.36
+    },
+    {
+      "model": "Qwen/Qwen2.5-7B-Instruct-AWQ",
+      "hourly_cost_per_gpu_usd": 1.09,
+      "levels": [
+        {
+          "concurrency": 1,
+          "repeats": 2,
+          "requests_per_second_each": [
+            0.5980463027715116,
+            0.5980696106746393
+          ],
+          "requests_per_second_mean": 0.5980579567230755,
+          "requests_per_second_conservative": 0.4186324119400581,
+          "latency_p95_s_each": [
+            3.891970168799162,
+            3.679696710780263
+          ],
+          "latency_p95_s_worst": 3.891970168799162,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 85.24663312743576,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 4,
+          "repeats": 2,
+          "requests_per_second_each": [
+            1.8113482210078862,
+            1.7754116997524558
+          ],
+          "requests_per_second_mean": 1.793379960380171,
+          "requests_per_second_conservative": 1.242788189826719,
+          "latency_p95_s_each": [
+            4.1871567517519,
+            4.443324794061482
+          ],
+          "latency_p95_s_worst": 4.443324794061482,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 241.0605723404258,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 16,
+          "repeats": 2,
+          "requests_per_second_each": [
+            2.983558447174884,
+            2.9577277320571773
+          ],
+          "requests_per_second_mean": 2.970643089616031,
+          "requests_per_second_conservative": 2.070409412440024,
+          "latency_p95_s_each": [
+            12.054853463545442,
+            11.632874214090407
+          ],
+          "latency_p95_s_worst": 12.054853463545442,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 423.45013692892314,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 32,
+          "repeats": 2,
+          "requests_per_second_each": [
+            3.118295365547691,
+            2.982637100899368
+          ],
+          "requests_per_second_mean": 3.0504662332235295,
+          "requests_per_second_conservative": 2.0878459706295573,
+          "latency_p95_s_each": [
+            17.538787715137005,
+            17.87090004980564
+          ],
+          "latency_p95_s_worst": 17.87090004980564,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 439.6419283514436,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 64,
+          "repeats": 2,
+          "requests_per_second_each": [
+            3.050056198474559,
+            3.0953949626505617
+          ],
+          "requests_per_second_mean": 3.0727255805625604,
+          "requests_per_second_conservative": 2.135039338932191,
+          "latency_p95_s_each": [
+            20.059441133402288,
+            19.531907509081066
+          ],
+          "latency_p95_s_worst": 20.059441133402288,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 427.41431197664843,
+          "meets_slo": false
+        }
+      ],
+      "selected_level": {
+        "concurrency": 32,
+        "repeats": 2,
+        "requests_per_second_each": [
+          3.118295365547691,
+          2.982637100899368
+        ],
+        "requests_per_second_mean": 3.0504662332235295,
+        "requests_per_second_conservative": 2.0878459706295573,
+        "latency_p95_s_each": [
+          17.538787715137005,
+          17.87090004980564
+        ],
+        "latency_p95_s_worst": 17.87090004980564,
+        "error_rate_worst": 0.0,
+        "output_tokens_per_second_mean": 439.6419283514436,
+        "meets_slo": true
+      },
+      "cost_per_million_requests_usd": 145.01921216270563,
+      "cost_per_million_output_tokens_usd": 0.6886917699436108,
+      "gpu_count_for_target": 3,
+      "estimated_gpu_hourly_cost_usd": 3.2700000000000005
+    },
+    {
+      "model": "Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4",
+      "hourly_cost_per_gpu_usd": 1.09,
+      "levels": [
+        {
+          "concurrency": 1,
+          "repeats": 2,
+          "requests_per_second_each": [
+            0.6234595411823112,
+            0.6210430131463727
+          ],
+          "requests_per_second_mean": 0.6222512771643419,
+          "requests_per_second_conservative": 0.43473010920246086,
+          "latency_p95_s_each": [
+            3.5436782091856003,
+            3.397182125598192
+          ],
+          "latency_p95_s_worst": 3.5436782091856003,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 84.36641775243083,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 4,
+          "repeats": 2,
+          "requests_per_second_each": [
+            1.7917608696049614,
+            1.8484165671760553
+          ],
+          "requests_per_second_mean": 1.8200887183905083,
+          "requests_per_second_conservative": 1.254232608723473,
+          "latency_p95_s_each": [
+            4.644910919480026,
+            4.6548517514020205
+          ],
+          "latency_p95_s_worst": 4.6548517514020205,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 251.45071364037506,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 16,
+          "repeats": 2,
+          "requests_per_second_each": [
+            3.0509445817660157,
+            2.994133713101549
+          ],
+          "requests_per_second_mean": 3.0225391474337826,
+          "requests_per_second_conservative": 2.095893599171084,
+          "latency_p95_s_each": [
+            10.778825379908085,
+            11.968998213298619
+          ],
+          "latency_p95_s_worst": 11.968998213298619,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 410.4962962985137,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 32,
+          "repeats": 2,
+          "requests_per_second_each": [
+            3.168706108003097,
+            3.0939106343298772
+          ],
+          "requests_per_second_mean": 3.131308371166487,
+          "requests_per_second_conservative": 2.165737444030914,
+          "latency_p95_s_each": [
+            17.374043714255095,
+            18.027724465355277
+          ],
+          "latency_p95_s_worst": 18.027724465355277,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 427.65266221216467,
+          "meets_slo": true
+        },
+        {
+          "concurrency": 64,
+          "repeats": 2,
+          "requests_per_second_each": [
+            2.944255455556886,
+            3.129402917964551
+          ],
+          "requests_per_second_mean": 3.0368291867607184,
+          "requests_per_second_conservative": 2.06097881888982,
+          "latency_p95_s_each": [
+            19.961706466972828,
+            19.043472507968545
+          ],
+          "latency_p95_s_worst": 19.961706466972828,
+          "error_rate_worst": 0.0,
+          "output_tokens_per_second_mean": 410.96599535967766,
+          "meets_slo": true
+        }
+      ],
+      "selected_level": {
+        "concurrency": 32,
+        "repeats": 2,
+        "requests_per_second_each": [
+          3.168706108003097,
+          3.0939106343298772
+        ],
+        "requests_per_second_mean": 3.131308371166487,
+        "requests_per_second_conservative": 2.165737444030914,
+        "latency_p95_s_each": [
+          17.374043714255095,
+          18.027724465355277
+        ],
+        "latency_p95_s_worst": 18.027724465355277,
+        "error_rate_worst": 0.0,
+        "output_tokens_per_second_mean": 427.65266221216467,
+        "meets_slo": true
+      },
+      "cost_per_million_requests_usd": 139.8035475686479,
+      "cost_per_million_output_tokens_usd": 0.7079992819676764,
+      "gpu_count_for_target": 3,
+      "estimated_gpu_hourly_cost_usd": 3.2700000000000005
+    }
+  ]
+}

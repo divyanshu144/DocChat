@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "engine": "vllm",
+  "image_digest": "sha256:8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90",
+  "engine_version": "0.30.0",
+  "model_repository": "Qwen/Qwen2.5-7B-Instruct",
+  "tokenizer_repository": "Qwen/Qwen2.5-7B-Instruct",
+  "served_model_name": "Qwen2.5-7B-Instruct",
+  "gpu_name": "NVIDIA L40S",
+  "gpu_count": 1,
+  "compute_dtype": "float16",
+  "weight_quantization": "none",
+  "max_model_len": 16384,
+  "gpu_memory_utilization": 0.9,
+  "prefix_caching": true,
+  "hourly_cost_usd": 1.09
+}
