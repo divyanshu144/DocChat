@@ -276,14 +276,15 @@ cancelled or fails, so a faulted server is not left faulted. The fault must end 
 
 What it records, all from one fixed-concurrency closed loop:
 
-- **Windows.** `before` (requests that *completed* before the fault), `in_flight_at_injection`
-  (sent before the fault, still running when it hit; these are casualties of the fault, kept out of
-  the baseline), `during` (sent while the fault was active) and `after` (sent after the restore), each
-  with an error rate and status counts. A request sent in the last moments before the restore can
-  finish after it and succeed; that boundary effect is real and is not hidden: the `during` entry reports
-  `of_which_finished_after_restore` (how many of its requests only finished after the restore, and how many of
-  those succeeded) so the headline rate is not misread. With a stall fault and a request timeout, whether the
-  timeout cycle lines up with the restore changes how many requests land there, so read those counts, not just the rate.
+- **Windows.** `before` (requests that *completed* before the fault), `injection_transition` (requests in flight
+  when the inject command was issued, or sent before it returned; the command takes time to run, an SSH round trip
+  included, and the fault lands somewhere in that interval, so these are neither clean baseline nor clean fault),
+  `during` (sent after the inject command returned and before the restore) and `after` (sent after the restore), each
+  with an error rate and status counts. A request sent in the last moments before the restore can finish after it and
+  succeed; that boundary effect is real and is not hidden: the `during` entry reports `of_which_finished_after_restore`
+  (how many of its requests only finished after the restore, and how many of those succeeded) so the headline rate is
+  not misread. With a stall fault and a request timeout, whether the timeout cycle lines up with the restore changes how
+  many requests land there, so read those counts, not just the rate.
 - **Time to first error:** the first failed completion after the injection. Null, with a note, if
   none occurred (which can mean the fault did not take effect).
 - **Time to recovery:** from the restore being issued to the first request *sent after* the restore

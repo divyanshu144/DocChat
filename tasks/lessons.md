@@ -543,3 +543,12 @@ when no space is found within some reasonable distance of the end.
 - The sandbox rejects `shlex.split` of a path containing a space (the repo path has one): shell-quote interpreter paths.
 - Process: when asked not to use a word (here "failover"), add a test that greps code and docs for it; I had written it
   into my own earlier plan and spec before the instruction.
+
+## 2026-10-06 - failure-behaviour windows must account for the inject command's own latency (supersedes the entry above)
+- Found in a rehearsal that used the exact `ssh ... "kill -STOP $(cat pidfile)"` command shape: the inject command took
+  0.69 s to return, and 4 requests sent at 6.11 s were served at 6.62 s, just before the stall landed, yet were counted as
+  "during the fault". Fix: `injection_transition` window = in flight when the command was issued OR sent before it
+  returned; `during` starts when it has returned. (This renames the earlier `in_flight_at_injection`.)
+- The "succeeded while fault active" check was already right (it requires a request sent after the command returned).
+- Real pods add real SSH latency; the rehearsal used a stand-in `ssh` that runs the command locally, which proved the
+  quoting (the remote command arrives as one literal argument) but not the latency of a real network.

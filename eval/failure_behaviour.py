@@ -79,11 +79,13 @@ def analyze(requests, health_probes, faults, *, duration_s):
     inject, restore = faults["inject_at_s"], faults["restore_at_s"]
     inject_returned = faults.get("inject_returned_s") or inject
     restore_returned = faults.get("restore_returned_s")
-    # `before` is requests that COMPLETED before the injection, so the baseline is clean. Requests dispatched before the
-    # fault but still running when it hit are casualties of the fault, kept visible in their own window.
+    # `before` is requests that COMPLETED before the injection, so the baseline is clean. The inject command takes time
+    # to run (an SSH round trip), and the fault lands somewhere between "issued" and "returned". Requests that were in
+    # flight when it was issued, or were sent before it returned, are in `injection_transition`; `during` starts only
+    # once the command has returned and the fault is in effect.
     windows = {"before": [r for r in rows if r["done"] < inject],
-               "in_flight_at_injection": [r for r in rows if r["dispatched"] < inject <= r["done"]],
-               "during": [r for r in rows if inject <= r["dispatched"] < restore],
+               "injection_transition": [r for r in rows if r["done"] >= inject and r["dispatched"] < inject_returned],
+               "during": [r for r in rows if inject_returned <= r["dispatched"] < restore],
                "after": [r for r in rows if r["dispatched"] >= restore]}
     failed_after_inject = [r["done"] for r in rows if r["status"] != "ok" and r["done"] >= inject]
     recovered = [r["done"] for r in rows if r["status"] == "ok" and r["dispatched"] >= restore]

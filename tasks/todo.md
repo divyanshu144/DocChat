@@ -20,7 +20,7 @@ Spec: docs/superpowers/specs/2026-10-06-harness-improvements-design.md  Plan: do
 - [x] 7 docs/benchmarking.md updated per addition
 - [x] 8 HANDOFF, lessons, gates, diff summary -> STOPPED; awaiting approval before Phase 2
 
-Phase 2: live GPU session  [needs explicit approval; cap $4.00 hard, stop-and-ask $2.50; re-quote price first]   Phase 3: report  [after Phase 2]
+Phase 2: live GPU session  [Phase 1 committed locally as f6efb01; plan revised + live quote given 2026-10-06; AWAITING EXPLICIT GO. cap $4.00 hard, stop-and-ask $2.50]   Phase 3: report  [after Phase 2]
 
 ## Active: GPU utilization review pass (2026-10-06, second session)
 

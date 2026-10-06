@@ -22,7 +22,7 @@ def test_requests_are_assigned_to_before_during_after_by_dispatch_time_with_thei
                 + [req(45, 46), req(50, 51, "error"), req(55, 56)])                  # after
     result = analyze(requests, [], FAULTS, duration_s=60)
     assert result["windows"]["before"] == {"offered": 3, "ok": 3, "error_rate": 0.0, "by_status": {"ok": 3}}
-    assert result["windows"]["in_flight_at_injection"]["offered"] == 0
+    assert result["windows"]["injection_transition"]["offered"] == 0
     during = result["windows"]["during"]
     assert during["offered"] == 3 and during["ok"] == 0 and during["error_rate"] == 1.0
     assert during["by_status"] == {"timeout": 1, "error": 2}
@@ -35,9 +35,20 @@ def test_requests_in_flight_when_the_fault_hits_are_their_own_window_so_the_base
     requests = [req(1, 2), req(5, 6), req(9.9, 10.2, "error"), req(12, 13, "error")]
     windows = analyze(requests, [], FAULTS, duration_s=60)["windows"]
     assert windows["before"]["offered"] == 2 and windows["before"]["error_rate"] == 0.0
-    assert windows["in_flight_at_injection"] == {"offered": 1, "ok": 0, "error_rate": 1.0, "by_status": {"error": 1}}
+    assert windows["injection_transition"] == {"offered": 1, "ok": 0, "error_rate": 1.0, "by_status": {"error": 1}}
     assert windows["during"]["offered"] == 1
     assert sum(w["offered"] for w in windows.values()) == len(requests)             # every request is in exactly one window
+
+
+def test_requests_sent_while_the_inject_command_runs_are_in_the_transition_window_not_during():
+    # The inject command is issued at 10.0 and returns at 10.5 (the SSH round trip), so the stall lands somewhere in
+    # between. A request sent at 10.1 and served at 10.4 finished before the stall took hold; counting it as "during the
+    # fault" would flatter the error rate.
+    requests = [req(10.1, 10.4), req(10.2, 40.0, "timeout"), req(11.0, 41.0, "timeout"), req(20, 50, "timeout")]
+    windows = analyze(requests, [], FAULTS, duration_s=60)["windows"]
+    assert windows["injection_transition"]["offered"] == 2 and windows["injection_transition"]["ok"] == 1
+    assert windows["during"]["offered"] == 2 and windows["during"]["ok"] == 0 and windows["during"]["error_rate"] == 1.0
+    assert sum(w["offered"] for w in windows.values()) == len(requests)             # still a partition
 
 
 def test_during_reports_how_many_of_its_requests_only_finished_after_the_restore():
@@ -379,7 +390,7 @@ def test_the_runbook_documents_each_new_command_and_flag_that_exists_in_the_code
         assert flag in docs, flag
     args = parse_args([*CLI_BASE, "--yes-run-fault-commands", "--health-url", "http://127.0.0.1:1/h"])
     assert args.health_url and args.fault_at == 5
-    for phrase in ("no hosted fallback", "in_flight_at_injection", "UNEXPECTED", "SHA-256 hashes", "run_summary",
+    for phrase in ("no hosted fallback", "injection_transition", "UNEXPECTED", "SHA-256 hashes", "run_summary",
                    "second-largest", "control", "unverified", "of_which_finished_after_restore"):
         assert phrase in docs, phrase
     lowered = docs.lower()

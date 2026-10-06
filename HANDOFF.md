@@ -1,12 +1,19 @@
 # DocChat session handoff
 
-## In progress: closing the remaining serving gaps (2026-10-06): Phase 0 and Phase 1 done, awaiting approval for Phase 2
+## In progress: closing the remaining serving gaps (2026-10-06): Phase 1 committed locally, awaiting an explicit go for Phase 2
 
-Approved decisions: 100 requests per cell; the fault test is named a **failure-behaviour test** (never "failover"), and no
-local-to-hosted fallback is added (a possible fallback is a separate production-behaviour decision, listed for the Phase 3
-report); hard cost cap $4.00 with stop-and-ask at $2.50 and a live price re-quote before renting anything; extras (prefix-cache
-on/off, serial vs concurrent) only if spend is under $2.50; before deleting network volume `owdj19ss50` list what is on it and
-ask again. **No pod, paid call or spend so far.** Plan: `docs/superpowers/plans/2026-10-06-live-gpu-session.md`.
+Phase 1 is committed locally as `f6efb01` on `feat/serving-platform-and-quality-review` (not pushed; it also carries the
+earlier GPU-utilization work because both touch the same files). A small correction made after that commit is NOT yet
+committed: the failure-behaviour windows now have an `injection_transition` window (replacing `in_flight_at_injection`) so the
+inject command's own latency stays out of `during`; the plan, docs, tests and lessons are updated in the working tree.
+
+Approved decisions: 100 requests per cell; a **failure-behaviour test** (never the banned word; no hosted fallback added, which
+is a separate production decision for the Phase 3 report); the main fault is SIGSTOP then SIGCONT of the `vllm serve` process,
+run AFTER the clean sweep with the GPU sampler still running; a hard kill and restart (recovery labelled "includes model load")
+and the extras only if spend is under $2.50 after the core session; hard cap $4.00, stop-and-ask $2.50; re-quote then wait for
+an explicit go; network volume `owdj19ss50` is not deleted (its contents cannot be listed without a paid mount; ask again).
+Live quote 2026-10-06: L40S Secure $1.09/hour, availability LOW, EUR-IS-2 only. **No pod, paid call or spend so far; the
+provider showed 0 pods.** Plan with the exact commands: `docs/superpowers/plans/2026-10-06-live-gpu-session.md`.
 
 Phase 1 (offline, TDD, additive, schema stays v2; spec `docs/superpowers/specs/2026-10-06-harness-improvements-design.md`,
 plan `docs/superpowers/plans/2026-10-06-harness-improvements.md`):
