@@ -445,3 +445,61 @@ when no space is found within some reasonable distance of the end.
 - The e2e harness still looked up synthetic fixtures by per-type collection names
   after production switched to source_chunks. Its adapter now applies payload source
   filters. Its compare mode measures first pass versus retry, not critic on/off.
+
+
+## 2026-10-04 — Serving lifecycle and measurement boundaries
+
+- Provider-only caching can retain the wrong endpoint after a configuration change.
+  Own pools by event loop and connection settings, then explicitly close all owned
+  clients at API/MCP/benchmark teardown without closing in-flight old configurations.
+- Mistral's installed SDK exposes async/sync context exits rather than a client
+  aclose method. Inspect installed provider lifecycle APIs and test both paths.
+- StreamingResponse headers precede graph work; time the ASGI body lifecycle, not
+  call_next's return. Share request outcome with child tasks so SSE errors remain
+  failures even when their already-sent HTTP status is 200.
+- First content delta is not necessarily one token. Keep missing usage unknown and
+  label client decode rates as estimates. Separate backend TTFT from answer delivery.
+- Initial new timing test exposed a bound default_factory clock that escaped mocking;
+  resolve the monotonic clock at instance creation for deterministic boundary tests.
+- Newly tracked historical run-serving.py introduced two Ruff findings (combined
+  imports and inline if). Fixed formatting only; raw measurement artifacts unchanged.
+
+
+## 2026-10-05 — Sustained benchmark evidence
+
+- A burst at concurrency N is not sustained concurrency. Maintain workers or schedule
+  arrivals explicitly; record generator-capacity rejections and scheduling lag rather
+  than hiding them behind a semaphore queue.
+- A chat HTTP 200 can carry an SSE error. Success requires answer content and the
+  terminal done marker; progress events are not first answer or model TTFT.
+- Keep legacy burst artifacts separate from schema-v2 sustained runs. Unknown token
+  usage stays null; repeated-cell variation is not a confidence interval.
+- Preserve engine metric labels/buckets. Inspect intermediate samples for counter
+  resets: a reset followed by growth past the initial count fools a boundary-only delta.
+- A benchmark client's source hash is not a remote API deployment hash. API comparison
+  requires declared server revision/config hashes, while physical-host control remains
+  a separate validation responsibility.
+
+## 2026-10-05 - judge model rejects temperature=0
+- Broke: `gpt-5.6-luna` returns 400 on `temperature`; `_openai_complete` silently retries without it (`openai_rejected_temperature_retrying_without`), so "temperature 0" was not actually applied.
+- Root cause: the facade treats determinism as optional by design.
+- Next time: judge rows record `judge.temperature_applied`; check it before claiming temperature 0 in any report.
+
+## 2026-10-06 - judge fully_supported was inflated by glosses and duplicates
+- Broke: 61/119 rows had >=1 "unsupported" claim; audit found most were duplicates, entailed paraphrases, glosses, or omitted qualifiers (146 -> 43 claims at most, depending on how subjective reclassifications are treated).
+- Root cause: judge prompt v1 lists every atomic claim, repeats restatements, and counts any non-entailed gloss; it also rewrote "after 9 hours" inconsistently.
+- Next time: dedupe claims in the prompt, add a "minor imprecision" label separate from "unsupported", and report both before/after (strict and full) rather than one number.
+
+## 2026-10-06 - Opus judge run halted at 22/120 (Anthropic credit balance too low)
+- Broke: `claude-opus-5-5` judge calls returned HTTP 400 "credit balance is too low" after 22 rows; labels file is intact and resumable.
+- Root cause: account billing, not code. Opus also rejects `temperature`, so the labels are provider-default sampling.
+- Next time: check credit balance before a long paid run; resume with the same command (it skips judged ids).
+
+## 2026-10-06 - astra judge halted at 66/120 (OpenAI credits exhausted); I misread the completion notice
+- Broke: a background run's "completed (exit code 0)" came from my `tail` wrapper, not the python process, so I reported the run as finished and generated aggregates from 66 rows.
+- Root cause: redirected output through `tail`; the 429 was `insufficient_quota`, which backoff cannot fix.
+- Next time: verify the output row count and the process result before using a completion notice; never pipe a long run through tail. The runner now stops immediately on quota errors.
+
+## 2026-10-06 - Groq judge halted at 53/120 (daily token cap, 200k TPD on-demand)
+- Broke: 120 rows x ~3.5k tokens (incl. reasoning) exceeds the free daily budget; backoff cannot help a daily cap.
+- Next time: estimate tokens before choosing a free-tier judge; the runner now fails fast on "tokens per day" errors and resumes cleanly.

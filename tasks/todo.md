@@ -1,3 +1,33 @@
+## Active: LLM-assisted answer-quality review (2026-10-05)
+
+Labels are LLM-assisted, not human-verified. Judge never sees model/split/case id/file names.
+
+- [x] eval/judge_prompt.py: versioned prompt, evidence-only message builder, strict validator
+- [x] eval/judge_answer_review_pack.py: resumable blinded judge runner (--dry-run, --limit, --judge-model)
+- [x] eval/aggregate_judge_labels.py: unblind only at aggregation (key: /private/tmp/docchat-quality-review-key.json)
+- [x] Tests for prompt leakage, validator, runner resume/retry/overwrite, aggregation, 120 unique ids
+- [x] Dry-run --limit 3 + real --limit 5 done (5/120 judged, reports/quality-judge-labels.jsonl). STOP: awaiting user review before the other 115.
+- [ ] Report/HANDOFF wording (LLM-assisted; no "human evaluation"/"validated"/"significant")
+
+## Active: Phase 2 benchmarks and metrics (2026-10-04)
+
+- [x] Review Phase 1 interfaces and establish baseline.
+- [x] Expose bounded Prometheus metrics from request and model telemetry.
+- [x] Add versioned sustained replay/API workloads and incremental run artifacts.
+- [x] Verify scheduling, errors, SSE parsing, usage and metrics offline: 428 passed, 8 deselected.
+- [x] Document monitoring/benchmarks and update handoff; Ruff clean, CLI validation offline.
+- [ ] Live acceptance remains pending; no paid run authorized by this implementation task.
+
+## Phase 1 checkpoint (2026-10-04)
+
+- [x] Review architecture and establish baseline: 368 passed, 8 deselected.
+- [x] Formalize local adapter and configuration-aware client lifecycle.
+- [x] Trace request lifecycle, graph stages and model attempts.
+- [x] Add serving readiness and deployment documentation.
+- [x] Verify offline tests/lint and update handoff: 398 passed, 8 deselected; Ruff clean.
+- [ ] Live GPU acceptance (pending approved endpoint; no GPU launched).
+- [x] Phase 2 implementation: sustained workload benchmarks and Prometheus metrics (live acceptance pending).
+
 # Task: inference completion + codebase hardening (chore/inference-complete-and-hardening)
 
 Plan: [completion plan](../docs/superpowers/plans/2026-10-01-hardening-completion.md).

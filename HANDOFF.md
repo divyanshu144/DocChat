@@ -1,5 +1,119 @@
 # DocChat session handoff
 
+## Latest: LLM-assisted answer-quality review (2026-10-05, uncommitted)
+
+STOPPED by user 2026-10-06. Final report (v1 complete + v2 partial): `reports/answer-quality-final-report-v1-v2-2026-10-06.md`.
+v2 partial: Opus 22, astra 66, Groq 53 of 120 (credits/daily cap); no GPTQ coverage; no v2 format conclusions.
+To finish: resume Groq (same command, see report section 9) once its cap/tier allows. Nothing committed.
+
+Blinded `gpt-5.6-luna` judge ran over all 120 rows of `reports/quality-review-pack.jsonl`
+(119 ok, 1 schema_error: `review-ec6f5335912c`). The judge rejected `temperature=0`; labels
+use provider-default sampling and are NOT manually spot-checked yet. Full write-up:
+`reports/answer-quality-llm-judge-2026-10-05.md`. Next: spot-check ~10 rows, decide on the
+failed row, optional re-judge for agreement. Do not claim temperature 0 or human evaluation.
+v2 rerun (2026-10-06): Opus v2 halted at 22/120 (credits); gpt-6-astra v2 halted at 66/120 (OpenAI credits exhausted) -> `reports/quality-judge-labels-v2-gpt-6-astra.jsonl`.
+Draft: `reports/answer-quality-v2-report-2026-10-06-DRAFT.md` (Groq gpt-oss-120b v2 temp=0 run halted at 53/120: daily token cap; resume later with same command, output reports/quality-judge-labels-v2-groq-gpt-oss-120b.jsonl; section 7 PENDING; astra aggregate files cover only 66 rows, do not quote). New tools: paired_format_comparison,
+build_disagreement_sheet, refresh_pack_citations (fixed pack copy), compare_judge_labels pairwise mode.
+Final report: `reports/answer-quality-final-report-2026-10-06.md` (corrected answer/abstention/citation labels;
+unsupported-claim counts exploratory; v2 rerun deliberately deferred).
+Audit pass (2026-10-06): `reports/quality-judge-label-audit.{jsonl,md}` hold suggested corrections (LLM-audited, not human-verified;
+original labels untouched). `eval/audit_judge_labels.py` applies per-claim decisions; see the md for the strict/full bounds.
+
+## Current: Phase 2 benchmarks and metrics (completed locally 2026-10-05)
+
+User authorized Phase 2 after Phase 1. Both phases are implemented but uncommitted;
+last commit is still `04179e4` (benchmark evidence). No push/deployment or paid model
+workload ran. Unrelated `Claude outputs/` is untouched. Prometheus client 0.26.0 was
+installed in the existing venv; requirements declare `prometheus-client>=0.21,<1`.
+
+Phase 2 additions:
+- `/api/v1/metrics`, optionally protected by METRICS_BEARER_TOKEN. Single-process
+  registry observes complete HTTP requests/in-flight, first answer, graph/retrieval
+  stages, LLM duration/TTFT/tokens, missing usage, retries and critic parser failures.
+  Labels exclude identity/content; metrics scrapes do not instrument themselves.
+- Existing `eval.inference_benchmark` now accepts a `sustained` subcommand. Historical
+  burst commands/data are unchanged. New schema-v2 runs support captured prompt replay
+  or authenticated chat SSE, closed-loop concurrency or bounded fixed-rate arrivals,
+  repeats/warmup/deadlines, generator rejections and incremental JSONL artifacts.
+- Per-case workload schema and capture integration, source/workload/corpus fingerprints,
+  allowlisted deployment metadata, per-category summaries and repeated-run variation.
+  Missing usage remains unknown, and success percentiles are reported with failure
+  counts. Default p95 sample minimum is 100. API SSE has no token counts/model TTFT.
+- Label-preserving vLLM metrics snapshots and reset-aware counter deltas; explicit
+  schema-v2 comparison mode refuses mismatched/incomplete runs. Server physical-host
+  control and live-index/corpus consistency still require operator verification.
+- Workload authoring template, optional Prometheus scrape config and Grafana panel
+  queries. No actual monitoring stack provisioned.
+
+Verification:
+- `venv/bin/ruff check .`: All checks passed!
+- `venv/bin/python -m pytest -m "not eval" -q`: 428 passed, 8 deselected;
+  13 pre-existing python-jose UTC deprecation warnings.
+- Offline CLI `sustained --target api --workloads data/workloads.example.json
+  --out-dir /tmp/docchat-validation-no-write --validate-only`: four categories valid,
+  no run directory created. Template is not a measured or labeled real workload.
+- Benchmark API consumer tested against the actual FastAPI SSE route with a mocked
+  graph. Transport/scheduling/cancellation/capture/metrics/comparison tests remain offline.
+- Frontend unchanged; no frontend checks rerun. No persistent `.env` modifications.
+
+Entry docs: `docs/benchmarking.md`, `docs/grafana-plan.md`,
+`docs/serving-observability.md`. Phase 2 spec/plan are dated 2026-10-04 (started before
+midnight; completed 2026-10-05).
+
+Next: review/commit the accumulated Phase 1+2 work, then Phase 3 held-out retrieval
+and answer-quality evaluation. Live Phase 1+2 acceptance remains pending an available
+approved GPU endpoint and real authored/captured corpus workloads. Do not claim new
+throughput, quality improvements or sustainable capacity from these offline tests.
+
+---
+
+## Phase 1 checkpoint (2026-10-04)
+
+Previous benchmark evidence committed as `04179e4` (local; not pushed this session).
+User authorized continuing the agreed staged platform work. Phase 1 implementation
+and offline verification are complete; live GPU acceptance is still pending.
+Current changes are uncommitted. `Claude outputs/` remains unrelated and untouched.
+
+Implemented:
+- Local inference request/result protocol and vLLM-first HTTP adapter under
+  `app/services/inference/`; public chat_complete/chat_stream return types preserved.
+- Event-loop/configuration-owned clients, explicit API/MCP/benchmark cleanup,
+  configurable HTTPX timeouts/connection limits and local endpoint/model validation.
+- Content-free JSON telemetry in `app/core/telemetry.py`: request lifecycle through
+  SSE delivery, first answer latency, graph iterations, retrieval subspans, model
+  attempts/usage, fallback attribution, streamed TTFT and estimated decode rate.
+- Optional `LOCAL_STREAM_COMPLETIONS=true` buffers local model streams internally;
+  default false. Grounding/critic and UI answer-release ordering unchanged.
+- Separate `/api/v1/health/serving` model-list probe; ordinary health remains DB/Qdrant.
+- Serving runbook additions, observability definitions and a deployment manifest
+  template requiring actual digest/revisions/hardware before any measurement.
+- Formatting-only correction to the historical run-serving.py runner so Ruff covers
+  the newly committed artifact. Raw results/logs remain unchanged.
+
+Verification this session:
+- `venv/bin/ruff check .`: All checks passed!
+- `venv/bin/python -m pytest -m "not eval" -q`: 398 passed, 8 deselected;
+  13 existing python-jose UTC deprecation warnings.
+- `git diff --check`: clean. Frontend unchanged; no frontend checks rerun.
+- No live model calls, GPU creation, new experiments, persistent `.env` changes,
+  application deployment, commit or push of this implementation.
+
+Next: review this Phase 1 diff, then Phase 2 sustained prompt-replay/end-to-end
+benchmarks and Prometheus metrics. Keep the existing burst benchmark results and
+statistics historically labeled until its planned schema migration. Live acceptance
+needs an available approved vLLM endpoint: real document QA, trace inspection,
+internal streaming on/off comparison and remote cancellation behavior.
+
+Plan: `docs/superpowers/plans/2026-10-04-serving-foundation.md`.
+Contract/timing limits: `docs/serving-observability.md`.
+Nonstream model TTFT and per-request engine queue wait remain unknown; the client
+stream decode rate is explicitly an estimate. SDK-internal retries are not separately
+instrumented. No Prometheus endpoint or production ranker/critic redesign yet.
+
+---
+
+## Historical quantization checkpoint (2026-10-02)
+
 Updated: 2026-10-02. Branch: `master`. Checklist: [tasks/todo.md](tasks/todo.md).
 
 ## Phase 3 complete — no active pod
@@ -124,3 +238,65 @@ Unrelated `Claude outputs/` is untouched.
 Older handoff: [archive](tasks/archive/handoff-before-hardening-completion-2026-10-01.md).
 Older inference checklist: [archive](tasks/archive/inference-todo-prior-sessions.md).
 Historical counts and obsolete pending entries there are not current instructions.
+
+## Phase 3 evaluation tooling
+
+Added an evaluation-only full-corpus BM25 baseline to `eval/retrieval_eval.py`;
+the overlap and cross-encoder rankers remain labeled as rerankers over the shared
+dense candidate pool. Added `eval/answer_quality.py` to aggregate human-labeled
+claim support, expected fact coverage, citation coverage/validity and abstention
+quality. Usage, annotation schema, limitations and the future comparison protocol
+are in [retrieval-quality-evaluation.md](docs/retrieval-quality-evaluation.md).
+The existing retrieval report is explicitly marked historical; its lexical row
+is not a BM25 result. No new labels or evaluation results were fabricated, no
+production ranking behavior changed, and this tooling pass did not run tests,
+connect to Qdrant, call a model, or use a GPU. Meaningful quality comparisons
+still require a larger held-out workload with reviewed answer annotations.
+
+## Phase 3 evaluation run (2026-10-05)
+
+Ran `eval.retrieval_eval` read-only against the healthy local `source_chunks`
+collection and saved the full-corpus BM25 comparison to
+[`phase3-evaluation-2026-10-05.md`](reports/phase3-evaluation-2026-10-05.md)
+and [`retrieval-eval-phase3.json`](reports/retrieval-eval-phase3.json). Corpus:
+17 chunks, two sources; golden set: 24 single-annotator questions. Recall@3:
+dense .875, BM25 .917, dense + overlap .979, dense + cross-encoder 1.000. Mean
+CPU ranking time: .143ms, .919ms, .132ms reranking-only, and 1170ms
+reranking-only respectively. This small development set does not justify a
+production ranker change.
+
+This retrieval-only status was superseded by the same-day serving follow-up.
+The follow-up ran FP16, AWQ and GPTQ on one temporary L40S host at concurrency
+1/4/16/32/64 and saved 24 generated answer/context pairs. All 372 load-test
+requests succeeded. Full measurements, limitations, and raw artifact links are
+in [the serving and answer-quality report](reports/phase3-serving-quality-2026-10-05.md).
+The pod is terminated and no active pods remain. The answer audit found no valid
+source-marker citations, but claim-level groundedness still needs human review;
+the critic diagnostic is not a substitute.
+
+### Expanded held-out evaluation follow-up (2026-10-05)
+
+Expanded the workload to 40 captured DocChat QA, summary, long-context,
+multi-document and negative-control cases. Repeated FP16, AWQ and GPTQ serving
+at concurrency 1/4/16/32/64, 64 requests per cell and two repeats: all 1,920
+measured requests succeeded. Added raw run artifacts under
+`reports/heldout-serving-{fp16,awq,gptq}/`, 40 answers per format,
+`reports/heldout-citation-audit.json`, a blinded 120-answer review pack, and
+`reports/capacity-plan.json`. Results and caveats are in
+[`heldout-serving-evaluation-2026-10-05.md`](reports/heldout-serving-evaluation-2026-10-05.md).
+
+At a 20s p95 SLO and 30% throughput headroom, the capacity script estimates
+4 FP16 GPUs or 3 AWQ/GPTQ GPUs for 5 RPS, using linear extrapolation. This is
+provisional for a 17-chunk/two-document corpus. Human claim support,
+unsupported-claim and abstention labels are still pending; the blind pack is
+`reports/quality-review-pack.jsonl` and the unblinding key is kept outside the
+repository at `/private/tmp/docchat-quality-review-key.json`. The source-marker
+audit checks marker membership only, not grounding. Queue wait is not yet
+isolated per request; AWQ/GPTQ have vLLM waiting-gauge snapshots, while FP16
+does not.
+
+The newly added tooling and existing suite pass: `ruff check .` clean;
+`venv/bin/python -m pytest -m "not eval" -q` reports 435 passed, 8 deselected.
+The temporary pod `xurcmwnkzwdkat` was terminated; a subsequent pod lookup
+returned 404. RunPod's pod-billing endpoint reported $0.638 in posted charges
+through the bucket ending 11:00 UTC, which may lag and is not a final invoice.

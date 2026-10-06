@@ -145,6 +145,19 @@ venv/bin/python eval/benchmark.py
 
 ## Inference benchmarking
 
+The serving upgrade now includes request/stage/model tracing, an optional protected
+Prometheus endpoint at `/api/v1/metrics`, and a **schema-v2 sustained benchmark** mode
+for captured prompts and authenticated end-to-end chat requests. Historical burst
+commands and results below remain available with their original semantics.
+
+- [Sustained workload setup, artifact schema and comparisons](docs/benchmarking.md)
+- [Serving adapter and timing definitions](docs/serving-observability.md)
+- [Prometheus setup and proposed Grafana panels](docs/grafana-plan.md)
+
+The new implementation is verified offline; no new GPU throughput or quality claims
+are implied. Example workloads require real source IDs, corpus hashes and captures.
+
+
 DocChat also carries a self-hosted-inference benchmarking harness, built to measure
 serving performance under load rather than just answer quality — `eval/inference_benchmark.py`
 sweeps TTFT, decode throughput, and cost across a concurrency range for any configured
