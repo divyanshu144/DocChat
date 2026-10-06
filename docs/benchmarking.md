@@ -232,7 +232,7 @@ It first applies every existing comparability check, then also requires the same
 versus `false` (variant) in the deployment manifests. The output adds a per-cell hit-rate column for
 each arm, pooled as total hits over total queries across repeats. `design.cache_mode` matters: with
 `bust` every request has a unique prefix, so both arms should show about 0% and the result is a
-**control**, not a measurement of the caching effect; use `reuse` to see reuse. `warnings` flag a
+**control**, not a measurement of the caching effect; use `reuse` to see reuse. With caching off the engine may report no prefix-cache queries at all (a live vLLM 0.30.0 run did), so that arm's hit rate is shown as `unavailable` with a reason, not as 0%. `warnings` flag a
 caching-off arm that shows hits, a reuse-mode caching-on arm with none, and hits despite busting.
 One run per arm, no causal claim, and the same physical host is not verified.
 

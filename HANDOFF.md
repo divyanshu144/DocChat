@@ -1,6 +1,19 @@
 # DocChat session handoff
 
-## In progress: closing the remaining serving gaps (2026-10-06): Phase 1 committed locally, awaiting an explicit go for Phase 2
+## Latest: live GPU session done and pod terminated (2026-10-06); report written, nothing committed yet
+
+Report: `reports/gpu-live-2026-10-06.md` (artifacts in `reports/gpu-live-2026-10-06/`, uncommitted). One L40S pod
+(`7mx8ltjpq14vku`, 75.3 min, about $1.37 estimated; provider billing readback incomplete because it lags) was terminated and
+the provider's pod list is empty. Network volume `owdj19ss50` still exists and is NOT deleted; ask before deleting.
+Measured, single run, single GPU: clean sweep c=1..64 (about 8x throughput to c=32, flat at 64, KV peak 42%, GPU util ~100%
+from c=4 so it is not headroom); SIGSTOP/SIGCONT and hard kill failure-behaviour tests (no request succeeded while the
+fault was active; hard-kill recovery 64.5 s INCLUDES MODEL LOAD; /health/serving matched documentation); prefix caching on
+vs off (c=16: -51% throughput, +111% p95 with it off; c=4 not claimed); serial vs concurrent (c=16: 5.4x, same output tokens).
+Unexplained: this run was 17-27% slower than the earlier FP16 sweep. Open decisions: delete volume owdj19ss50; whether to
+add a local-to-hosted fallback (not built; a production decision); commit the session artifacts (do not stage the raw
+`reports/heldout-serving-*/events.jsonl` or `Claude outputs/`).
+
+## Previously: closing the remaining serving gaps (2026-10-06): Phase 1 committed locally (f6efb01, e538ae3)
 
 Phase 1 is committed locally as `f6efb01` on `feat/serving-platform-and-quality-review` (not pushed; it also carries the
 earlier GPU-utilization work because both touch the same files). A small correction made after that commit is NOT yet

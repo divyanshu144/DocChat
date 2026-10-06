@@ -137,12 +137,10 @@ preserve the errors, setup, available memory evidence and missing provenance.
 - **End-to-end quality under quantization.** Phase 3 measured speed and a small
   critic diagnostic; it did not measure full-pipeline answer quality. GPTQ also
   lacks a same-host speed comparison, and the original AWQ memory log is missing.
-- **A direct serial-versus-concurrent comparison at the same batch size.** Every sweep
-  so far shows concurrent throughput climbing with load, which is evidence continuous
-  batching works, but never a direct before-and-after at a fixed batch size. A spec and
-  the harness support for it exist
-  (`docs/superpowers/specs/2026-10-01-batching-proof-design.md`, the harness's `--serial`
-  flag) but no live sweep has run.
+- **Repeating the 2026-10-06 live session.** A serial-versus-concurrent comparison (batch 16: 5.4x faster
+  concurrent, same total output), a prefix-caching on/off comparison, GPU utilization and two failure-behaviour tests
+  now exist, each as a single run on one L40S (`reports/gpu-live-2026-10-06.md`). Not repeated across sessions, and
+  that run was 17-27% slower than the earlier FP16 sweep for a reason that was not established.
 - **A second serving engine.** No comparison against TGI, SGLang, or any engine other
   than vLLM has been attempted.
 - **A clean Groq baseline at realistic prompt sizes.** Groq's numbers from the real-prompt

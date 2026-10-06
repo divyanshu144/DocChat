@@ -291,8 +291,8 @@ def compare_prefix_caching(baseline_dir: Path, variant_dir: Path) -> dict:
             warnings.append(f"{label}: {base_rate:.1%} hits despite cache busting; busting may not be reaching the server")
     note = ("cache_mode=bust gives every request a unique prefix, so both arms should show about 0% hits; this "
             "comparison is then a control, not a measurement of the caching effect" if cache_mode == "bust" else
-            "cache_mode=reuse preserves prompt prefixes; the caching-on arm shows observed reuse and the caching-off "
-            "arm should show about 0%")
+            "cache_mode=reuse preserves prompt prefixes; the caching-on arm shows observed reuse. With caching off the "
+            "engine may report no prefix-cache queries at all, which is shown as unavailable and not as 0%")
     result["design"] = {"baseline": "prefix caching on", "variant": "prefix caching off", "cache_mode": cache_mode,
                         "note": note}
     result["warnings"] = warnings

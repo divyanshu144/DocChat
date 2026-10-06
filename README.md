@@ -132,7 +132,7 @@ Current local verification baseline:
 
 ```bash
 venv/bin/python -m ruff check .
-venv/bin/python -m pytest -m "not eval" -q   # 368 passed, 8 deselected
+venv/bin/python -m pytest -m "not eval" -q   # 629 passed, 8 deselected
 ```
 
 The critic benchmark is intentionally separate because it hits the live LLM:
@@ -154,8 +154,12 @@ commands and results below remain available with their original semantics.
 - [Serving adapter and timing definitions](docs/serving-observability.md)
 - [Prometheus setup and proposed Grafana panels](docs/grafana-plan.md)
 
-The new implementation is verified offline; no new GPU throughput or quality claims
-are implied. Example workloads require real source IDs, corpus hashes and captures.
+The harness is verified offline, and one live session has now exercised it:
+[reports/gpu-live-2026-10-06.md](reports/gpu-live-2026-10-06.md) (Qwen2.5-7B-Instruct, vLLM 0.30.0, one L40S, one
+run per configuration, about $1.37 estimated). It covers a concurrency sweep with GPU utilization, two
+failure-behaviour tests (SIGSTOP and hard kill), prefix caching on versus off, and serial versus concurrent.
+Single-run, single-GPU numbers; the report lists what they do not support. Example workloads require real source IDs,
+corpus hashes and captures.
 
 
 DocChat also carries a self-hosted-inference benchmarking harness, built to measure
@@ -408,7 +412,7 @@ python eval/rag_harness.py \
   --prompt-profiles baseline strict_cited
 ```
 
-Current offline suite: 368 passed, 8 live critic evals deselected. Live LLM evals remain opt-in because they incur API cost. The historical event-loop client-cache issue was fixed; it is not a current failing-test baseline.
+Current offline suite: 629 passed, 8 live critic evals deselected. Live LLM evals remain opt-in because they incur API cost. The historical event-loop client-cache issue was fixed; it is not a current failing-test baseline.
 
 ### Hardening controls
 
@@ -626,7 +630,7 @@ venv/bin/ruff check .
 # All checks passed!
 
 venv/bin/python -m pytest -m "not eval" -q
-# 368 passed, 8 deselected
+# 629 passed, 8 deselected
 
 cd frontend && npm test -- --run
 # 3 files, 6 tests passed

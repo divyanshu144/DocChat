@@ -552,3 +552,12 @@ when no space is found within some reasonable distance of the end.
 - The "succeeded while fault active" check was already right (it requires a request sent after the command returned).
 - Real pods add real SSH latency; the rehearsal used a stand-in `ssh` that runs the command locally, which proved the
   quoting (the remote command arrives as one literal argument) but not the latency of a real network.
+
+## 2026-10-06 - live GPU session lessons
+- `pgrep -f` monitors match their own command line and never exit; an idle loop cost about 5.5 min of pod time (~$0.10).
+  Wait on a PID or use a background-task completion notice instead.
+- Run repo modules with `python -m eval.x`, not `python eval/x.py` (ModuleNotFoundError).
+- A unix control-socket path under the long scratchpad directory was too long; use a short path under /tmp.
+- With prefix caching off, vLLM 0.30.0 reports no prefix-cache queries at all: show the hit rate as unavailable, not 0%.
+- The legacy `inference_benchmark` default `--out` is a tracked append-only file; pass `--out` into the run folder.
+- Billing readback lags: only the first hourly bucket had posted after termination. Report estimate and readback separately.

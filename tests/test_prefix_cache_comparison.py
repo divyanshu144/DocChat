@@ -138,3 +138,12 @@ def test_cli_flag_prints_the_prefix_cache_comparison(tmp_path, monkeypatch, caps
     monkeypatch.setattr("sys.argv", ["quantization_compare", "--prefix-cache-comparison"])
     with pytest.raises(SystemExit):
         main()
+
+
+def test_a_caching_off_arm_with_no_queries_is_unavailable_not_zero_and_the_note_says_so(tmp_path):
+    no_queries = {"status": "unavailable", "reason": "no prefix-cache queries during the cell"}
+    on, off = pair(tmp_path, off_hits=(no_queries, no_queries))
+    result = compare_prefix_caching(on, off)
+    variant = result["cells"][0]["prefix_cache"]["variant"]
+    assert variant["status"] == "unavailable" and "hit_rate" not in variant and result["warnings"] == []
+    assert "not as 0%" in result["design"]["note"]

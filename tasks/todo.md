@@ -20,7 +20,7 @@ Spec: docs/superpowers/specs/2026-10-06-harness-improvements-design.md  Plan: do
 - [x] 7 docs/benchmarking.md updated per addition
 - [x] 8 HANDOFF, lessons, gates, diff summary -> STOPPED; awaiting approval before Phase 2
 
-Phase 2: live GPU session  [Phase 1 committed locally as f6efb01; plan revised + live quote given 2026-10-06; AWAITING EXPLICIT GO. cap $4.00 hard, stop-and-ask $2.50]   Phase 3: report  [after Phase 2]
+Phase 2: live GPU session  [DONE 2026-10-06, pod terminated, report at reports/gpu-live-2026-10-06.md; was: Phase 1 committed locally as f6efb01; plan revised + live quote given 2026-10-06; AWAITING EXPLICIT GO. cap $4.00 hard, stop-and-ask $2.50]   Phase 3: report  [after Phase 2]
 
 ## Active: GPU utilization review pass (2026-10-06, second session)
 
@@ -252,3 +252,6 @@ code changed. Phase 4 remains deferred.
 
 Historical checklists and handoff logs live under `tasks/archive/`; their counts and
 unchecked items are provenance, not new work.
+
+- [x] Phase 3 report written (reports/gpu-live-2026-10-06.md); README, inference-writeup, HANDOFF updated
+- [ ] Owner decisions: delete volume owdj19ss50? local-to-hosted fallback? commit session artifacts?
