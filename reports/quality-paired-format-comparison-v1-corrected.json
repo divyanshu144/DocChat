@@ -1,0 +1,263 @@
+{
+  "label_source": "llm_assisted_audited",
+  "human_verified": false,
+  "note": "Descriptive. Sign-test p-values are exact and two-sided on non-tied cases; intervals are bootstrap 95%. Do not read these as significance claims.",
+  "by_split": {
+    "development": {
+      "cases": 24,
+      "comparisons": {
+        "fp16_vs_awq": {
+          "paired_cases": 24,
+          "metrics": {
+            "answer_score": {
+              "exploratory": false,
+              "fp16_better": 1,
+              "awq_better": 1,
+              "ties": 22,
+              "mean_diff": 0.0,
+              "bootstrap_ci95": [
+                -0.0625,
+                0.0625
+              ],
+              "sign_test_p": 1.0
+            },
+            "fully_supported_yes": {
+              "exploratory": true,
+              "fp16_better": 2,
+              "awq_better": 3,
+              "ties": 19,
+              "mean_diff": -0.0417,
+              "bootstrap_ci95": [
+                -0.2083,
+                0.125
+              ],
+              "sign_test_p": 1.0
+            },
+            "unsupported_claims": {
+              "exploratory": true,
+              "fp16_better": 3,
+              "awq_better": 2,
+              "ties": 19,
+              "mean_diff": 0.0,
+              "bootstrap_ci95": [
+                -0.2083,
+                0.25
+              ],
+              "sign_test_p": 1.0
+            }
+          }
+        },
+        "fp16_vs_gptq": {
+          "paired_cases": 23,
+          "metrics": {
+            "answer_score": {
+              "exploratory": false,
+              "fp16_better": 1,
+              "gptq_better": 1,
+              "ties": 21,
+              "mean_diff": 0.0,
+              "bootstrap_ci95": [
+                -0.0652,
+                0.0652
+              ],
+              "sign_test_p": 1.0
+            },
+            "fully_supported_yes": {
+              "exploratory": true,
+              "fp16_better": 1,
+              "gptq_better": 3,
+              "ties": 19,
+              "mean_diff": -0.087,
+              "bootstrap_ci95": [
+                -0.2609,
+                0.087
+              ],
+              "sign_test_p": 0.625
+            },
+            "unsupported_claims": {
+              "exploratory": true,
+              "fp16_better": 2,
+              "gptq_better": 2,
+              "ties": 19,
+              "mean_diff": 0.1739,
+              "bootstrap_ci95": [
+                -0.2174,
+                0.6957
+              ],
+              "sign_test_p": 1.0
+            }
+          }
+        },
+        "awq_vs_gptq": {
+          "paired_cases": 23,
+          "metrics": {
+            "answer_score": {
+              "exploratory": false,
+              "awq_better": 0,
+              "gptq_better": 0,
+              "ties": 23,
+              "mean_diff": 0.0,
+              "bootstrap_ci95": [
+                0.0,
+                0.0
+              ],
+              "sign_test_p": null
+            },
+            "fully_supported_yes": {
+              "exploratory": true,
+              "awq_better": 1,
+              "gptq_better": 2,
+              "ties": 20,
+              "mean_diff": -0.0435,
+              "bootstrap_ci95": [
+                -0.1739,
+                0.087
+              ],
+              "sign_test_p": 1.0
+            },
+            "unsupported_claims": {
+              "exploratory": true,
+              "awq_better": 3,
+              "gptq_better": 4,
+              "ties": 16,
+              "mean_diff": 0.1739,
+              "bootstrap_ci95": [
+                -0.1739,
+                0.6087
+              ],
+              "sign_test_p": 1.0
+            }
+          }
+        }
+      }
+    },
+    "held_out": {
+      "cases": 16,
+      "comparisons": {
+        "fp16_vs_awq": {
+          "paired_cases": 16,
+          "metrics": {
+            "answer_score": {
+              "exploratory": false,
+              "fp16_better": 3,
+              "awq_better": 1,
+              "ties": 12,
+              "mean_diff": 0.0625,
+              "bootstrap_ci95": [
+                -0.0625,
+                0.1875
+              ],
+              "sign_test_p": 0.625
+            },
+            "fully_supported_yes": {
+              "exploratory": true,
+              "fp16_better": 7,
+              "awq_better": 0,
+              "ties": 9,
+              "mean_diff": 0.4375,
+              "bootstrap_ci95": [
+                0.1875,
+                0.6875
+              ],
+              "sign_test_p": 0.015625
+            },
+            "unsupported_claims": {
+              "exploratory": true,
+              "fp16_better": 4,
+              "awq_better": 0,
+              "ties": 12,
+              "mean_diff": -0.3125,
+              "bootstrap_ci95": [
+                -0.625,
+                -0.0625
+              ],
+              "sign_test_p": 0.125
+            }
+          }
+        },
+        "fp16_vs_gptq": {
+          "paired_cases": 16,
+          "metrics": {
+            "answer_score": {
+              "exploratory": false,
+              "fp16_better": 2,
+              "gptq_better": 2,
+              "ties": 12,
+              "mean_diff": 0.0,
+              "bootstrap_ci95": [
+                -0.125,
+                0.125
+              ],
+              "sign_test_p": 1.0
+            },
+            "fully_supported_yes": {
+              "exploratory": true,
+              "fp16_better": 4,
+              "gptq_better": 1,
+              "ties": 11,
+              "mean_diff": 0.1875,
+              "bootstrap_ci95": [
+                -0.0625,
+                0.4375
+              ],
+              "sign_test_p": 0.375
+            },
+            "unsupported_claims": {
+              "exploratory": true,
+              "fp16_better": 2,
+              "gptq_better": 1,
+              "ties": 13,
+              "mean_diff": -0.0625,
+              "bootstrap_ci95": [
+                -0.25,
+                0.125
+              ],
+              "sign_test_p": 1.0
+            }
+          }
+        },
+        "awq_vs_gptq": {
+          "paired_cases": 16,
+          "metrics": {
+            "answer_score": {
+              "exploratory": false,
+              "awq_better": 1,
+              "gptq_better": 3,
+              "ties": 12,
+              "mean_diff": -0.0625,
+              "bootstrap_ci95": [
+                -0.1875,
+                0.0625
+              ],
+              "sign_test_p": 0.625
+            },
+            "fully_supported_yes": {
+              "exploratory": true,
+              "awq_better": 0,
+              "gptq_better": 4,
+              "ties": 12,
+              "mean_diff": -0.25,
+              "bootstrap_ci95": [
+                -0.5,
+                -0.0625
+              ],
+              "sign_test_p": 0.125
+            },
+            "unsupported_claims": {
+              "exploratory": true,
+              "awq_better": 1,
+              "gptq_better": 3,
+              "ties": 12,
+              "mean_diff": 0.25,
+              "bootstrap_ci95": [
+                -0.0625,
+                0.625
+              ],
+              "sign_test_p": 0.625
+            }
+          }
+        }
+      }
+    }
+  }
+}

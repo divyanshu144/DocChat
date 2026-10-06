@@ -1,0 +1,160 @@
+{
+  "label_source": "llm_assisted",
+  "human_verified": false,
+  "unsupported_stats": {
+    "v1_original": {
+      "scored": 119,
+      "total_unsupported": 146,
+      "rows_with_unsupported": 61,
+      "fully_supported_yes": 58,
+      "total_minor_imprecision": 0
+    },
+    "v1_corrected": {
+      "scored": 119,
+      "total_unsupported": 43,
+      "rows_with_unsupported": 28,
+      "fully_supported_yes": 62,
+      "total_minor_imprecision": 0
+    },
+    "v2": {
+      "scored": 66,
+      "total_unsupported": 46,
+      "rows_with_unsupported": 25,
+      "fully_supported_yes": 26,
+      "total_minor_imprecision": 40
+    }
+  },
+  "v2_vs_v1_original": {
+    "rows_compared": 66,
+    "fields": {
+      "answer_correct": {
+        "agreement": 0.8939393939393939,
+        "agree": 59,
+        "disagreements": {
+          "partial->no": 2,
+          "partial->yes": 2,
+          "yes->partial": 3
+        }
+      },
+      "fully_supported": {
+        "agreement": 0.7727272727272727,
+        "agree": 51,
+        "disagreements": {
+          "no->partial": 2,
+          "partial->no": 1,
+          "partial->yes": 10,
+          "yes->partial": 2
+        }
+      },
+      "citation_correct": {
+        "agreement": 0.9696969696969697,
+        "agree": 64,
+        "disagreements": {
+          "not_applicable->yes": 1,
+          "partial->yes": 1
+        }
+      },
+      "abstention_correct": {
+        "agreement": 1.0,
+        "agree": 66,
+        "disagreements": {}
+      }
+    },
+    "disagreeing_rows": {
+      "answer_correct": [
+        "review-0e370a548c2b",
+        "review-4b81b70f2ef1",
+        "review-8f71b7c7afa2",
+        "review-afbedaf210f8",
+        "review-b1afbb27bdd3",
+        "review-b8cfd9f99a75",
+        "review-f6672b4dfcd1"
+      ],
+      "fully_supported": [
+        "review-31201c740fe0",
+        "review-343610693d25",
+        "review-3aa5d306185c",
+        "review-3dd8eb1c2c77",
+        "review-461cb686be01",
+        "review-52bcd61278e7",
+        "review-54c156e713f3",
+        "review-59f0dc02696b",
+        "review-97c7d3dd0e93",
+        "review-9ab1ff8c3aa4",
+        "review-b1afbb27bdd3",
+        "review-bee0f663c48f",
+        "review-c115ca8733d0",
+        "review-ceba2951bc83",
+        "review-d46c021238d6"
+      ],
+      "citation_correct": [
+        "review-7d26ab7966af",
+        "review-c08d2a58b4ea"
+      ],
+      "abstention_correct": []
+    }
+  },
+  "v2_vs_v1_corrected": {
+    "rows_compared": 66,
+    "fields": {
+      "answer_correct": {
+        "agreement": 0.9090909090909091,
+        "agree": 60,
+        "disagreements": {
+          "partial->yes": 3,
+          "yes->partial": 3
+        }
+      },
+      "fully_supported": {
+        "agreement": 0.803030303030303,
+        "agree": 53,
+        "disagreements": {
+          "no->partial": 2,
+          "partial->yes": 10,
+          "yes->partial": 1
+        }
+      },
+      "citation_correct": {
+        "agreement": 0.9848484848484849,
+        "agree": 65,
+        "disagreements": {
+          "partial->yes": 1
+        }
+      },
+      "abstention_correct": {
+        "agreement": 1.0,
+        "agree": 66,
+        "disagreements": {}
+      }
+    },
+    "disagreeing_rows": {
+      "answer_correct": [
+        "review-0e370a548c2b",
+        "review-4b81b70f2ef1",
+        "review-4c308495aab5",
+        "review-8f71b7c7afa2",
+        "review-b1afbb27bdd3",
+        "review-f6672b4dfcd1"
+      ],
+      "fully_supported": [
+        "review-31201c740fe0",
+        "review-343610693d25",
+        "review-3aa5d306185c",
+        "review-3dd8eb1c2c77",
+        "review-52bcd61278e7",
+        "review-59f0dc02696b",
+        "review-97c7d3dd0e93",
+        "review-9ab1ff8c3aa4",
+        "review-b1afbb27bdd3",
+        "review-bee0f663c48f",
+        "review-c115ca8733d0",
+        "review-ceba2951bc83",
+        "review-d46c021238d6"
+      ],
+      "citation_correct": [
+        "review-c08d2a58b4ea"
+      ],
+      "abstention_correct": []
+    }
+  }
+}
