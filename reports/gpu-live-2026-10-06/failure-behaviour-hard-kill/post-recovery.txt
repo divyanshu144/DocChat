@@ -1,0 +1,4 @@
+Hard kill, requests grouped by when they were SENT (seconds from load start). Recovery below INCLUDES MODEL LOAD.
+  restore issued -> first success sent after it (model loading)  sent= 3584 ok=  16 error_rate=0.996  [90.0s .. 154.5s]
+  after recovery (first success to end of load)                  sent=  342 ok= 339 error_rate=0.009  [154.5s .. 378.1s]
+  errors sent after recovery: 3 {'TimeoutError'}

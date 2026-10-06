@@ -1,0 +1,46 @@
+{
+  "convention": "clock_offset_s = gpu_host_clock - benchmark_client_clock (the client clock is the midpoint of the readings before and after the pod read)",
+  "method": "5 trials over one multiplexed SSH connection; the trial with the smallest round trip is used (NTP-style); error is at most half its round trip",
+  "trials": [
+    {
+      "client_before": 1791304419.445621,
+      "gpu_host": 1791304419.730526,
+      "client_after": 1791304419.718055,
+      "rtt_s": 0.2724339962005615,
+      "offset_s": 0.14868783950805664
+    },
+    {
+      "client_before": 1791304420.121236,
+      "gpu_host": 1791304420.4050772,
+      "client_after": 1791304420.392134,
+      "rtt_s": 0.27089786529541016,
+      "offset_s": 0.1483922004699707
+    },
+    {
+      "client_before": 1791304420.7934349,
+      "gpu_host": 1791304421.07098,
+      "client_after": 1791304421.0590641,
+      "rtt_s": 0.26562929153442383,
+      "offset_s": 0.1447305679321289
+    },
+    {
+      "client_before": 1791304421.463223,
+      "gpu_host": 1791304421.7490146,
+      "client_after": 1791304421.737138,
+      "rtt_s": 0.27391505241394043,
+      "offset_s": 0.1488339900970459
+    },
+    {
+      "client_before": 1791304422.137716,
+      "gpu_host": 1791304422.430182,
+      "client_after": 1791304422.419949,
+      "rtt_s": 0.28223299980163574,
+      "offset_s": 0.15134954452514648
+    }
+  ],
+  "chosen_clock_offset_s": 0.1447305679321289,
+  "chosen_trial_rtt_s": 0.26562929153442383,
+  "max_error_bound_s": 0.13281464576721191,
+  "spread_of_all_offsets_s": 0.006618976593017578,
+  "median_offset_s": 0.14868783950805664
+}

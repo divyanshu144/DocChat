@@ -1,0 +1,7 @@
+GPU by phase, HARD KILL run (offset-corrected; seconds from load start). 'model loading' time INCLUDES MODEL LOAD.
+phase                                                 n util mean%   mem MiB (min..max)  power W
+before (0 to kill issued)                            60      100.0     40969..40969          303
+kill running + 15 s after                            17       17.6       610..40969          105
+outage (kill+15 s to restore issued)                 13        0.0       610..610             46
+model loading (restore issued to first success)      64       15.5       610..42123          107
+after recovery to end                               224      100.0     42121..42121          271

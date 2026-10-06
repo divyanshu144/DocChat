@@ -1,0 +1,13 @@
+{
+  "queried_at": "2026-10-06T17:43:15.723690+00:00",
+  "pod_id": "7mx8ltjpq14vku",
+  "terminated_at": "2026-10-06T17:41:57Z",
+  "provider_response": {
+    "record_count": 1,
+    "posted_bucket": "2026-10-06T16:00:00Z to 17:00:00Z",
+    "gpu_amount_usd": 0.3220786526799202,
+    "disk_amount_usd": 0.0020833335584029555,
+    "total_usd": 0.32416198623832315
+  },
+  "caveat": "INCOMPLETE: billing lags. Only the 16:00-17:00 UTC bucket had posted; the 17:00-18:00 bucket (the pod ran until 17:41:57) had not. The estimated cost of 75.3 minutes at the quoted 1.09 USD/hour is 1.37 USD, which is an estimate, not an invoice."
+}

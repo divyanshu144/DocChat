@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "run_id": "e989a452-033a-48b3-86f9-9b8589172b80",
+  "created_at": "2026-10-06T17:15:41.780300+00:00",
+  "samples_file": "gpu-samples.jsonl",
+  "samples_sha256": "ed53d0c429f056e729947ce3782df2228fe39aae04bd3827231bc1cc83e4c66c",
+  "sampler": {
+    "backend": "pynvml",
+    "interval_s": 1.0,
+    "clock_source": "gpu_host_wall_clock_utc",
+    "schema_version": 1
+  },
+  "sampler_error_records": 0,
+  "malformed_lines": 0,
+  "alignment": {
+    "sampler_clock": "gpu_host_wall_clock_utc",
+    "window_clock": [
+      "benchmark_client_wall_clock_utc"
+    ],
+    "clock_offset_s": 0.1447,
+    "offset_provenance": "operator_supplied",
+    "convention": "clock_offset_s = gpu_host_clock - benchmark_client_clock; a sample's time on the client clock is its timestamp minus the offset"
+  },
+  "parameters": {
+    "min_samples": 10,
+    "coverage_tolerance_intervals": 2
+  },
+  "gpu_count": {
+    "sampled": 1,
+    "manifest": 1,
+    "matches_manifest": true
+  },
+  "warnings": [],
+  "cells": [
+    {
+      "cell_id": "failure-behaviour",
+      "concurrency": 16,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T17:02:58.033140+00:00",
+        "ended_at": "2026-10-06T17:07:02.675452+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 245,
+          "mean_pct": 78.77551020408163,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 251.67322040816325,
+          "power_samples": 245
+        }
+      },
+      "status": "ok"
+    }
+  ],
+  "notes": [
+    "Utilization is the share of the sample period in which at least one kernel was running; 100% does not mean the GPU is fully used",
+    "It shows the GPU was busy, not that it was efficient, and a low reading does not show where a limit was",
+    "It is one signal beside KV-cache usage and queue depth, not a replacement for either",
+    "Statistics are per GPU; no cross-GPU average is computed",
+    "Unavailable cells are never filled in or estimated"
+  ]
+}

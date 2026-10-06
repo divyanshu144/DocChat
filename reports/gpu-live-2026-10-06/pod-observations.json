@@ -1,0 +1,31 @@
+{
+  "pod_id": "7mx8ltjpq14vku",
+  "provider": "RunPod",
+  "cloud": "SECURE",
+  "data_center": "US-MO-1",
+  "created_at": "2026-10-06T16:26:41Z",
+  "rate_usd_per_hour_quoted": 1.09,
+  "image_digest_source": "provider system log line 'Digest: sha256:8a69ffad...' for the pulled image",
+  "observed_on_pod": {
+    "nvidia_smi": "NVIDIA L40S, 580.159.03, 46068 MiB, CUDA 13.0",
+    "vllm": "0.30.0",
+    "torch": "2.13.0+cu130",
+    "attention_backend": "FLASH_ATTN",
+    "gpu_kv_cache_tokens": 429552,
+    "max_concurrency_at_16384_tokens": 26.22,
+    "enable_prefix_caching": true,
+    "vllm_flags": "serve Qwen/Qwen2.5-7B-Instruct --served-model-name Qwen2.5-7B-Instruct --host 127.0.0.1 --port 8000 --dtype float16 --max-model-len 16384 --gpu-memory-utilization 0.90 --enable-prefix-caching",
+    "bound_to": "127.0.0.1 (only port 22/tcp exposed; reached through an SSH tunnel)",
+    "process_tree": {
+      "783": "vllm serve (API server; the PID in /tmp/vllm.pid; the stall signals this process only)",
+      "1225": "multiprocessing resource tracker (child of 783)",
+      "1226": "VLLM::EngineCore (child of 783, separate process)"
+    }
+  },
+  "deviations_from_plan": [
+    "data center US-MO-1 (EUR-IS-2 had no stock at create time; US-MO-1 is where the earlier FP16 held-out run ran)",
+    "no --api-key: vLLM bound to 127.0.0.1 and reached only via SSH tunnel, as in the earlier runs, so there is no key to leak",
+    "--enable-prefix-caching passed explicitly (as the earlier run script did) instead of left at the engine default",
+    "throwaway passphrase-less SSH key generated for this session; the user's own key is passphrase-protected"
+  ]
+}
