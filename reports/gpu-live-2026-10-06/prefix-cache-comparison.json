@@ -1,0 +1,258 @@
+{
+  "baseline_run_id": "ad42e706-673a-4ee3-bc92-01c57f09946a",
+  "variant_run_id": "b55053d0-3a0e-4265-8d46-ca70b3f8ab9e",
+  "cells": [
+    {
+      "concurrency": 4,
+      "arrival_rate": null,
+      "metrics": {
+        "successful_requests_per_second": {
+          "baseline": {
+            "available_repeats": 2,
+            "mean": 0.8295534813238152,
+            "min": 0.7913714630042473,
+            "max": 0.867735499643383,
+            "stdev": 0.053997528146310834
+          },
+          "variant": {
+            "available_repeats": 2,
+            "mean": 0.7460695402493069,
+            "min": 0.6885449174751472,
+            "max": 0.8035941630234666,
+            "stdev": 0.08135210169761287
+          },
+          "change_pct": -10.063720176459658
+        },
+        "output_tokens_per_second": {
+          "baseline": {
+            "available_repeats": 2,
+            "mean": 129.81366315126212,
+            "min": 125.0762597278213,
+            "max": 134.55106657470296,
+            "stdev": 6.699700171862754
+          },
+          "variant": {
+            "available_repeats": 2,
+            "mean": 114.67153116758767,
+            "min": 108.61107528252971,
+            "max": 120.73198705264564,
+            "stdev": 8.570778906812809
+          },
+          "change_pct": -11.664513284730635
+        },
+        "latency_p95_s": {
+          "baseline": {
+            "available_repeats": 2,
+            "mean": 13.288693437352777,
+            "min": 13.04399349913001,
+            "max": 13.533393375575542,
+            "stdev": 0.3460579713464941
+          },
+          "variant": {
+            "available_repeats": 2,
+            "mean": 13.90286395791918,
+            "min": 11.366019707173109,
+            "max": 16.43970820866525,
+            "stdev": 3.5876395450333067
+          },
+          "change_pct": 4.62175249554671
+        },
+        "error_rate": {
+          "baseline": {
+            "available_repeats": 2,
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "variant": {
+            "available_repeats": 2,
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "change_pct": null
+        }
+      },
+      "gpu_utilization": {
+        "baseline": {
+          "status": "ok",
+          "repeats": 2,
+          "per_gpu": {
+            "0": {
+              "repeats_with_data": 2,
+              "mean_pct": 99.60629921259843,
+              "p95_pct_worst_repeat": 100.0,
+              "max_pct": 100.0,
+              "n_samples": 242
+            }
+          }
+        },
+        "variant": {
+          "status": "ok",
+          "repeats": 2,
+          "per_gpu": {
+            "0": {
+              "repeats_with_data": 2,
+              "mean_pct": 99.21643835616439,
+              "p95_pct_worst_repeat": 100.0,
+              "max_pct": 100.0,
+              "n_samples": 271
+            }
+          }
+        }
+      },
+      "prefix_cache": {
+        "baseline": {
+          "repeats": 2,
+          "repeats_with_data": 2,
+          "status": "ok",
+          "queries": 508954.0,
+          "hits": 439152.0,
+          "hit_rate": 0.8628520455679688,
+          "unit": "tokens"
+        },
+        "variant": {
+          "repeats": 2,
+          "repeats_with_data": 0,
+          "status": "unavailable",
+          "reason": "no prefix-cache queries during the cell"
+        }
+      }
+    },
+    {
+      "concurrency": 16,
+      "arrival_rate": null,
+      "metrics": {
+        "successful_requests_per_second": {
+          "baseline": {
+            "available_repeats": 2,
+            "mean": 2.963527795424342,
+            "min": 2.787099263487587,
+            "max": 3.139956327361097,
+            "stdev": 0.24950762265453383
+          },
+          "variant": {
+            "available_repeats": 2,
+            "mean": 1.4471513765579664,
+            "min": 1.431668959403574,
+            "max": 1.4626337937123588,
+            "stdev": 0.021895444318059534
+          },
+          "change_pct": -51.167949941540826
+        },
+        "output_tokens_per_second": {
+          "baseline": {
+            "available_repeats": 2,
+            "mean": 451.9928132792387,
+            "min": 428.87883466546987,
+            "max": 475.1067918930076,
+            "stdev": 32.6881020359936
+          },
+          "variant": {
+            "available_repeats": 2,
+            "mean": 222.45212060893644,
+            "min": 221.121270779882,
+            "max": 223.78297043799088,
+            "stdev": 1.8821058777307091
+          },
+          "change_pct": -50.78414654537732
+        },
+        "latency_p95_s": {
+          "baseline": {
+            "available_repeats": 2,
+            "mean": 11.463597811758518,
+            "min": 10.924831874668598,
+            "max": 12.002363748848438,
+            "stdev": 0.7619300951772147
+          },
+          "variant": {
+            "available_repeats": 2,
+            "mean": 24.15017452184111,
+            "min": 24.104058668017387,
+            "max": 24.19629037566483,
+            "stdev": 0.06521766591792197
+          },
+          "change_pct": 110.66836885248739
+        },
+        "error_rate": {
+          "baseline": {
+            "available_repeats": 2,
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "variant": {
+            "available_repeats": 2,
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "change_pct": null
+        }
+      },
+      "gpu_utilization": {
+        "baseline": {
+          "status": "ok",
+          "repeats": 2,
+          "per_gpu": {
+            "0": {
+              "repeats_with_data": 2,
+              "mean_pct": 98.4375,
+              "p95_pct_worst_repeat": 100.0,
+              "max_pct": 100.0,
+              "n_samples": 68
+            }
+          }
+        },
+        "variant": {
+          "status": "ok",
+          "repeats": 2,
+          "per_gpu": {
+            "0": {
+              "repeats_with_data": 2,
+              "mean_pct": 99.42142857142858,
+              "p95_pct_worst_repeat": 100.0,
+              "max_pct": 100.0,
+              "n_samples": 138
+            }
+          }
+        }
+      },
+      "prefix_cache": {
+        "baseline": {
+          "repeats": 2,
+          "repeats_with_data": 2,
+          "status": "ok",
+          "queries": 508954.0,
+          "hits": 507584.0,
+          "hit_rate": 0.9973082046707561,
+          "unit": "tokens"
+        },
+        "variant": {
+          "repeats": 2,
+          "repeats_with_data": 0,
+          "status": "unavailable",
+          "reason": "no prefix-cache queries during the cell"
+        }
+      }
+    }
+  ],
+  "limits": [
+    "Recorded metadata compatibility does not verify the same physical host or network",
+    "Success percentiles exclude errors; inspect error-rate changes",
+    "Speed-only report; no answer-quality or causal quantization claim",
+    "GPU utilization is informational and not part of comparability checks; it shows the GPU was busy, not that it was efficient",
+    "Prefix-cache comparison: one run per arm, no causal claim; hit rate is in tokens from the engine's counters; the same physical host is not verified"
+  ],
+  "design": {
+    "baseline": "prefix caching on",
+    "variant": "prefix caching off",
+    "cache_mode": "reuse",
+    "note": "cache_mode=reuse preserves prompt prefixes; the caching-on arm shows observed reuse and the caching-off arm should show about 0%"
+  },
+  "warnings": []
+}

@@ -1,0 +1,108 @@
+{
+  "label_source": "llm_assisted",
+  "human_verified": false,
+  "unsupported_stats": {
+    "v1_original": {
+      "scored": 119,
+      "total_unsupported": 146,
+      "rows_with_unsupported": 61,
+      "fully_supported_yes": 58,
+      "total_minor_imprecision": 0
+    },
+    "v1_corrected": {
+      "scored": 119,
+      "total_unsupported": 43,
+      "rows_with_unsupported": 28,
+      "fully_supported_yes": 62,
+      "total_minor_imprecision": 0
+    },
+    "v2": {
+      "scored": 22,
+      "total_unsupported": 15,
+      "rows_with_unsupported": 9,
+      "fully_supported_yes": 6,
+      "total_minor_imprecision": 23
+    }
+  },
+  "v2_vs_v1_original": {
+    "rows_compared": 22,
+    "fields": {
+      "answer_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      },
+      "fully_supported": {
+        "agreement": 0.7727272727272727,
+        "agree": 17,
+        "disagreements": {
+          "no->partial": 1,
+          "partial->yes": 4
+        }
+      },
+      "citation_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      },
+      "abstention_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      }
+    },
+    "disagreeing_rows": {
+      "answer_correct": [],
+      "fully_supported": [
+        "review-02eb5b4b6c85",
+        "review-343610693d25",
+        "review-3aa5d306185c",
+        "review-52bcd61278e7",
+        "review-59f0dc02696b"
+      ],
+      "citation_correct": [],
+      "abstention_correct": []
+    }
+  },
+  "v2_vs_v1_corrected": {
+    "rows_compared": 22,
+    "fields": {
+      "answer_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      },
+      "fully_supported": {
+        "agreement": 0.7272727272727273,
+        "agree": 16,
+        "disagreements": {
+          "no->partial": 1,
+          "partial->yes": 5
+        }
+      },
+      "citation_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      },
+      "abstention_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      }
+    },
+    "disagreeing_rows": {
+      "answer_correct": [],
+      "fully_supported": [
+        "review-02eb5b4b6c85",
+        "review-343610693d25",
+        "review-3aa5d306185c",
+        "review-52bcd61278e7",
+        "review-54c156e713f3",
+        "review-59f0dc02696b"
+      ],
+      "citation_correct": [],
+      "abstention_correct": []
+    }
+  }
+}

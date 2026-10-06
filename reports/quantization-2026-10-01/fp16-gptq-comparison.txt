@@ -1,0 +1,8 @@
+fp16 -> gptq
+------------------------------------------------------------
+concurrency    ttft_p50   decode_tok_s   agg_tok_s      cost
+          1      -38.9%        +160.0%     +130.8%    -61.5%
+         16      -46.4%         +83.2%      +96.3%    -47.8%
+         64      -39.8%         +40.9%      +60.6%    -36.2%
+
+This table is speed/cost only. See docs/superpowers/specs/2026-10-01-quantization-comparison-design.md for how the critic quality regression (precision/recall/F1 per serving) is reported separately, from eval/benchmark.py, not from this script.

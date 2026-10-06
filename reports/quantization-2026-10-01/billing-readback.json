@@ -1,0 +1,21 @@
+{
+  "original": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\n  \"metadata\": {\n    \"query\": {\n      \"bucketSize\": \"day\",\n      \"endTime\": \"2026-10-03T00:00:00Z\",\n      \"podId\": \"ryy03s0132en85\",\n      \"startTime\": \"2026-10-01T00:00:00Z\"\n    },\n    \"recordCount\": 1,\n    \"totals\": {\n      \"cpuAmount\": 0,\n      \"diskAmount\": 0.003703703638166189,\n      \"gpuAmount\": 0.5247208550572395,\n      \"totalAmount\": 0.5284245586954057\n    },\n    \"uniquePodCount\": 1\n  },\n  \"records\": [\n    {\n      \"cpuAmount\": 0,\n      \"diskAmount\": 0.003703703638166189,\n      \"endTime\": \"2026-10-02T00:00:00Z\",\n      \"gpuAmount\": 0.5247208550572395,\n      \"podId\": \"ryy03s0132en85\",\n      \"startTime\": \"2026-10-01T00:00:00Z\",\n      \"totalAmount\": 0.5284245586954057\n    }\n  ]\n}"
+      }
+    ],
+    "isError": false
+  },
+  "replacement": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\n  \"metadata\": {\n    \"query\": {\n      \"bucketSize\": \"day\",\n      \"endTime\": \"2026-10-03T00:00:00Z\",\n      \"podId\": \"54caxtprn07c1r\",\n      \"startTime\": \"2026-10-01T00:00:00Z\"\n    },\n    \"recordCount\": 0,\n    \"totals\": {\n      \"cpuAmount\": 0,\n      \"diskAmount\": 0,\n      \"gpuAmount\": 0,\n      \"totalAmount\": 0\n    },\n    \"uniquePodCount\": 0\n  },\n  \"records\": []\n}"
+      }
+    ],
+    "isError": false
+  },
+  "checked_on_utc": "2026-10-02 (after replacement termination)"
+}

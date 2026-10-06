@@ -1,0 +1,258 @@
+{
+  "label_source": "llm_assisted",
+  "human_verified": false,
+  "rows_judged": {
+    "v1_corrected": 120,
+    "opus_v2": 22,
+    "astra_v2": 66,
+    "groq_v2": 53
+  },
+  "parse_ok": {
+    "v1_corrected": 119,
+    "opus_v2": 22,
+    "astra_v2": 66,
+    "groq_v2": 53
+  },
+  "coverage_by_split_format": {
+    "v1_corrected": {
+      "development/awq": 24,
+      "development/fp16": 24,
+      "development/gptq": 23,
+      "held_out/awq": 16,
+      "held_out/fp16": 16,
+      "held_out/gptq": 16
+    },
+    "opus_v2": {
+      "development/fp16": 22
+    },
+    "astra_v2": {
+      "development/awq": 24,
+      "development/fp16": 24,
+      "held_out/awq": 2,
+      "held_out/fp16": 16
+    },
+    "groq_v2": {
+      "development/awq": 13,
+      "development/fp16": 24,
+      "held_out/fp16": 16
+    }
+  },
+  "pairs": {
+    "v1_corrected vs opus_v2": {
+      "shared_rows": 22,
+      "agreement": {
+        "answer_correct": 22,
+        "fully_supported": 16,
+        "citation_correct": 22,
+        "abstention_correct": 22
+      },
+      "disagreements": {
+        "fully_supported": {
+          "partial->no": 1,
+          "yes->partial": 5
+        }
+      },
+      "stats": {
+        "v1_corrected": {
+          "scored": 22,
+          "total_unsupported": 11,
+          "rows_with_unsupported": 5,
+          "fully_supported_yes": 11,
+          "total_minor_imprecision": 0
+        },
+        "opus_v2": {
+          "scored": 22,
+          "total_unsupported": 15,
+          "rows_with_unsupported": 9,
+          "fully_supported_yes": 6,
+          "total_minor_imprecision": 23
+        }
+      }
+    },
+    "v1_corrected vs astra_v2": {
+      "shared_rows": 66,
+      "agreement": {
+        "answer_correct": 60,
+        "fully_supported": 53,
+        "citation_correct": 65,
+        "abstention_correct": 66
+      },
+      "disagreements": {
+        "answer_correct": {
+          "partial->yes": 3,
+          "yes->partial": 3
+        },
+        "fully_supported": {
+          "partial->no": 2,
+          "partial->yes": 1,
+          "yes->partial": 10
+        },
+        "citation_correct": {
+          "yes->partial": 1
+        }
+      },
+      "stats": {
+        "v1_corrected": {
+          "scored": 66,
+          "total_unsupported": 26,
+          "rows_with_unsupported": 15,
+          "fully_supported_yes": 35,
+          "total_minor_imprecision": 0
+        },
+        "astra_v2": {
+          "scored": 66,
+          "total_unsupported": 46,
+          "rows_with_unsupported": 25,
+          "fully_supported_yes": 26,
+          "total_minor_imprecision": 40
+        }
+      }
+    },
+    "v1_corrected vs groq_v2": {
+      "shared_rows": 53,
+      "agreement": {
+        "answer_correct": 49,
+        "fully_supported": 38,
+        "citation_correct": 52,
+        "abstention_correct": 53
+      },
+      "disagreements": {
+        "answer_correct": {
+          "partial->yes": 2,
+          "yes->partial": 2
+        },
+        "fully_supported": {
+          "partial->no": 3,
+          "partial->yes": 7,
+          "yes->partial": 5
+        },
+        "citation_correct": {
+          "not_applicable->no": 1
+        }
+      },
+      "stats": {
+        "v1_corrected": {
+          "scored": 53,
+          "total_unsupported": 16,
+          "rows_with_unsupported": 10,
+          "fully_supported_yes": 33,
+          "total_minor_imprecision": 0
+        },
+        "groq_v2": {
+          "scored": 53,
+          "total_unsupported": 16,
+          "rows_with_unsupported": 9,
+          "fully_supported_yes": 35,
+          "total_minor_imprecision": 14
+        }
+      }
+    },
+    "opus_v2 vs astra_v2": {
+      "shared_rows": 22,
+      "agreement": {
+        "answer_correct": 22,
+        "fully_supported": 19,
+        "citation_correct": 22,
+        "abstention_correct": 22
+      },
+      "disagreements": {
+        "fully_supported": {
+          "partial->yes": 3
+        }
+      },
+      "stats": {
+        "opus_v2": {
+          "scored": 22,
+          "total_unsupported": 15,
+          "rows_with_unsupported": 9,
+          "fully_supported_yes": 6,
+          "total_minor_imprecision": 23
+        },
+        "astra_v2": {
+          "scored": 22,
+          "total_unsupported": 16,
+          "rows_with_unsupported": 8,
+          "fully_supported_yes": 9,
+          "total_minor_imprecision": 14
+        }
+      }
+    },
+    "opus_v2 vs groq_v2": {
+      "shared_rows": 22,
+      "agreement": {
+        "answer_correct": 21,
+        "fully_supported": 16,
+        "citation_correct": 21,
+        "abstention_correct": 22
+      },
+      "disagreements": {
+        "answer_correct": {
+          "yes->partial": 1
+        },
+        "fully_supported": {
+          "partial->no": 1,
+          "partial->yes": 5
+        },
+        "citation_correct": {
+          "not_applicable->no": 1
+        }
+      },
+      "stats": {
+        "opus_v2": {
+          "scored": 22,
+          "total_unsupported": 15,
+          "rows_with_unsupported": 9,
+          "fully_supported_yes": 6,
+          "total_minor_imprecision": 23
+        },
+        "groq_v2": {
+          "scored": 22,
+          "total_unsupported": 12,
+          "rows_with_unsupported": 6,
+          "fully_supported_yes": 11,
+          "total_minor_imprecision": 9
+        }
+      }
+    },
+    "astra_v2 vs groq_v2": {
+      "shared_rows": 53,
+      "agreement": {
+        "answer_correct": 46,
+        "fully_supported": 34,
+        "citation_correct": 51,
+        "abstention_correct": 53
+      },
+      "disagreements": {
+        "answer_correct": {
+          "partial->yes": 4,
+          "yes->partial": 3
+        },
+        "fully_supported": {
+          "partial->no": 2,
+          "partial->yes": 14,
+          "yes->partial": 3
+        },
+        "citation_correct": {
+          "not_applicable->no": 1,
+          "partial->yes": 1
+        }
+      },
+      "stats": {
+        "astra_v2": {
+          "scored": 53,
+          "total_unsupported": 33,
+          "rows_with_unsupported": 19,
+          "fully_supported_yes": 24,
+          "total_minor_imprecision": 29
+        },
+        "groq_v2": {
+          "scored": 53,
+          "total_unsupported": 16,
+          "rows_with_unsupported": 9,
+          "fully_supported_yes": 35,
+          "total_minor_imprecision": 14
+        }
+      }
+    }
+  }
+}

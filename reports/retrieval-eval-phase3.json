@@ -1,0 +1,2386 @@
+{
+  "summary": {
+    "dense": {
+      "recall@1": 0.7291666666666666,
+      "recall@3": 0.875,
+      "recall@5": 0.9583333333333334,
+      "reciprocal_rank": 0.9111111111111111,
+      "mean_ranking_ms": 0.14276926716168722
+    },
+    "bm25": {
+      "recall@1": 0.8333333333333334,
+      "recall@3": 0.9166666666666666,
+      "recall@5": 0.9583333333333334,
+      "reciprocal_rank": 0.9666666666666667,
+      "mean_ranking_ms": 0.9185487094024817
+    },
+    "dense_overlap_rerank": {
+      "recall@1": 0.7916666666666666,
+      "recall@3": 0.9791666666666666,
+      "recall@5": 1.0,
+      "reciprocal_rank": 0.9583333333333334,
+      "mean_ranking_ms": 0.1315882739921411
+    },
+    "cross_encoder": {
+      "recall@1": 0.8541666666666666,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "reciprocal_rank": 1.0,
+      "mean_ranking_ms": 1170.3125037408124
+    }
+  },
+  "results": [
+    {
+      "id": "pdf-average",
+      "query": "According to the working-time declaration, what is the maximum average weekly working time for mobile drivers?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 1.9299164414405823,
+        "bm25": 1.0887067764997482,
+        "dense_overlap_rerank": 0.18033385276794434,
+        "cross_encoder": 1229.400124400854
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-weekly",
+      "query": "What maximum weekly working-time limit is stated in the declaration?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.0783335417509079,
+        "bm25": 0.9524989873170853,
+        "dense_overlap_rerank": 0.10108202695846558,
+        "cross_encoder": 1157.6469168066978
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "d033044f-b091-585b-ac83-829c4e843ff9"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-night",
+      "query": "How many hours of night work are allowed in each 24-hour period according to the document?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.07595866918563843,
+        "bm25": 0.9180828928947449,
+        "dense_overlap_rerank": 0.18016621470451355,
+        "cross_encoder": 1187.3466651886702
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-goods-night",
+      "query": "Which hours are defined as night time for goods vehicles in the declaration?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.08550100028514862,
+        "bm25": 0.9438749402761459,
+        "dense_overlap_rerank": 0.13633258640766144,
+        "cross_encoder": 1185.7423335313797
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-passenger-night",
+      "query": "Which night-time hours does the declaration specify for passenger vehicles?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.08983351290225983,
+        "bm25": 0.910833477973938,
+        "dense_overlap_rerank": 0.10858289897441864,
+        "cross_encoder": 1233.4742918610573
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-breaks",
+      "query": "What breaks must mobile workers take after six hours and after more than nine hours of working time?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.04966743290424347,
+        "bm25": 0.9465832263231277,
+        "dense_overlap_rerank": 0.20783208310604095,
+        "cross_encoder": 1176.9018340855837
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-reference",
+      "query": "What default reference period applies to average working time, and how far can it be extended?",
+      "relevant_ids": [
+        "6c397273-c32a-5822-9c57-35ad21c82451"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.05174987018108368,
+        "bm25": 0.902082771062851,
+        "dense_overlap_rerank": 0.1598745584487915,
+        "cross_encoder": 1209.2568762600422
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 0.5,
+          "recall@1": 0.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-employer-reference",
+      "query": "What rolling reference period does First Call Contract Services operate?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.048376619815826416,
+        "bm25": 0.9092912077903748,
+        "dense_overlap_rerank": 0.1293327659368515,
+        "cross_encoder": 1154.8213753849268
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-other-work",
+      "query": "Must working time for other employers include non-transport work?",
+      "relevant_ids": [
+        "7f02e868-34df-5c65-9015-c64be231fda4",
+        "5a312ea6-bc96-5d60-b6c8-99bab55be050"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.06612390279769897,
+        "bm25": 0.8840411901473999,
+        "dense_overlap_rerank": 0.13745762407779694,
+        "cross_encoder": 1136.878041550517
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-voluntary",
+      "query": "Does the declaration require workers to disclose charitable, voluntary or emergency-service work?",
+      "relevant_ids": [
+        "5a312ea6-bc96-5d60-b6c8-99bab55be050"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.04846043884754181,
+        "bm25": 0.9282082319259644,
+        "dense_overlap_rerank": 0.12845732271671295,
+        "cross_encoder": 1187.6372918486595
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-record-duty",
+      "query": "Who is responsible for accurately recording working time during an assignment?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.14170818030834198,
+        "bm25": 0.9268335998058319,
+        "dense_overlap_rerank": 0.13591721653938293,
+        "cross_encoder": 1176.0380007326603
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "pdf-false-record",
+      "query": "What does the document say happens if a worker knowingly makes a false record?",
+      "relevant_ids": [
+        "4a325257-292d-55a8-9673-0780ec36f864",
+        "7f02e868-34df-5c65-9015-c64be231fda4"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.04999898374080658,
+        "bm25": 0.9002089500427246,
+        "dense_overlap_rerank": 0.13845786452293396,
+        "cross_encoder": 1168.832041323185
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 0.5,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "6c397273-c32a-5822-9c57-35ad21c82451"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-definition",
+      "query": "What does retrieval-augmented generation add to a language model beyond its training data?",
+      "relevant_ids": [
+        "d033044f-b091-585b-ac83-829c4e843ff9",
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.04795938730239868,
+        "bm25": 0.9369179606437683,
+        "dense_overlap_rerank": 0.13029202818870544,
+        "cross_encoder": 1158.1762917339802
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 0.5,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-history",
+      "query": "When was the term retrieval-augmented generation introduced?",
+      "relevant_ids": [
+        "d033044f-b091-585b-ac83-829c4e843ff9",
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.07470883429050446,
+        "bm25": 0.9283330291509628,
+        "dense_overlap_rerank": 0.11399947106838226,
+        "cross_encoder": 1197.4238343536854
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 0.5,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "4a325257-292d-55a8-9673-0780ec36f864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-updates",
+      "query": "How can a RAG system use new information without retraining the language model?",
+      "relevant_ids": [
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.0687912106513977,
+        "bm25": 0.9026676416397095,
+        "dense_overlap_rerank": 0.12600049376487732,
+        "cross_encoder": 1155.6787081062794
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 0.2,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.5
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 0.5,
+          "recall@1": 0.0,
+          "recall@3": 0.5,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-transparency",
+      "query": "How do sources in RAG responses let users verify answers?",
+      "relevant_ids": [
+        "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.06479211151599884,
+        "bm25": 0.890582799911499,
+        "dense_overlap_rerank": 0.11154264211654663,
+        "cross_encoder": 1145.0412515550852
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-embeddings",
+      "query": "Where are numerical document embeddings stored for retrieval?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.051623210310935974,
+        "bm25": 0.8949171751737595,
+        "dense_overlap_rerank": 0.11341460049152374,
+        "cross_encoder": 1163.654001429677
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 0.2,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "4a325257-292d-55a8-9673-0780ec36f864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-data-types",
+      "query": "Can RAG use structured and semi-structured data as well as unstructured text?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.047791749238967896,
+        "bm25": 0.8951667696237564,
+        "dense_overlap_rerank": 0.11837482452392578,
+        "cross_encoder": 1159.755166620016
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "6c397273-c32a-5822-9c57-35ad21c82451"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-stages",
+      "query": "How does the retriever select documents before the LLM generates an answer?",
+      "relevant_ids": [
+        "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+        "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.050999224185943604,
+        "bm25": 0.8928347378969193,
+        "dense_overlap_rerank": 0.12145750224590302,
+        "cross_encoder": 1168.467417359352
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 0.5,
+          "recall@5": 0.5
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-hallucinations",
+      "query": "Does RAG completely prevent a language model from hallucinating?",
+      "relevant_ids": [
+        "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+        "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.05141831934452057,
+        "bm25": 0.8930843323469162,
+        "dense_overlap_rerank": 0.10279007256031036,
+        "cross_encoder": 1140.3890419751406
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 0.5,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-hybrid",
+      "query": "How does hybrid search compensate when semantic search misses key facts?",
+      "relevant_ids": [
+        "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.04816614091396332,
+        "bm25": 0.9292513132095337,
+        "dense_overlap_rerank": 0.13954192399978638,
+        "cross_encoder": 1152.028040960431
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 0.16666666666666666,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0
+        },
+        "bm25": {
+          "ids": [
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "7f02e868-34df-5c65-9015-c64be231fda4",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-encoding",
+      "query": "How do sparse vectors differ from dense vectors in encoding text?",
+      "relevant_ids": [
+        "b52ac8c7-c659-5819-81b8-1d0c14896510"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.08637458086013794,
+        "bm25": 0.8898340165615082,
+        "dense_overlap_rerank": 0.12187659740447998,
+        "cross_encoder": 1144.761459901929
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "7f02e868-34df-5c65-9015-c64be231fda4"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-ict",
+      "query": "What pre-training task teaches a retriever to predict masked text?",
+      "relevant_ids": [
+        "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.06233341991901398,
+        "bm25": 0.89283287525177,
+        "dense_overlap_rerank": 0.10400079190731049,
+        "cross_encoder": 1147.1133325248957
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "6c397273-c32a-5822-9c57-35ad21c82451",
+            "4a325257-292d-55a8-9673-0780ec36f864"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    },
+    {
+      "id": "rag-retro",
+      "query": "What training-cost disadvantage does the Retro language model have?",
+      "relevant_ids": [
+        "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+      ],
+      "candidate_count": 17,
+      "bm25_corpus_count": 17,
+      "timing_ms": {
+        "dense": 0.05587562918663025,
+        "bm25": 0.8875001221895218,
+        "dense_overlap_rerank": 0.11100061237812042,
+        "cross_encoder": 1151.035750284791
+      },
+      "rankings": {
+        "dense": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b52ac8c7-c659-5819-81b8-1d0c14896510",
+            "b44c566c-0452-5bb9-b275-304f36fea17b"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "bm25": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "4a325257-292d-55a8-9673-0780ec36f864",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "dense_overlap_rerank": {
+          "ids": [
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c35234db-8fdf-55fd-8f58-028118f828a6"
+          ],
+          "reciprocal_rank": 0.5,
+          "recall@1": 0.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        },
+        "cross_encoder": {
+          "ids": [
+            "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+            "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+            "a6c256f4-bf4a-5d7a-9735-bd6016933687",
+            "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+            "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+            "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+            "d033044f-b091-585b-ac83-829c4e843ff9",
+            "b44c566c-0452-5bb9-b275-304f36fea17b",
+            "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+            "c35234db-8fdf-55fd-8f58-028118f828a6",
+            "2ecd3f62-699a-55f2-896c-7a37d71550bf",
+            "c9b5bda7-787c-50d4-989b-18a014e28b51"
+          ],
+          "reciprocal_rank": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0
+        }
+      }
+    }
+  ],
+  "generated_at": "2026-10-05T07:28:49.157574+00:00",
+  "corpus_sha256": "f73d2b6f83281bf4d83c4794aecf47eccc98696de8f60e7b818616ed35d0cf04",
+  "corpus_chunks": 17,
+  "source_ids": [
+    "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+    "e8b93bac-6734-5eb0-9b0c-23f0b3640777"
+  ],
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "cross_encoder": "Xenova/ms-marco-MiniLM-L-6-v2",
+  "candidate_limit": 24,
+  "min_score": 0.3,
+  "ranking_limit": 12,
+  "method": "Exact CPU dense cosine and full-corpus BM25; overlap and cross-encoder rerank the dense candidate pool",
+  "caveats": [
+    "Small two-source corpus; not a production generalization claim",
+    "Labels written from source chunks; no independent annotator",
+    "Ranking times exclude query embedding and network; no latency deployment claim",
+    "BM25 uses a dependency-free tokenizer and full corpus; BM25 results are not the production ranker",
+    "MRR is truncated to 12 results; recall labels include all identified relevant chunks"
+  ]
+}

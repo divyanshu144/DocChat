@@ -105,6 +105,27 @@ This is the honest shape of continuous batching's tradeoff: aggregate throughput
 climbing under load, but it is not free for any single request, and the size of the cost
 can be predicted from the hardware, not just measured after the fact.
 
+## What quantization added
+
+Phase 3 measured FP16, AWQ and GPTQ-Int4 on Qwen2.5-7B-Instruct with the corrected
+16,384-token context setting. On the same original L40S pod, AWQ increased
+aggregate throughput over FP16 by 105.8% at concurrency 1, 59.6% at 16, and 15.3%
+at 64. Its advantage narrowed with concurrent load. FP16 had one c=64 disconnect;
+AWQ completed every request. These are single sweeps with varying output lengths.
+
+GPTQ also completed all 88 speed requests, but ran on a replacement L40S in a
+different data center after the original pod disappeared. Its absolute speed
+numbers are recorded with that limitation; they do not isolate quantization.
+
+The critic results prevent a simple speed-only recommendation. FP16 and AWQ
+caught all 15 generated corruptions but correctly classified only 1/5 and 3/5
+edge cases respectively. GPTQ returned Markdown-fenced JSON on 8/20 cases, which
+the current strict parser rejected. It caught only 9/15 corruptions across all
+cases, despite an error-excluding recall metric of 1.00. These diagnostics measure
+a specific critic contract, not end-to-end answer quality. The full dated entry in
+`eval/BENCHMARK_RESULTS.md` and the [artifact report](../reports/quantization-2026-10-01/README.md)
+preserve the errors, setup, available memory evidence and missing provenance.
+
 ## What was never tested
 
 - **The actual KV cache limit on a bigger GPU.** The one real-prompt sweep that used an
@@ -113,16 +134,13 @@ can be predicted from the hardware, not just measured after the fact.
   queueing and KV-saturation behavior described above was only directly observed on a
   smaller L40S 48GB GPU. The A100 sweep's "no ceiling" result was real for the load it
   was given, but it did not test where that ceiling actually is.
-- **Quantization.** Whether an AWQ or GPTQ build of the same model changes the
-  throughput, memory footprint, or answer quality tradeoff has not been measured. A spec
-  for this exists (`docs/superpowers/specs/2026-10-01-quantization-comparison-design.md`)
-  but no live sweep has run.
-- **A direct serial-versus-concurrent comparison at the same batch size.** Every sweep
-  so far shows concurrent throughput climbing with load, which is evidence continuous
-  batching works, but never a direct before-and-after at a fixed batch size. A spec and
-  the harness support for it exist
-  (`docs/superpowers/specs/2026-10-01-batching-proof-design.md`, the harness's `--serial`
-  flag) but no live sweep has run.
+- **End-to-end quality under quantization.** Phase 3 measured speed and a small
+  critic diagnostic; it did not measure full-pipeline answer quality. GPTQ also
+  lacks a same-host speed comparison, and the original AWQ memory log is missing.
+- **Repeating the 2026-10-06 live session.** A serial-versus-concurrent comparison (batch 16: 5.4x faster
+  concurrent, same total output), a prefix-caching on/off comparison, GPU utilization and two failure-behaviour tests
+  now exist, each as a single run on one L40S (`reports/gpu-live-2026-10-06.md`). Not repeated across sessions, and
+  that run was 17-27% slower than the earlier FP16 sweep for a reason that was not established.
 - **A second serving engine.** No comparison against TGI, SGLang, or any engine other
   than vLLM has been attempted.
 - **A clean Groq baseline at realistic prompt sizes.** Groq's numbers from the real-prompt

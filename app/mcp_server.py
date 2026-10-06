@@ -7,6 +7,8 @@ from typing import Annotated, Literal
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
+from app.core.telemetry import request_trace
+from app.services.llm import close_llm_clients
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO, force=True)
 logger = logging.getLogger(__name__)
@@ -18,7 +20,10 @@ async def _lifespan(server):
     try:
         yield
     finally:
-        await close_retriever_client()
+        try:
+            await close_retriever_client()
+        finally:
+            await close_llm_clients()
 
 
 mcp = FastMCP("docchat", lifespan=_lifespan)
@@ -50,8 +55,9 @@ async def query_documents(
         "grounding_passed": False,
         "iteration": 0,
     }
-    result = await agent_graph.ainvoke(state)
-    return result["answer"]
+    with request_trace(transport="mcp", operation="query_documents"):
+        result = await agent_graph.ainvoke(state)
+        return result["answer"]
 
 
 @mcp.tool()

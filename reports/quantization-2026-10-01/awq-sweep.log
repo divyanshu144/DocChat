@@ -1,0 +1,18 @@
+Using 8 real captured prompts from data/bench_prompts.jsonl
+
+Inference benchmark — 8 prompts, concurrency [1, 16, 64], cache-busting ON, mode concurrent
+
+
+local
+──────────────────────────────────────────────────────────────────────────────
+     1  n=8/8  err=  0% empty=  0%  ttft   878ms  lat   2.86s  decode_tok/s  119.9  agg_tok/s   83.5  cost $0.0063  ($3.6244/1M tok)
+    16  n=16/16  err=  0% empty=  0%  ttft  6078ms  lat  14.05s  decode_tok/s   29.3  agg_tok/s  227.3  cost $0.0050  ($1.3320/1M tok)
+    64  n=64/64  err=  0% empty=  0%  ttft 25735ms  lat  62.98s  decode_tok/s    6.0  agg_tok/s  208.3  cost $0.0201  ($1.4537/1M tok)
+
+──────────────────────────────────────────────────────────────────────────────
+  Raw results appended to reports/quantization-2026-10-01/awq-speed.jsonl
+  Cost figures for hosted providers use the placeholder rates at the top of
+  this file — verify against each provider's live pricing page before
+  quoting externally. Check error_rate/empty_rate before trusting any
+  percentile above them.
+──────────────────────────────────────────────────────────────────────────────

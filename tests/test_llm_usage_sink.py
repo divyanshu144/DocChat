@@ -16,11 +16,9 @@ from app.services import llm
 
 @pytest.fixture(autouse=True)
 def _reset_client_cache():
-    llm._client = None
-    llm._client_provider = None
+    llm._clients.clear()
     yield
-    llm._client = None
-    llm._client_provider = None
+    llm._clients.clear()
 
 
 # ---------------------------------------------------------------------------

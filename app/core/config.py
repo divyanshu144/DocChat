@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     api_prefix: str = "/api/v1"
+    metrics_bearer_token: str = ""
     # Override via DATABASE_URL in .env for production
     database_url: str = "postgresql+asyncpg://docchat:docchat@localhost:5432/docchat"
 
@@ -33,6 +34,8 @@ class Settings(BaseSettings):
     groq_fallback_chat_model: str = ""
 
     openai_api_key: str = ""
+    # Eval-only: used by eval/judge_answer_review_pack.py for the Claude judge; not a chat provider.
+    anthropic_api_key: str = ""
     openai_chat_model: str = "gpt-5.6-luna"  # used when llm_provider="openai"
     # Blank preserves the model default. Short classification evals can select
     # none on compatible models so hidden reasoning does not consume their cap.
@@ -48,6 +51,11 @@ class Settings(BaseSettings):
     local_base_url: str = ""
     local_chat_model: str = ""
     local_api_key: str = ""
+    local_stream_completions: bool = False
+    inference_connect_timeout_s: float = Field(default=5.0, gt=0)
+    inference_read_timeout_s: float = Field(default=60.0, gt=0)
+    inference_pool_timeout_s: float = Field(default=5.0, gt=0)
+    inference_max_connections: int = Field(default=100, ge=1)
 
     chat_history_limit: int = 10
 

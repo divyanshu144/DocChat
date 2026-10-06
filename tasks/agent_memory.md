@@ -28,7 +28,7 @@ a licence to change the decision.
 
 ## Known Gotchas
 
-- **Current offline baseline (2026-10-01):** 368 passed, 8 live evals deselected;
+- **Current offline baseline (2026-10-05):** 428 passed, 8 live evals deselected;
   ruff clean. Historical counts below describe their original sessions.
 - **A model can silently refuse `temperature`.** `gpt-5.6-luna` 400s on
   `temperature=0` ("Only the default (1) value is supported"); `app/services/llm.py`
@@ -41,11 +41,10 @@ a licence to change the decision.
   decommissioned — the entire Groq path 404'd on defaults. Now `openai/gpt-oss-120b`.
   Check `GET /models` before setting `CHAT_MODEL`. Also: `qwen/qwen3.6-27b` rates
   *everything* good (recall 0.00) and is unusable as a critic.
-- **The cached LLM client is bound to one event loop.** `app.services.llm` keeps one
-  client per provider; its pool binds to the creating loop, and pytest-asyncio gives each
-  test a fresh one. `tests/conftest.py` resets the cache per test — without it every real
-  API test after the first died with `RuntimeError: Event loop is closed`, which looked
-  like critic failures and hid a real one.
+- **The cached LLM client is bound to one event loop.** `app.services.llm` now owns
+  clients by event loop and connection configuration (2026-10-04). API/MCP shutdown
+  and benchmark teardown close all clients on that loop. Standalone scripts must call
+  `close_llm_clients()` in finally. Tests isolate their mocked registries.
 - **`mcp` is capped below 2.0.** `app/mcp_server.py` uses `mcp.server.fastmcp.FastMCP`,
   removed in mcp 2.x. Lifting the cap requires rewriting that module.
 - **Rebuild the venv before trusting `requirements.txt`.** A long-lived venv hid two
@@ -99,3 +98,15 @@ a licence to change the decision.
   `docs/superpowers/{specs,plans}/`. Write both before code on any non-trivial feature.
 - **Independent chunk embedding:** PDF, web and YouTube use bounded fastembed
   batches; no segment-level token pooling or true late chunking is implemented.
+
+
+## Serving platform checkpoints (2026-10-05)
+
+- Phase 1 adapter/telemetry and Phase 2 metrics/sustained harness are implemented and
+  tested offline. GPU acceptance, held-out quality evaluation and capacity planning
+  are not complete. See current HANDOFF.md before inferring experimental progress.
+- `/api/v1/metrics` is single-process, optional bearer protection. Scrape private
+  endpoints; no identity/content metric labels. vLLM metrics remain a separate job.
+- `eval.inference_benchmark sustained` writes schema v2 to a fresh directory. Never
+  mix it with historical burst JSONL. API benchmarks create conversations and require
+  an isolated account/deployment with suitable token lifetime and explicit rate limits.

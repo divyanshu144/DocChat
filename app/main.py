@@ -1,6 +1,4 @@
 import logging
-import time
-import uuid
 from contextlib import asynccontextmanager
 
 from pathlib import Path
@@ -13,11 +11,14 @@ from app.core.config import Settings, settings
 from app.core.database import create_all_tables
 from app.agent.nodes.retriever import close_retriever_client
 from app.core.rate_limit import rate_limiter
+from app.core.telemetry import RequestTelemetryMiddleware
+from app.services.llm import close_llm_clients
 from app.api import auth
 from app.api import chat
 from app.api import conversations
 from app.api import folders
 from app.api import health
+from app.api import metrics
 from app.api import ingest
 
 logger = logging.getLogger("app")
@@ -52,7 +53,10 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
-        await close_retriever_client()
+        try:
+            await close_retriever_client()
+        finally:
+            await close_llm_clients()
 
 
 app = FastAPI(
@@ -82,38 +86,12 @@ async def limit_requests(request: Request, call_next):
     return await call_next(request)
 
 
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
-    start = time.perf_counter()
-    response = None
-    try:
-        response = await call_next(request)
-        response.headers["x-request-id"] = request_id
-        return response
-    except Exception:
-        logger.exception(
-            "request_failed",
-            extra={"request_id": request_id, "method": request.method, "path": request.url.path},
-        )
-        raise
-    finally:
-        duration = time.perf_counter() - start
-        status = response.status_code if response else 500
-        logger.info(
-            "request",
-            extra={
-                "request_id": request_id,
-                "method": request.method,
-                "path": request.url.path,
-                "status_code": status,
-                "duration_s": round(duration, 4),
-            },
-        )
+app.add_middleware(RequestTelemetryMiddleware)
 
 
 app.include_router(auth.router, prefix=settings.api_prefix, tags=["Auth"])
 app.include_router(health.router, prefix=settings.api_prefix, tags=["Health"])
+app.include_router(metrics.router, prefix=settings.api_prefix)
 app.include_router(ingest.router, prefix=settings.api_prefix, tags=["Ingest"])
 app.include_router(chat.router, prefix=settings.api_prefix, tags=["Chat"])
 app.include_router(folders.router, prefix=settings.api_prefix, tags=["Folders"])

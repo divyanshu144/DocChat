@@ -1,0 +1,9 @@
+GPU utilization by phase of the failure-behaviour run (offset-corrected; seconds from load start)
+phase                                         n  mean%  min%  max%  power W
+before (0 to inject issued)                  60   98.3     0   100      306
+inject command running                        2  100.0   100   100      293
+stall, first 15 s after inject returned      15   60.0     0   100      227
+stall, 15-30 s                               15    0.0     0     0      124
+stall, rest (30 s to restore)                28    0.0     0     0      119
+restore to +15 s                             15   86.7     0   100      283
+after (+15 s to end)                        110  100.0   100   100      272

@@ -1,0 +1,287 @@
+{
+  "schema_version": 2,
+  "run_id": "78b84853-7dd7-4810-9d64-0ccd20981f22",
+  "created_at": "2026-10-05T10:21:42.067975+00:00",
+  "target": "replay",
+  "provider": "local",
+  "workload_sha256": "65e6df6515525e1ea78ab54631400f9702b0b7bc4ccc89f2c2846b9c8a6c06a9",
+  "corpus_sha256": "f73d2b6f83281bf4d83c4794aecf47eccc98696de8f60e7b818616ed35d0cf04",
+  "corpus_fingerprint_source": "workload_manifest; not checked against live index",
+  "deployment_sha256": null,
+  "deployment_verified_by_runner": false,
+  "deployment": {},
+  "source": {
+    "git_commit": null,
+    "python_source_sha256": "2f86ab0b2b39549d712602bd57f612c92fd7f53cba8a3d5cf0d3694decf494f4"
+  },
+  "cases": [
+    {
+      "id": "pdf-average",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "cc984a08423ae631c1df4f012e047eac5cacc03da6b63e5326213aa8f3f15072"
+    },
+    {
+      "id": "pdf-weekly",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "e63d9d9db5c879cafdb8561a9b977fa67013ccf96ee879b05165810110336430"
+    },
+    {
+      "id": "pdf-night",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "91555fcf85c7e2d384995817cd85be468de5df891c88fd406174a1c5b4ba3e1c"
+    },
+    {
+      "id": "pdf-goods-night",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "1d245e4484b14a39c388cc3e51712a0f780c4c9ceabac4b5f780e4f85b97a7ee"
+    },
+    {
+      "id": "pdf-passenger-night",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "894f06d0985209d4940493f267306aa870d59bbb0eab35d657ea7433957faf6c"
+    },
+    {
+      "id": "pdf-breaks",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "181c803fd44761bd1ec2d8f4d768ad89bbe3649d9e38e4185ff793130b9379fc"
+    },
+    {
+      "id": "pdf-reference",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "12f91332f09e84d327cca5e22859eec506863637a03023b6253f5a9bf4b41f86"
+    },
+    {
+      "id": "pdf-employer-reference",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "66a2ac0214ed981492d1184ca0794a15258d8982c1f3ea31324de037720a5012"
+    },
+    {
+      "id": "pdf-other-work",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "045315fa5995a836e16717753800e9da087e537472a7cc591b0a1f135b1370be"
+    },
+    {
+      "id": "pdf-voluntary",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "3ee73d0412598f31ce82f09b34479f4f957366e6929c1a6d841a39f99186227d"
+    },
+    {
+      "id": "pdf-record-duty",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "420c924376d26938af4b8c2f3c118f0046952d0c918f08ebdb6a49ecefcb54cd"
+    },
+    {
+      "id": "pdf-false-record",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "54fe5b2c30adedf17380508b1a3b93ad3639bcd8ed49aa886ec2702e81555c30"
+    },
+    {
+      "id": "rag-definition",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "bc719da0b29f1bdf38bd853e5cd3b77a20b1fdd0a2a0af0db9f20439f8d35072"
+    },
+    {
+      "id": "rag-history",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "6a1b7a7a8968e0737d190ff5e41bd5e20d5ef861c76c7d3f304a0777a8a88d9f"
+    },
+    {
+      "id": "rag-updates",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "997138a6ff8d3a0b85b928845ef00e7c64366f397afa674efe58761aa151d25d"
+    },
+    {
+      "id": "rag-transparency",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "4fbe55e9df53731ee0bb1503ac5b37159aae22902de4b739bf256f4779972174"
+    },
+    {
+      "id": "rag-embeddings",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "1999c335dcc45e062259b8a558e67a1b027f82f57ab8104515e5d004dc9ab961"
+    },
+    {
+      "id": "rag-data-types",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "bfd7f657ecc66b1fecdb651ac1ed816878623ff803cf7baa49332dc265448fbb"
+    },
+    {
+      "id": "rag-stages",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "de8ac2f8785ed4039cbdcb1dc70da5c9170f67cd2427e0d9cfa3fed0fc28a2a5"
+    },
+    {
+      "id": "rag-hallucinations",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "04db5a062064b11ee257e446c6ed0f89b288bc7e0aec30962ea510110c8b79cc"
+    },
+    {
+      "id": "rag-hybrid",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "d07e6afd10dc6f7903743aa0308eccc890325d8427828383be0768a6602cd25a"
+    },
+    {
+      "id": "rag-encoding",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "3a55ab7adbb0750a4eb62d2d2f6b43404d9d57e9c9faa51630670483a275f5bf"
+    },
+    {
+      "id": "rag-ict",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "3a0ab3d52a26eb68d1bf3094a3ce709d5e675ff4df9e2d3fafbc28ef4b0ded26"
+    },
+    {
+      "id": "rag-retro",
+      "category": "document_qa",
+      "max_tokens": 350,
+      "prompt_sha256": "c5c6e067aab0f41e835277666a3b6d2a68c32567f365ceeb307bb144b97751a6"
+    },
+    {
+      "id": "heldout-rag-vector-types",
+      "category": "document_qa",
+      "max_tokens": 300,
+      "prompt_sha256": "2d6897876104fd396217d8b934cbc089df352a256210f3c80836bd840c057627"
+    },
+    {
+      "id": "heldout-rag-hybrid-search",
+      "category": "document_qa",
+      "max_tokens": 300,
+      "prompt_sha256": "b84f3dda3e592839dcf50146c76c9b8d368a36287fc07466e0d3db278267ae13"
+    },
+    {
+      "id": "heldout-rag-source-checking",
+      "category": "document_qa",
+      "max_tokens": 300,
+      "prompt_sha256": "654a6b0089b717d6093f5b6f8d18263dd988b5c92a0e7e49815191d96f6c5ab2"
+    },
+    {
+      "id": "heldout-rag-source-misreading",
+      "category": "document_qa",
+      "max_tokens": 300,
+      "prompt_sha256": "fcddc39a8b3c939ca34e62a59fa5c844e3b6989d23b0f1d3b3d4c66e0f4563e8"
+    },
+    {
+      "id": "heldout-pdf-false-record-penalty",
+      "category": "document_qa",
+      "max_tokens": 300,
+      "prompt_sha256": "d9160b7d24942d1e00222c9c0551e1d605446c0f03a5193b6fcd2f8bbdec72b0"
+    },
+    {
+      "id": "heldout-pdf-other-work-scope",
+      "category": "document_qa",
+      "max_tokens": 300,
+      "prompt_sha256": "c15ef79e66b8b9db547a8f23d0fc767ba9e3d023565f35458c9dac3f36328261"
+    },
+    {
+      "id": "summary-worktime",
+      "category": "summarisation",
+      "max_tokens": 550,
+      "prompt_sha256": "1a1ad4714f21c4f6688928492aaf7e710a3578a0deb92825059d717bdddff042"
+    },
+    {
+      "id": "summary-rag",
+      "category": "summarisation",
+      "max_tokens": 650,
+      "prompt_sha256": "1742600447b9da43d2021f5aeb19ccb274378ae6718504c565d081a155f2848e"
+    },
+    {
+      "id": "long-rag-lifecycle",
+      "category": "long_context",
+      "max_tokens": 850,
+      "prompt_sha256": "72f4c6b6c4f3c1a655f4ad090bb532b503beee6f6d560bd1a66c1506677f8430"
+    },
+    {
+      "id": "long-worktime-rules",
+      "category": "long_context",
+      "max_tokens": 800,
+      "prompt_sha256": "ed45994672d159adc4167d9dd36eb1f954fcfc10413a8d0ad2e9844bd63a3de7"
+    },
+    {
+      "id": "long-rag-grounding",
+      "category": "long_context",
+      "max_tokens": 700,
+      "prompt_sha256": "27100929f3a60242ec72b4d98403a14867550490992c326403361a74a72508cb"
+    },
+    {
+      "id": "multi-document-overview",
+      "category": "multi_document",
+      "max_tokens": 800,
+      "prompt_sha256": "fbab5ffe63d0a7ff766cedbb8e8c85b2398c46ad993a683aebb38c2c42099ee2"
+    },
+    {
+      "id": "multi-document-evidence",
+      "category": "multi_document",
+      "max_tokens": 650,
+      "prompt_sha256": "809fa22b9576172db3d0a7854c7e614957241d46fa64a273b7d80474a3e84807"
+    },
+    {
+      "id": "negative-slack-incident",
+      "category": "negative_control",
+      "max_tokens": 250,
+      "prompt_sha256": "0e4bd45305d0c115881f1c12c0e94b45d953fb7bf56bb0d7a174d7b522248910"
+    },
+    {
+      "id": "negative-model-owner",
+      "category": "negative_control",
+      "max_tokens": 250,
+      "prompt_sha256": "37b3f0f22cea9be3e3c24c52b34d8adc7dcdbd00980e9acd67e30e4ac9f42eef"
+    },
+    {
+      "id": "negative-threshold",
+      "category": "negative_control",
+      "max_tokens": 250,
+      "prompt_sha256": "8a5e57f82755395435b56077313e91369fab5f519ac52e7a780ec3c912784b5c"
+    }
+  ],
+  "sampling": "provider defaults (repeated runs are not deterministic)",
+  "concurrency": [
+    1,
+    4,
+    16,
+    32,
+    64
+  ],
+  "arrival_rates": [
+    null
+  ],
+  "repeats": 2,
+  "duration_s": 600.0,
+  "request_limit": 64,
+  "timeout_s": 120.0,
+  "warmup_requests": 2,
+  "cache_mode": "bust",
+  "min_samples": 64,
+  "latency_slo_s": null,
+  "token_policy": "provider_usage_only; unknown stays null",
+  "api_output_cap": "per_case",
+  "notes": [
+    "Success percentiles exclude errors; inspect error and rejection rates",
+    "Throughput uses cohort wall time including final drain",
+    "Category request rates are contributions to the mixed workload",
+    "No confidence intervals computed; inspect repeated cells",
+    "API mode does not disable server fallback/rate limits or report token usage"
+  ]
+}

@@ -1,0 +1,578 @@
+{
+  "label_source": "llm_assisted_audited",
+  "human_verified": false,
+  "audit_overlay_rows": 79,
+  "disclaimer": "LLM-assisted labels from a blinded judge; not fully human-verified. Confidence intervals are 95% Wilson intervals and are wide for small samples.",
+  "judges": [
+    "{\"model\": \"gpt-5.6-luna\", \"prompt_sha256\": \"dbafa2f83d36066f64a0ca2f8c4caf9c17a5ce6e046cfa154b35fc0e0e3df22c\", \"prompt_version\": \"v1\", \"provider\": \"openai\", \"sampling\": \"provider_default\", \"temperature_applied\": false, \"temperature_requested\": 0}"
+  ],
+  "rows_judged": 120,
+  "rows_in_pack": 120,
+  "by_split": {
+    "development": {
+      "awq": {
+        "scored": 24,
+        "parse_failures": 0,
+        "answer_correct": {
+          "yes": {
+            "n": 24,
+            "count": 23,
+            "rate": 0.9583333333333334,
+            "ci95": [
+              0.7976,
+              0.9926
+            ]
+          },
+          "partial": {
+            "n": 24,
+            "count": 1,
+            "rate": 0.041666666666666664,
+            "ci95": [
+              0.0074,
+              0.2024
+            ]
+          },
+          "no": {
+            "n": 24,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.138
+            ]
+          }
+        },
+        "fully_supported": {
+          "yes": {
+            "n": 24,
+            "count": 12,
+            "rate": 0.5,
+            "ci95": [
+              0.3143,
+              0.6857
+            ]
+          },
+          "partial": {
+            "n": 24,
+            "count": 12,
+            "rate": 0.5,
+            "ci95": [
+              0.3143,
+              0.6857
+            ]
+          }
+        },
+        "mean_unsupported_claims": 0.5,
+        "citation_correct": {
+          "applicable": 2,
+          "not_applicable": 22,
+          "yes": {
+            "n": 2,
+            "count": 2,
+            "rate": 1.0,
+            "ci95": [
+              0.3424,
+              1.0
+            ]
+          },
+          "partial": {
+            "n": 2,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.6576
+            ]
+          }
+        },
+        "abstention": {
+          "negative_control_accuracy": {
+            "n": 0,
+            "count": 0,
+            "rate": null,
+            "ci95": null
+          },
+          "false_abstentions": {
+            "n": 24,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.138
+            ]
+          }
+        },
+        "small_sample_warning": true
+      },
+      "fp16": {
+        "scored": 24,
+        "parse_failures": 0,
+        "answer_correct": {
+          "yes": {
+            "n": 24,
+            "count": 23,
+            "rate": 0.9583333333333334,
+            "ci95": [
+              0.7976,
+              0.9926
+            ]
+          },
+          "partial": {
+            "n": 24,
+            "count": 1,
+            "rate": 0.041666666666666664,
+            "ci95": [
+              0.0074,
+              0.2024
+            ]
+          },
+          "no": {
+            "n": 24,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.138
+            ]
+          }
+        },
+        "fully_supported": {
+          "yes": {
+            "n": 24,
+            "count": 11,
+            "rate": 0.4583333333333333,
+            "ci95": [
+              0.2789,
+              0.6493
+            ]
+          },
+          "partial": {
+            "n": 24,
+            "count": 13,
+            "rate": 0.5416666666666666,
+            "ci95": [
+              0.3507,
+              0.7211
+            ]
+          }
+        },
+        "mean_unsupported_claims": 0.5,
+        "citation_correct": {
+          "applicable": 0,
+          "not_applicable": 24,
+          "yes": {
+            "n": 0,
+            "count": 0,
+            "rate": null,
+            "ci95": null
+          },
+          "partial": {
+            "n": 0,
+            "count": 0,
+            "rate": null,
+            "ci95": null
+          }
+        },
+        "abstention": {
+          "negative_control_accuracy": {
+            "n": 0,
+            "count": 0,
+            "rate": null,
+            "ci95": null
+          },
+          "false_abstentions": {
+            "n": 24,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.138
+            ]
+          }
+        },
+        "small_sample_warning": true
+      },
+      "gptq": {
+        "scored": 23,
+        "parse_failures": 1,
+        "answer_correct": {
+          "yes": {
+            "n": 23,
+            "count": 22,
+            "rate": 0.9565217391304348,
+            "ci95": [
+              0.7901,
+              0.9923
+            ]
+          },
+          "partial": {
+            "n": 23,
+            "count": 1,
+            "rate": 0.043478260869565216,
+            "ci95": [
+              0.0077,
+              0.2099
+            ]
+          },
+          "no": {
+            "n": 23,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.1431
+            ]
+          }
+        },
+        "fully_supported": {
+          "yes": {
+            "n": 23,
+            "count": 13,
+            "rate": 0.5652173913043478,
+            "ci95": [
+              0.3681,
+              0.7437
+            ]
+          },
+          "partial": {
+            "n": 23,
+            "count": 10,
+            "rate": 0.43478260869565216,
+            "ci95": [
+              0.2563,
+              0.6319
+            ]
+          }
+        },
+        "mean_unsupported_claims": 0.30434782608695654,
+        "citation_correct": {
+          "applicable": 0,
+          "not_applicable": 23,
+          "yes": {
+            "n": 0,
+            "count": 0,
+            "rate": null,
+            "ci95": null
+          },
+          "partial": {
+            "n": 0,
+            "count": 0,
+            "rate": null,
+            "ci95": null
+          }
+        },
+        "abstention": {
+          "negative_control_accuracy": {
+            "n": 0,
+            "count": 0,
+            "rate": null,
+            "ci95": null
+          },
+          "false_abstentions": {
+            "n": 23,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.1431
+            ]
+          }
+        },
+        "small_sample_warning": true
+      }
+    },
+    "held_out": {
+      "awq": {
+        "scored": 16,
+        "parse_failures": 0,
+        "answer_correct": {
+          "yes": {
+            "n": 16,
+            "count": 12,
+            "rate": 0.75,
+            "ci95": [
+              0.505,
+              0.8982
+            ]
+          },
+          "partial": {
+            "n": 16,
+            "count": 4,
+            "rate": 0.25,
+            "ci95": [
+              0.1018,
+              0.495
+            ]
+          },
+          "no": {
+            "n": 16,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.1936
+            ]
+          }
+        },
+        "fully_supported": {
+          "yes": {
+            "n": 16,
+            "count": 5,
+            "rate": 0.3125,
+            "ci95": [
+              0.1416,
+              0.556
+            ]
+          },
+          "partial": {
+            "n": 16,
+            "count": 11,
+            "rate": 0.6875,
+            "ci95": [
+              0.444,
+              0.8584
+            ]
+          }
+        },
+        "mean_unsupported_claims": 0.4375,
+        "citation_correct": {
+          "applicable": 1,
+          "not_applicable": 15,
+          "yes": {
+            "n": 1,
+            "count": 1,
+            "rate": 1.0,
+            "ci95": [
+              0.2065,
+              1.0
+            ]
+          },
+          "partial": {
+            "n": 1,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.7935
+            ]
+          }
+        },
+        "abstention": {
+          "negative_control_accuracy": {
+            "n": 3,
+            "count": 3,
+            "rate": 1.0,
+            "ci95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "false_abstentions": {
+            "n": 13,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.2281
+            ]
+          }
+        },
+        "small_sample_warning": true
+      },
+      "fp16": {
+        "scored": 16,
+        "parse_failures": 0,
+        "answer_correct": {
+          "yes": {
+            "n": 16,
+            "count": 14,
+            "rate": 0.875,
+            "ci95": [
+              0.6398,
+              0.965
+            ]
+          },
+          "partial": {
+            "n": 16,
+            "count": 2,
+            "rate": 0.125,
+            "ci95": [
+              0.035,
+              0.3602
+            ]
+          },
+          "no": {
+            "n": 16,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.1936
+            ]
+          }
+        },
+        "fully_supported": {
+          "yes": {
+            "n": 16,
+            "count": 12,
+            "rate": 0.75,
+            "ci95": [
+              0.505,
+              0.8982
+            ]
+          },
+          "partial": {
+            "n": 16,
+            "count": 4,
+            "rate": 0.25,
+            "ci95": [
+              0.1018,
+              0.495
+            ]
+          }
+        },
+        "mean_unsupported_claims": 0.125,
+        "citation_correct": {
+          "applicable": 3,
+          "not_applicable": 13,
+          "yes": {
+            "n": 3,
+            "count": 3,
+            "rate": 1.0,
+            "ci95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "partial": {
+            "n": 3,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.5615
+            ]
+          }
+        },
+        "abstention": {
+          "negative_control_accuracy": {
+            "n": 3,
+            "count": 3,
+            "rate": 1.0,
+            "ci95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "false_abstentions": {
+            "n": 13,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.2281
+            ]
+          }
+        },
+        "small_sample_warning": true
+      },
+      "gptq": {
+        "scored": 16,
+        "parse_failures": 0,
+        "answer_correct": {
+          "yes": {
+            "n": 16,
+            "count": 14,
+            "rate": 0.875,
+            "ci95": [
+              0.6398,
+              0.965
+            ]
+          },
+          "partial": {
+            "n": 16,
+            "count": 2,
+            "rate": 0.125,
+            "ci95": [
+              0.035,
+              0.3602
+            ]
+          },
+          "no": {
+            "n": 16,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.1936
+            ]
+          }
+        },
+        "fully_supported": {
+          "yes": {
+            "n": 16,
+            "count": 9,
+            "rate": 0.5625,
+            "ci95": [
+              0.3318,
+              0.769
+            ]
+          },
+          "partial": {
+            "n": 16,
+            "count": 7,
+            "rate": 0.4375,
+            "ci95": [
+              0.231,
+              0.6682
+            ]
+          }
+        },
+        "mean_unsupported_claims": 0.1875,
+        "citation_correct": {
+          "applicable": 3,
+          "not_applicable": 13,
+          "yes": {
+            "n": 3,
+            "count": 3,
+            "rate": 1.0,
+            "ci95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "partial": {
+            "n": 3,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.5615
+            ]
+          }
+        },
+        "abstention": {
+          "negative_control_accuracy": {
+            "n": 3,
+            "count": 3,
+            "rate": 1.0,
+            "ci95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "false_abstentions": {
+            "n": 13,
+            "count": 0,
+            "rate": 0.0,
+            "ci95": [
+              0.0,
+              0.2281
+            ]
+          }
+        },
+        "small_sample_warning": true
+      }
+    }
+  }
+}

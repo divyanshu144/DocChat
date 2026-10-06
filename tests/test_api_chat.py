@@ -238,3 +238,42 @@ def test_answer_with_newlines_round_trips_through_the_full_sse_stream(client):
     token_events = [data for event, data in events if event == "token"]
     reconstructed = "".join(token_events)
     assert reconstructed == answer
+
+
+def test_chat_telemetry_records_sse_error_despite_http_200(client, monkeypatch):
+    from app.core import telemetry
+    records = []
+    monkeypatch.setattr(telemetry, "emit", lambda row: records.append(dict(row)))
+
+    async def broken_graph(*args, **kwargs):
+        raise RuntimeError("failed before answer")
+        yield  # async generator contract
+
+    with patch("app.api.chat.agent_graph") as graph:
+        graph.astream = broken_graph
+        response = client.post("/api/v1/chat", json={"query": "hi"},
+                               headers={"X-Request-Id": "chat-error"})
+    assert response.status_code == 200
+    assert "event: error" in response.text
+    request = next(r for r in records if r["event"] == "request")
+    assert request["outcome"] == "error"
+    assert request["first_answer_s"] is None
+    assert request["request_id"] == response.headers["x-request-id"] == "chat-error"
+
+
+@pytest.mark.asyncio
+async def test_sustained_api_client_consumes_real_chat_sse(client):
+    import httpx
+    from eval.serving_load import api_request
+    from eval.workloads import WorkloadCase
+    async def fake_astream(*args, **kwargs):
+        yield {"synthesizer": {"answer": "First line.\nSecond line.\nSources: [Web — example.org]"}}
+    with patch("app.api.chat.agent_graph") as graph:
+        graph.astream = fake_astream
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=client.app),
+                                     base_url="http://test/api/v1/") as api_client:
+            row = await api_request(api_client, WorkloadCase(
+                id="qa", category="document_qa", query="question"), "integration-test")
+    assert row["status"] == "ok"
+    assert row["first_answer_s"] is not None
+    assert row["ttft_s"] is None and row["output_tokens"] is None

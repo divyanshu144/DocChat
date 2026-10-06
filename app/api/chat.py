@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.config import settings
+from app.core.telemetry import mark_error, span
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.conversation import Conversation, Message, MessageRole
@@ -148,11 +149,13 @@ async def chat(
                 elif kind == "final":
                     final_state = cast(AgentState, payload)
         except Exception as exc:
+            mark_error()
             logger.exception("chat_stream_failed")
             yield _sse("error", _stream_error_message(exc))
             return
 
         if final_state is None:
+            mark_error()
             yield _sse("error", "The assistant run ended without producing an answer.")
             return
 
@@ -176,7 +179,8 @@ async def chat(
             content=answer,
             created_at=now + timedelta(microseconds=1),
         ))
-        await db.commit()
+        with span("answer.persistence"):
+            await db.commit()
 
         yield _sse("status", "Writing the response")
         for piece in _TOKEN_SPLIT_RE.findall(answer):

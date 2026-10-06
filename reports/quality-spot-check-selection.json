@@ -1,0 +1,85 @@
+{
+  "review-4c308495aab5": [
+    "answer_correct=partial"
+  ],
+  "review-3852caae4de7": [
+    "random_fully_supported"
+  ],
+  "review-76bc07039f7b": [
+    "answer_correct=no"
+  ],
+  "review-d13f75103b53": [
+    "answer_correct=partial",
+    "page_range_citation_marked_yes"
+  ],
+  "review-859ce28e7d6e": [
+    "random_fully_supported"
+  ],
+  "review-4efc1b403bec": [
+    "answer_correct=partial"
+  ],
+  "review-fad6904cb327": [
+    "answer_correct=partial"
+  ],
+  "review-b8cfd9f99a75": [
+    "answer_correct=no"
+  ],
+  "review-afbedaf210f8": [
+    "answer_correct=no"
+  ],
+  "review-343610693d25": [
+    "highest_unsupported_claims"
+  ],
+  "review-60731b99edf3": [
+    "answer_correct=partial",
+    "page_range_citation_marked_yes"
+  ],
+  "review-89fe7b51c529": [
+    "answer_correct=no"
+  ],
+  "review-20f94bd142ef": [
+    "answer_correct=partial"
+  ],
+  "review-0da3dd915eb1": [
+    "answer_correct=partial"
+  ],
+  "review-fb0a257379a8": [
+    "random_fully_supported"
+  ],
+  "review-0e370a548c2b": [
+    "answer_correct=partial"
+  ],
+  "review-b193f3a69617": [
+    "random_fully_supported"
+  ],
+  "review-ec6f5335912c": [
+    "parse_failure"
+  ],
+  "review-4b81b70f2ef1": [
+    "answer_correct=partial"
+  ],
+  "review-a2f6f26d422b": [
+    "answer_correct=partial"
+  ],
+  "review-461cb686be01": [
+    "highest_unsupported_claims"
+  ],
+  "review-9d3b5cc6add3": [
+    "highest_unsupported_claims"
+  ],
+  "review-df9abb0c3d24": [
+    "random_fully_supported"
+  ],
+  "review-4c6d51113c0b": [
+    "highest_unsupported_claims"
+  ],
+  "review-bee0f663c48f": [
+    "highest_unsupported_claims"
+  ],
+  "review-1c33d8f99645": [
+    "highest_unsupported_claims"
+  ],
+  "review-8f71b7c7afa2": [
+    "answer_correct=partial"
+  ]
+}

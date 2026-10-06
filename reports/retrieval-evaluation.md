@@ -1,4 +1,10 @@
-# Retrieval comparison, 2026-10-01
+# Historical retrieval comparison, 2026-10-01
+
+These numbers predate the Phase 3 independent BM25 baseline. “Current lexical
+rerank” below is the production overlap reranker applied to dense candidates; it
+is not BM25. See [the Phase 3 evaluation guide](../docs/retrieval-quality-evaluation.md)
+for the new experiment definitions. Do not compare these historical numbers to a
+new BM25 run without checking its corpus fingerprint and candidate protocol.
 
 Read-only evaluation of the existing `source_chunks` index: 17 chunks from one
 uploaded working-time declaration and the ingested Wikipedia RAG article. The

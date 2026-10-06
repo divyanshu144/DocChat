@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "run_id": "d9fa33be-2c40-4bd4-90aa-787d9f851be3",
+  "created_at": "2026-10-06T17:15:41.501907+00:00",
+  "samples_file": "gpu-samples.jsonl",
+  "samples_sha256": "ed53d0c429f056e729947ce3782df2228fe39aae04bd3827231bc1cc83e4c66c",
+  "sampler": {
+    "backend": "pynvml",
+    "interval_s": 1.0,
+    "clock_source": "gpu_host_wall_clock_utc",
+    "schema_version": 1
+  },
+  "sampler_error_records": 0,
+  "malformed_lines": 0,
+  "alignment": {
+    "sampler_clock": "gpu_host_wall_clock_utc",
+    "window_clock": [
+      "benchmark_client_wall_clock_utc"
+    ],
+    "clock_offset_s": 0.1447,
+    "offset_provenance": "operator_supplied",
+    "convention": "clock_offset_s = gpu_host_clock - benchmark_client_clock; a sample's time on the client clock is its timestamp minus the offset"
+  },
+  "parameters": {
+    "min_samples": 10,
+    "coverage_tolerance_intervals": 2
+  },
+  "gpu_count": {
+    "sampled": 1,
+    "manifest": 1,
+    "matches_manifest": true
+  },
+  "warnings": [],
+  "cells": [
+    {
+      "cell_id": "r1-c1-rateNone",
+      "concurrency": 1,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:34:03.140006+00:00",
+        "ended_at": "2026-10-06T16:41:29.558568+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 447,
+          "mean_pct": 89.42281879194631,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 244.4448970917226,
+          "power_samples": 447
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r1-c4-rateNone",
+      "concurrency": 4,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:41:38.450383+00:00",
+        "ended_at": "2026-10-06T16:43:55.262374+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 136,
+          "mean_pct": 100.0,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 242.3043161764706,
+          "power_samples": 136
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r1-c16-rateNone",
+      "concurrency": 16,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:44:02.927780+00:00",
+        "ended_at": "2026-10-06T16:45:12.267974+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 69,
+          "mean_pct": 100.0,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 41399.9375,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 260.4650289855072,
+          "power_samples": 69
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r1-c32-rateNone",
+      "concurrency": 32,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:45:20.133091+00:00",
+        "ended_at": "2026-10-06T16:46:18.005589+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 58,
+          "mean_pct": 98.27586206896552,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 263.9313793103448,
+          "power_samples": 58
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r1-c64-rateNone",
+      "concurrency": 64,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:46:26.142630+00:00",
+        "ended_at": "2026-10-06T16:47:31.015779+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 65,
+          "mean_pct": 98.46153846153847,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 242.66143076923078,
+          "power_samples": 65
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r2-c1-rateNone",
+      "concurrency": 1,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:47:37.693840+00:00",
+        "ended_at": "2026-10-06T16:55:41.252047+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 483,
+          "mean_pct": 91.2360248447205,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 233.44088819875776,
+          "power_samples": 483
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r2-c4-rateNone",
+      "concurrency": 4,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:55:45.230600+00:00",
+        "ended_at": "2026-10-06T16:58:03.420477+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 139,
+          "mean_pct": 99.28057553956835,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 241.65294244604314,
+          "power_samples": 139
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r2-c16-rateNone",
+      "concurrency": 16,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:58:13.189576+00:00",
+        "ended_at": "2026-10-06T16:59:19.246739+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 66,
+          "mean_pct": 98.48484848484848,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 269.23528787878786,
+          "power_samples": 66
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r2-c32-rateNone",
+      "concurrency": 32,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T16:59:28.677056+00:00",
+        "ended_at": "2026-10-06T17:00:26.736213+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 58,
+          "mean_pct": 100.0,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 41399.9375,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 263.94339655172416,
+          "power_samples": 58
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "cell_id": "r2-c64-rateNone",
+      "concurrency": 64,
+      "arrival_rate": null,
+      "interrupted": false,
+      "window": {
+        "started_at": "2026-10-06T17:00:36.197014+00:00",
+        "ended_at": "2026-10-06T17:01:35.883529+00:00"
+      },
+      "per_gpu": {
+        "0": {
+          "status": "ok",
+          "n_samples": 60,
+          "mean_pct": 98.33333333333333,
+          "p95_pct": 100.0,
+          "max_pct": 100.0,
+          "memory_used_mib_max": 40968.625,
+          "memory_total_mib": 46068.0,
+          "power_w_mean": 249.76760000000002,
+          "power_samples": 60
+        }
+      },
+      "status": "ok"
+    }
+  ],
+  "notes": [
+    "Utilization is the share of the sample period in which at least one kernel was running; 100% does not mean the GPU is fully used",
+    "It shows the GPU was busy, not that it was efficient, and a low reading does not show where a limit was",
+    "It is one signal beside KV-cache usage and queue depth, not a replacement for either",
+    "Statistics are per GPU; no cross-GPU average is computed",
+    "Unavailable cells are never filled in or estimated"
+  ]
+}

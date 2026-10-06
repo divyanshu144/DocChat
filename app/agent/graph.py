@@ -8,6 +8,7 @@ from app.agent.nodes.synthesizer import synthesizer_node
 from app.agent.nodes.grounding import grounding_node
 from app.agent.nodes.critic import critic_node
 from app.core.config import settings
+from app.core.telemetry import traced_node
 
 
 def _route_critic(state: AgentState) -> str:
@@ -37,11 +38,11 @@ def build_graph():
     _configure_langsmith()
 
     g = StateGraph(AgentState)
-    g.add_node("planner", planner_node)
-    g.add_node("retriever", retriever_node)
-    g.add_node("synthesizer", synthesizer_node)
-    g.add_node("grounding", grounding_node)
-    g.add_node("critic", critic_node)
+    g.add_node("planner", traced_node("planner")(planner_node))
+    g.add_node("retriever", traced_node("retriever")(retriever_node))
+    g.add_node("synthesizer", traced_node("synthesizer")(synthesizer_node))
+    g.add_node("grounding", traced_node("grounding")(grounding_node))
+    g.add_node("critic", traced_node("critic")(critic_node))
 
     g.set_entry_point("planner")
     g.add_edge("planner", "retriever")

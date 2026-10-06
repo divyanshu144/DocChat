@@ -43,3 +43,24 @@ async def health_check():
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": settings.version,
     }, status_code=200 if ready else 503)
+
+
+@router.get("/health/serving")
+async def serving_readiness():
+    """Optional local-model readiness; never issues a completion or affects /health."""
+    if settings.llm_provider != "local":
+        return {"status": "not_applicable", "provider": settings.llm_provider}
+    from app.services.llm import _get_client, validate_local_endpoint
+
+    try:
+        validate_local_endpoint()
+        if not settings.local_chat_model.strip():
+            raise ValueError("Missing model")
+        response = await _get_client().get("/models", timeout=3.0)
+        response.raise_for_status()
+        models = response.json().get("data", [])
+        ready = any(model.get("id") == settings.local_chat_model for model in models)
+    except Exception:
+        ready = False
+    return JSONResponse({"status": "ok" if ready else "error", "provider": "local"},
+                        status_code=200 if ready else 503)

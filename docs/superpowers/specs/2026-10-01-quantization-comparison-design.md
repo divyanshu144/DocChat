@@ -2,7 +2,10 @@
 
 **Date:** 2026-10-01
 **Branch:** `chore/inference-complete-and-hardening`
-**Status:** Draft. Not implemented. Needs a go before any pod is created.
+**Status:** Authorized live measurements completed 2026-10-02. See
+[report](../../../reports/quantization-2026-10-01/README.md) for results and departures
+from this original plan: GPTQ used a replacement host; original AWQ backend/memory
+log and FP16/AWQ revisions were unavailable. The proposal below is retained as provenance.
 **Related:** `eval/inference_benchmark.py` (the harness this reuses as-is),
 `eval/BENCHMARK_RESULTS.md` (Fourth sweep, the FP16 numbers on real prompts),
 `eval/benchmark.py` (the critic quality harness this borrows for the regression check),

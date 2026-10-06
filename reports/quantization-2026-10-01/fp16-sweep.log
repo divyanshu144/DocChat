@@ -1,0 +1,18 @@
+Using 8 real captured prompts from data/bench_prompts.jsonl
+
+Inference benchmark — 8 prompts, concurrency [1, 16, 64], cache-busting ON, mode concurrent
+
+
+local
+──────────────────────────────────────────────────────────────────────────────
+     1  n=8/8  err=  0% empty=  0%  ttft   982ms  lat   4.43s  decode_tok/s   48.5  agg_tok/s   40.6  cost $0.0137  ($7.4574/1M tok)
+    16  n=16/16  err=  0% empty=  0%  ttft  7280ms  lat  15.81s  decode_tok/s   17.2  agg_tok/s  142.5  cost $0.0069  ($2.1253/1M tok)
+    64  n=63/64  err=  2% empty=  0%  ttft 26624ms  lat  64.25s  decode_tok/s    5.7  agg_tok/s  180.6  cost $0.0220  ($1.6763/1M tok)
+
+──────────────────────────────────────────────────────────────────────────────
+  Raw results appended to reports/quantization-2026-10-01/fp16-speed.jsonl
+  Cost figures for hosted providers use the placeholder rates at the top of
+  this file — verify against each provider's live pricing page before
+  quoting externally. Check error_rate/empty_rate before trusting any
+  percentile above them.
+──────────────────────────────────────────────────────────────────────────────

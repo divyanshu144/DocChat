@@ -1,0 +1,232 @@
+{
+  "a": [
+    "claude-opus-5-5/v2"
+  ],
+  "b": [
+    "gpt-6-astra/v2"
+  ],
+  "comparison": {
+    "rows_compared": 22,
+    "fields": {
+      "answer_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      },
+      "fully_supported": {
+        "agreement": 0.8636363636363636,
+        "agree": 19,
+        "disagreements": {
+          "partial->yes": 3
+        }
+      },
+      "citation_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      },
+      "abstention_correct": {
+        "agreement": 1.0,
+        "agree": 22,
+        "disagreements": {}
+      }
+    },
+    "disagreeing_rows": {
+      "answer_correct": [],
+      "fully_supported": [
+        "review-02eb5b4b6c85",
+        "review-54c156e713f3",
+        "review-9ab1ff8c3aa4"
+      ],
+      "citation_correct": [],
+      "abstention_correct": []
+    }
+  },
+  "stats": {
+    "a": {
+      "scored": 22,
+      "total_unsupported": 15,
+      "rows_with_unsupported": 9,
+      "fully_supported_yes": 6,
+      "total_minor_imprecision": 23
+    },
+    "b": {
+      "scored": 22,
+      "total_unsupported": 16,
+      "rows_with_unsupported": 8,
+      "fully_supported_yes": 9,
+      "total_minor_imprecision": 14
+    }
+  },
+  "row_details": [
+    {
+      "blind_id": "review-02eb5b4b6c85",
+      "label_changes": {
+        "fully_supported": [
+          "partial",
+          "yes"
+        ]
+      },
+      "counts": {
+        "unsupported": [
+          0,
+          0
+        ],
+        "minor_imprecision": [
+          2,
+          0
+        ],
+        "claims": [
+          7,
+          5
+        ]
+      },
+      "notes": [
+        "Correctly states that RAG does not prevent hallucinations. The listed limitations match the evidence; there are only minor paraphrases and evaluative glosses.",
+        "The answer states the expected central fact, and all additional factual claims are supported by the supplied evidence."
+      ]
+    },
+    {
+      "blind_id": "review-1c33d8f99645",
+      "label_changes": {},
+      "counts": {
+        "unsupported": [
+          3,
+          4
+        ],
+        "minor_imprecision": [
+          1,
+          1
+        ],
+        "claims": [
+          8,
+          11
+        ]
+      },
+      "notes": [
+        "Core sparse/dense distinctions match the evidence; added mechanisms (vocabulary positions, non-zero positions, continuous context-aware space) are not stated in the evidence.",
+        "The core comparison matches the evidence, but vocabulary-position mapping, restrictions on non-zero entries, continuous space, and context-aware representations are not directly established."
+      ]
+    },
+    {
+      "blind_id": "review-343610693d25",
+      "label_changes": {},
+      "counts": {
+        "unsupported": [
+          3,
+          4
+        ],
+        "minor_imprecision": [
+          1,
+          0
+        ],
+        "claims": [
+          5,
+          7
+        ]
+      },
+      "notes": [
+        "The core yes answer matches the evidence. The examples (XML/JSON/HTML, relational databases), the 'primarily designed' claim and the description of tables are not in the evidence.",
+        "The answer supplies the expected central fact, but its added design priority, format definitions, relational-database example, and tabular characterization are not established by the evidence."
+      ]
+    },
+    {
+      "blind_id": "review-4d11f72579be",
+      "label_changes": {},
+      "counts": {
+        "unsupported": [
+          1,
+          0
+        ],
+        "minor_imprecision": [
+          0,
+          1
+        ],
+        "claims": [
+          3,
+          3
+        ]
+      },
+      "notes": [
+        "Both break rules match the evidence; the claim that the breaks 'ensure' health and safety turns the evidence's 'protect and safeguard' purpose into a guarantee.",
+        "Both break requirements are correct. The health-and-safety rationale applies the stated purpose of the regulations generally to these specific breaks."
+      ]
+    },
+    {
+      "blind_id": "review-54c156e713f3",
+      "label_changes": {
+        "fully_supported": [
+          "partial",
+          "yes"
+        ]
+      },
+      "counts": {
+        "unsupported": [
+          1,
+          0
+        ],
+        "minor_imprecision": [
+          0,
+          0
+        ],
+        "claims": [
+          2,
+          2
+        ]
+      },
+      "notes": [
+        "The 60-hour weekly limit is correct. The claim that it applies regardless of reference-period type is not stated in the evidence.",
+        "The declaration states an unqualified 60-hour weekly maximum separately from the reference-period rules for average working time."
+      ]
+    },
+    {
+      "blind_id": "review-5ac79aeb6a44",
+      "label_changes": {},
+      "counts": {
+        "unsupported": [
+          0,
+          1
+        ],
+        "minor_imprecision": [
+          1,
+          1
+        ],
+        "claims": [
+          4,
+          4
+        ]
+      },
+      "notes": [
+        "The answer states the expected cross-checking fact. The only issue is an evaluative gloss about credibility and reliability. It contains no citation markers.",
+        "The answer states the expected cross-checking mechanism, but overstates verification as ensuring accuracy and adds an evaluative gloss about credibility and reliability."
+      ]
+    },
+    {
+      "blind_id": "review-9ab1ff8c3aa4",
+      "label_changes": {
+        "fully_supported": [
+          "partial",
+          "yes"
+        ]
+      },
+      "counts": {
+        "unsupported": [
+          0,
+          0
+        ],
+        "minor_imprecision": [
+          2,
+          0
+        ],
+        "claims": [
+          4,
+          4
+        ]
+      },
+      "notes": [
+        "Gives the expected fact, vector database; mentions of efficiency, similarity and indexing for quick lookup are glosses that only loosely match the evidence.",
+        "The answer identifies the expected storage location, and its elaboration is supported by the evidence on embeddings, indexing, similarity comparisons, and retrieval efficiency."
+      ]
+    }
+  ]
+}

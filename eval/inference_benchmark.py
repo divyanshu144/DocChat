@@ -677,14 +677,13 @@ async def _run_provider(
     original_openai_model = settings.openai_chat_model
     original_chat_model = settings.chat_model
 
+    await llm.close_llm_clients()
     settings.llm_provider = provider
     settings.fallback_llm_provider = "none"
     if provider == "openai" and openai_model_override:
         settings.openai_chat_model = openai_model_override
     if provider == "groq" and groq_model_override:
         settings.chat_model = groq_model_override
-    llm._client = None
-    llm._client_provider = None
 
     rows = []
     try:
@@ -771,8 +770,7 @@ async def _run_provider(
         settings.fallback_llm_provider = original_fallback
         settings.openai_chat_model = original_openai_model
         settings.chat_model = original_chat_model
-        llm._client = None
-        llm._client_provider = None
+        await llm.close_llm_clients()
 
     return rows
 
@@ -963,4 +961,11 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    if sys.argv[1:2] == ["failure-behaviour"]:
+        from eval.failure_behaviour import main as failure_main
+        asyncio.run(failure_main(sys.argv[2:]))
+    elif sys.argv[1:2] == ["sustained"]:
+        from eval.serving_load import main as sustained_main
+        asyncio.run(sustained_main(sys.argv[2:]))
+    else:
+        asyncio.run(main())

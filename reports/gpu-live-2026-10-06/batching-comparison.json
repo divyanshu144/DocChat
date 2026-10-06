@@ -1,0 +1,39 @@
+{
+  "provider": "local",
+  "batches": [
+    {
+      "batch_size": 4,
+      "n_requests": 4,
+      "serial_wall_s": 16.601769290864468,
+      "concurrent_wall_s": 8.68133220821619,
+      "comparable": true,
+      "reason": null,
+      "wall_time_speedup": 1.9123527233702926,
+      "throughput_ratio": 2.8912180156716967,
+      "output_tokens_serial": 590,
+      "output_tokens_concurrent": 892,
+      "output_length_differs": true,
+      "caveat": "total output length differs between the runs by more than 10%, so the ratio mixes batching with output length"
+    },
+    {
+      "batch_size": 16,
+      "n_requests": 16,
+      "serial_wall_s": 91.34556616656482,
+      "concurrent_wall_s": 16.800786916166544,
+      "comparable": true,
+      "reason": null,
+      "wall_time_speedup": 5.436981411785398,
+      "throughput_ratio": 5.431397384316943,
+      "output_tokens_serial": 2921,
+      "output_tokens_concurrent": 2918,
+      "output_length_differs": false
+    }
+  ],
+  "skipped": {},
+  "limits": [
+    "One run per mode and batch size; the ratio carries run-to-run variation that is not measured here",
+    "Wall-time speedup compares fixed batches of N requests; it says nothing about per-request latency",
+    "Provider-default sampling: output lengths differ between runs, which the caveat flags when material",
+    "The same physical host and network for both runs is not verified by this tool"
+  ]
+}

@@ -7,6 +7,7 @@ from uuid import uuid4
 from app.agent.state import AgentState
 from app.core.config import settings
 from app.services.llm import chat_complete
+from app.core.telemetry import annotate
 
 logger = logging.getLogger(__name__)
 
@@ -129,11 +130,13 @@ async def critic_node(state: AgentState) -> dict:
         quality = data.get("quality", "good")
         feedback = data.get("feedback", "")
     except (json.JSONDecodeError, KeyError, TypeError, AttributeError):
+        annotate(critic_parse_failed=True)
         logger.warning("critic_json_parse_failed; accepting without a verdict", exc_info=True)
         quality = "good"
         feedback = ""
 
     needs_replan = quality == "poor"
+    annotate(needs_replan=needs_replan)
     return {
         "needs_replan": needs_replan,
         "critic_feedback": feedback if needs_replan else "",

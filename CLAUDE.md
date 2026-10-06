@@ -23,8 +23,8 @@ docker compose up --build         # full stack
 # UI + API docs: http://localhost:8081  /  http://localhost:8081/docs
 ```
 
-**Verification baseline (2026-10-01):** both gates are green — `ruff check .` clean,
-`pytest -m "not eval"` **368 passed, 0 failed**. There are no known-failing tests, so
+**Verification baseline (2026-10-06):** both gates are green — `ruff check .` clean,
+`pytest -m "not eval"` **629 passed, 0 failed**. There are no known-failing tests, so
 *any* red is a real regression you introduced. Do not rationalise a failure as
 pre-existing without diffing against a stash.
 
@@ -40,7 +40,7 @@ pre-existing without diffing against a stash.
 - **app/services/ingestion/pdf.py** — pymupdf + independent chunk embeddings → Qdrant `source_chunks`.
 - **app/services/ingestion/youtube.py** — transcript-api → Qdrant `source_chunks`.
 - **app/services/ingestion/web.py** — httpx + trafilatura → Qdrant `source_chunks`.
-- **app/services/llm.py** — AsyncGroq client. `chat_complete()` and `chat_stream()`.
+- **app/services/llm.py** — Groq/Mistral/OpenAI/local provider facade, with loop-owned clients and timing spans. `chat_complete()` and `chat_stream()`.
 - **app/services/embedder.py** — fastembed ONNX singleton. See `conventions.md`.
 - **app/api/ingest.py** — POST /ingest/{pdf,youtube,web}. GET/DELETE /sources.
 - **app/api/chat.py** — POST /chat. Runs agent graph, streams SSE, saves history.
@@ -112,7 +112,7 @@ date while a whole feature shipped. Treat updating it as part of the task, not c
 A task is not complete until **all** of these hold:
 
 1. `ruff check .` passes clean
-2. `pytest -m "not eval" -q` is fully green — 368 passed, 0 failed
+2. `pytest -m "not eval" -q` is fully green — 629 passed, 0 failed
 3. New logic has tests
 4. `HANDOFF.md` reflects current state
 

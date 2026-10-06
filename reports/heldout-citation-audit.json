@@ -1,0 +1,809 @@
+{
+  "groups": [
+    {
+      "model": "Qwen2.5-7B-Instruct",
+      "split": "development",
+      "requests": 24,
+      "successful_answers": 24,
+      "failed_answers": 0,
+      "answer_citation_coverage": 0.0,
+      "citation_precision": 0.0,
+      "emitted_citation_markers": 2,
+      "valid_citation_markers": 0,
+      "invalid_citation_markers": 2,
+      "cases": [
+        {
+          "case_id": "pdf-average",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-weekly",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-goods-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-passenger-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-breaks",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-reference",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-employer-reference",
+          "emitted": 2,
+          "valid": 0,
+          "invalid": 2
+        },
+        {
+          "case_id": "pdf-other-work",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-voluntary",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-record-duty",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-false-record",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-definition",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-history",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-updates",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-transparency",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-embeddings",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-data-types",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-stages",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-hallucinations",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-hybrid",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-encoding",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-ict",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-retro",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        }
+      ]
+    },
+    {
+      "model": "Qwen2.5-7B-Instruct",
+      "split": "held_out",
+      "requests": 16,
+      "successful_answers": 16,
+      "failed_answers": 0,
+      "answer_citation_coverage": 0.1875,
+      "citation_precision": 1.0,
+      "emitted_citation_markers": 27,
+      "valid_citation_markers": 27,
+      "invalid_citation_markers": 0,
+      "cases": [
+        {
+          "case_id": "heldout-rag-vector-types",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-hybrid-search",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-source-checking",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-source-misreading",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-pdf-false-record-penalty",
+          "emitted": 1,
+          "valid": 1,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-pdf-other-work-scope",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "summary-worktime",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "summary-rag",
+          "emitted": 24,
+          "valid": 24,
+          "invalid": 0
+        },
+        {
+          "case_id": "long-rag-lifecycle",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "long-worktime-rules",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "long-rag-grounding",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "multi-document-overview",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "multi-document-evidence",
+          "emitted": 2,
+          "valid": 2,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-slack-incident",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-model-owner",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-threshold",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        }
+      ]
+    },
+    {
+      "model": "Qwen2.5-7B-Instruct-AWQ",
+      "split": "development",
+      "requests": 24,
+      "successful_answers": 24,
+      "failed_answers": 0,
+      "answer_citation_coverage": 0.08333333333333333,
+      "citation_precision": 1.0,
+      "emitted_citation_markers": 3,
+      "valid_citation_markers": 3,
+      "invalid_citation_markers": 0,
+      "cases": [
+        {
+          "case_id": "pdf-average",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-weekly",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-goods-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-passenger-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-breaks",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-reference",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-employer-reference",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-other-work",
+          "emitted": 2,
+          "valid": 2,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-voluntary",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-record-duty",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-false-record",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-definition",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-history",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-updates",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-transparency",
+          "emitted": 1,
+          "valid": 1,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-embeddings",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-data-types",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-stages",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-hallucinations",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-hybrid",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-encoding",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-ict",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-retro",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        }
+      ]
+    },
+    {
+      "model": "Qwen2.5-7B-Instruct-AWQ",
+      "split": "held_out",
+      "requests": 16,
+      "successful_answers": 16,
+      "failed_answers": 0,
+      "answer_citation_coverage": 0.0625,
+      "citation_precision": 1.0,
+      "emitted_citation_markers": 1,
+      "valid_citation_markers": 1,
+      "invalid_citation_markers": 0,
+      "cases": [
+        {
+          "case_id": "heldout-rag-vector-types",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-hybrid-search",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-source-checking",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-source-misreading",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-pdf-false-record-penalty",
+          "emitted": 1,
+          "valid": 1,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-pdf-other-work-scope",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "summary-worktime",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "summary-rag",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "long-rag-lifecycle",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "long-worktime-rules",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "long-rag-grounding",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "multi-document-overview",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "multi-document-evidence",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-slack-incident",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-model-owner",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-threshold",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        }
+      ]
+    },
+    {
+      "model": "Qwen2.5-7B-Instruct-GPTQ",
+      "split": "development",
+      "requests": 24,
+      "successful_answers": 24,
+      "failed_answers": 0,
+      "answer_citation_coverage": 0.0,
+      "citation_precision": 0.0,
+      "emitted_citation_markers": 2,
+      "valid_citation_markers": 0,
+      "invalid_citation_markers": 2,
+      "cases": [
+        {
+          "case_id": "pdf-average",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-weekly",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-goods-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-passenger-night",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-breaks",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-reference",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-employer-reference",
+          "emitted": 2,
+          "valid": 0,
+          "invalid": 2
+        },
+        {
+          "case_id": "pdf-other-work",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-voluntary",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-record-duty",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "pdf-false-record",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-definition",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-history",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-updates",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-transparency",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-embeddings",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-data-types",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-stages",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-hallucinations",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-hybrid",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-encoding",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-ict",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "rag-retro",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        }
+      ]
+    },
+    {
+      "model": "Qwen2.5-7B-Instruct-GPTQ",
+      "split": "held_out",
+      "requests": 16,
+      "successful_answers": 16,
+      "failed_answers": 0,
+      "answer_citation_coverage": 0.0625,
+      "citation_precision": 0.5,
+      "emitted_citation_markers": 4,
+      "valid_citation_markers": 2,
+      "invalid_citation_markers": 2,
+      "cases": [
+        {
+          "case_id": "heldout-rag-vector-types",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-hybrid-search",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-source-checking",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-rag-source-misreading",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-pdf-false-record-penalty",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "heldout-pdf-other-work-scope",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "summary-worktime",
+          "emitted": 1,
+          "valid": 0,
+          "invalid": 1
+        },
+        {
+          "case_id": "summary-rag",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "long-rag-lifecycle",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "long-worktime-rules",
+          "emitted": 1,
+          "valid": 0,
+          "invalid": 1
+        },
+        {
+          "case_id": "long-rag-grounding",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "multi-document-overview",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "multi-document-evidence",
+          "emitted": 2,
+          "valid": 2,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-slack-incident",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-model-owner",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        },
+        {
+          "case_id": "negative-threshold",
+          "emitted": 0,
+          "valid": 0,
+          "invalid": 0
+        }
+      ]
+    }
+  ],
+  "definition": "Valid means the exact cited bracket marker occurs in the captured context. This does not assess whether claims are supported."
+}

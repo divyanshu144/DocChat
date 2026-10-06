@@ -445,3 +445,119 @@ when no space is found within some reasonable distance of the end.
 - The e2e harness still looked up synthetic fixtures by per-type collection names
   after production switched to source_chunks. Its adapter now applies payload source
   filters. Its compare mode measures first pass versus retry, not critic on/off.
+
+
+## 2026-10-04 — Serving lifecycle and measurement boundaries
+
+- Provider-only caching can retain the wrong endpoint after a configuration change.
+  Own pools by event loop and connection settings, then explicitly close all owned
+  clients at API/MCP/benchmark teardown without closing in-flight old configurations.
+- Mistral's installed SDK exposes async/sync context exits rather than a client
+  aclose method. Inspect installed provider lifecycle APIs and test both paths.
+- StreamingResponse headers precede graph work; time the ASGI body lifecycle, not
+  call_next's return. Share request outcome with child tasks so SSE errors remain
+  failures even when their already-sent HTTP status is 200.
+- First content delta is not necessarily one token. Keep missing usage unknown and
+  label client decode rates as estimates. Separate backend TTFT from answer delivery.
+- Initial new timing test exposed a bound default_factory clock that escaped mocking;
+  resolve the monotonic clock at instance creation for deterministic boundary tests.
+- Newly tracked historical run-serving.py introduced two Ruff findings (combined
+  imports and inline if). Fixed formatting only; raw measurement artifacts unchanged.
+
+
+## 2026-10-05 — Sustained benchmark evidence
+
+- A burst at concurrency N is not sustained concurrency. Maintain workers or schedule
+  arrivals explicitly; record generator-capacity rejections and scheduling lag rather
+  than hiding them behind a semaphore queue.
+- A chat HTTP 200 can carry an SSE error. Success requires answer content and the
+  terminal done marker; progress events are not first answer or model TTFT.
+- Keep legacy burst artifacts separate from schema-v2 sustained runs. Unknown token
+  usage stays null; repeated-cell variation is not a confidence interval.
+- Preserve engine metric labels/buckets. Inspect intermediate samples for counter
+  resets: a reset followed by growth past the initial count fools a boundary-only delta.
+- A benchmark client's source hash is not a remote API deployment hash. API comparison
+  requires declared server revision/config hashes, while physical-host control remains
+  a separate validation responsibility.
+
+## 2026-10-05 - judge model rejects temperature=0
+- Broke: `gpt-5.6-luna` returns 400 on `temperature`; `_openai_complete` silently retries without it (`openai_rejected_temperature_retrying_without`), so "temperature 0" was not actually applied.
+- Root cause: the facade treats determinism as optional by design.
+- Next time: judge rows record `judge.temperature_applied`; check it before claiming temperature 0 in any report.
+
+## 2026-10-06 - judge fully_supported was inflated by glosses and duplicates
+- Broke: 61/119 rows had >=1 "unsupported" claim; audit found most were duplicates, entailed paraphrases, glosses, or omitted qualifiers (146 -> 43 claims at most, depending on how subjective reclassifications are treated).
+- Root cause: judge prompt v1 lists every atomic claim, repeats restatements, and counts any non-entailed gloss; it also rewrote "after 9 hours" inconsistently.
+- Next time: dedupe claims in the prompt, add a "minor imprecision" label separate from "unsupported", and report both before/after (strict and full) rather than one number.
+
+## 2026-10-06 - Opus judge run halted at 22/120 (Anthropic credit balance too low)
+- Broke: `claude-opus-5-5` judge calls returned HTTP 400 "credit balance is too low" after 22 rows; labels file is intact and resumable.
+- Root cause: account billing, not code. Opus also rejects `temperature`, so the labels are provider-default sampling.
+- Next time: check credit balance before a long paid run; resume with the same command (it skips judged ids).
+
+## 2026-10-06 - astra judge halted at 66/120 (OpenAI credits exhausted); I misread the completion notice
+- Broke: a background run's "completed (exit code 0)" came from my `tail` wrapper, not the python process, so I reported the run as finished and generated aggregates from 66 rows.
+- Root cause: redirected output through `tail`; the 429 was `insufficient_quota`, which backoff cannot fix.
+- Next time: verify the output row count and the process result before using a completion notice; never pipe a long run through tail. The runner now stops immediately on quota errors.
+
+## 2026-10-06 - Groq judge halted at 53/120 (daily token cap, 200k TPD on-demand)
+- Broke: 120 rows x ~3.5k tokens (incl. reasoning) exceeds the free daily budget; backoff cannot help a daily cap.
+- Next time: estimate tokens before choosing a free-tier judge; the runner now fails fast on "tokens per day" errors and resumes cleanly.
+
+## 2026-10-06 - GPU utilization attach: the cell artifact had no wall-clock window
+- Found: `run_cell` stores only monotonic offsets; only engine-metric samples were UTC-stamped, so external samples
+  (GPU utilization) could not be aligned to a measured cell until a wall-clock `window` was recorded.
+- Also: the comparison mode indexes `run_summary.cells[*].statistics` by name, so any new metric placed there would
+  KeyError on older runs. Optional signals belong in a sibling artifact and an output-only column, after the checks.
+- Gotcha: macOS `sed -i` needs a suffix argument; a failed `sed && python` chain silently skipped the code edit and
+  surfaced as two unrelated test failures. Use Python for in-place edits.
+
+## 2026-10-06 - GPU utilization review: single source for the offset sign; test the docs, not just the code
+- Found: the offset sign convention existed in three wordings (code constant, CLI help, docs) that could drift.
+  Made the constant the only definition; CLI help reads it and a test asserts the docs quote it verbatim.
+- A docs-lint test caught an unhedged row in the "how to read it" table that I had written without "may".
+  Assertions on documentation wording are cheap and catch overclaiming that code review misses.
+- A flipped offset sign makes a cell `unavailable` rather than wrong, so the sign-flip test asserts `unavailable`.
+
+## 2026-10-06 - dress rehearsal found a real sampler defect that unit tests had missed
+- Found: `gpu_sampler.run` slept a full interval AFTER each read, so the real period was interval + read latency
+  (38 samples where ~40 were expected at 0.5 s with a fast fake `nvidia-smi`; a real `nvidia-smi` call is slower, so the
+  shortfall would be larger on a pod). Fixed by scheduling against a fixed monotonic deadline that re-anchors (never
+  bursts) when a read overruns the interval.
+- Method: a localhost fake of vLLM's `/v1/chat/completions` (SSE with a usage chunk) and `/metrics`, a fake
+  `nvidia-smi` on PATH, then the REAL sampler CLI, sustained benchmark and attach. Unit tests with fake readers never
+  exercised the subprocess path or real timing. Rehearse the whole pipeline offline before any paid run.
+- Gotcha: the sandbox denied a command containing `rm -rf` on a variable path; create fresh scratch directories and
+  write files with the Write tool instead of deleting.
+
+## 2026-10-06 - failure-behaviour analysis: windows by dispatch hid the fault's own casualties
+- Found by a unit test, then confirmed in a real rehearsal (kill -STOP on a real server process): classifying requests
+  into before/during/after by DISPATCH time put requests that were in flight when the fault hit into the baseline
+  (1 of 19 "before" failed). Fixed with a separate `in_flight_at_injection` window and `before` meaning "completed before
+  the fault"; in the rehearsal it held exactly the 4 requests matching concurrency 4.
+- The symmetric effect at the restore (requests sent an instant before it and served after it) is real and was large when
+  the 3 s timeout cycle lined up with the restore (4 of 12 "during" requests). Reported as
+  `of_which_finished_after_restore` instead of reclassifying, because for a stall fault most hung requests legitimately
+  finish after the restore and reclassifying would hide the timeouts.
+- Safety invariant worth a test: after any attempted inject the restore runs exactly once even on cancel or error.
+- The sandbox rejects `shlex.split` of a path containing a space (the repo path has one): shell-quote interpreter paths.
+- Process: when asked not to use a word (here "failover"), add a test that greps code and docs for it; I had written it
+  into my own earlier plan and spec before the instruction.
+
+## 2026-10-06 - failure-behaviour windows must account for the inject command's own latency (supersedes the entry above)
+- Found in a rehearsal that used the exact `ssh ... "kill -STOP $(cat pidfile)"` command shape: the inject command took
+  0.69 s to return, and 4 requests sent at 6.11 s were served at 6.62 s, just before the stall landed, yet were counted as
+  "during the fault". Fix: `injection_transition` window = in flight when the command was issued OR sent before it
+  returned; `during` starts when it has returned. (This renames the earlier `in_flight_at_injection`.)
+- The "succeeded while fault active" check was already right (it requires a request sent after the command returned).
+- Real pods add real SSH latency; the rehearsal used a stand-in `ssh` that runs the command locally, which proved the
+  quoting (the remote command arrives as one literal argument) but not the latency of a real network.
+
+## 2026-10-06 - live GPU session lessons
+- `pgrep -f` monitors match their own command line and never exit; an idle loop cost about 5.5 min of pod time (~$0.10).
+  Wait on a PID or use a background-task completion notice instead.
+- Run repo modules with `python -m eval.x`, not `python eval/x.py` (ModuleNotFoundError).
+- A unix control-socket path under the long scratchpad directory was too long; use a short path under /tmp.
+- With prefix caching off, vLLM 0.30.0 reports no prefix-cache queries at all: show the hit rate as unavailable, not 0%.
+- The legacy `inference_benchmark` default `--out` is a tracked append-only file; pass `--out` into the run folder.
+- Billing readback lags: only the first hourly bucket had posted after termination. Report estimate and readback separately.
