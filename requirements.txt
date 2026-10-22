@@ -26,7 +26,7 @@ langsmith>=0.1.0,<1.0.0
 langgraph>=0.2.0
 langchain-core>=0.3.0
 tokenizers>=0.19.0
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0
 bcrypt>=4.0.0
 pydantic[email]>=2.7.4
 pytest>=8.0.0
@@ -40,3 +40,7 @@ ruff>=0.16.0
 
 # Prometheus exposition and label-preserving benchmark metric parsing.
 prometheus-client>=0.21,<1
+
+# AWS deployment path (S3 document store, SQS ingestion queue). Imported lazily, so local
+# development with STORAGE_BACKEND=local / QUEUE_BACKEND=local never touches AWS or needs credentials.
+boto3>=1.35,<2
