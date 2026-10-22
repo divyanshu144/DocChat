@@ -87,6 +87,7 @@ npm run build
 - **Citations:** inline `[PDF — name]`, `[YouTube — title]`, `[Web — url]` tags rendered as chips.
 - **Folders and history:** folders with drag-and-drop, persisted conversations, token streaming over SSE.
 - **Observability:** LangSmith tracing (when configured), request-ID logging, an optional protected Prometheus endpoint.
+- **AWS-ready:** an optional queue-backed worker, S3 and SQS backends, production images and Terraform. Local development is unchanged. See [AWS deployment](#aws-deployment).
 
 ## Tech stack
 
@@ -117,6 +118,21 @@ React + Vite UI --REST + SSE--> FastAPI API
 
 Layout and the reasoning behind the main decisions: [docs/architecture.md](docs/architecture.md).
 
+## AWS deployment
+
+The repo includes a secure AWS platform: ECS Fargate for the API and a separate ingestion worker (`python -m app.worker`), S3 for uploaded PDFs, SQS with a dead-letter queue, RDS PostgreSQL, Secrets Manager, KMS, least-privilege IAM, CloudWatch alarms, and Qdrant on EC2. Terraform is in `infra/`, production images in `docker/Dockerfile` (targets `api` and `worker`), and GitHub Actions in `.github/workflows/`.
+
+```text
+API task --(1) message--> SQS --> worker task --> Qdrant + PostgreSQL
+   |                       |
+   `--(2) job row--> PostgreSQL   failed jobs --> dead-letter queue
+```
+
+- **Local stays the default.** Without any `AWS_*` settings the app uses local file storage and the in-process queue, exactly as before. AWS mode is selected by settings, and a missing required setting fails at startup.
+- **Safe by design.** Ingestion is idempotent (duplicate messages and retries are harmless), logs never contain document content, prompts, URLs or tokens, and the page fetcher blocks private and metadata addresses.
+- **Nothing has been applied.** The Terraform is formatted, validated and scanned, but `terraform plan` and `apply` have never been run and no AWS resources exist. Start with [docs/aws/deployment.md](docs/aws/deployment.md), and read [docs/aws/limitations.md](docs/aws/limitations.md) for what is unverified.
+- **Tear down after a demo.** Set `demo = true` for a cheaper profile (Fargate Spot worker that scales from zero, small single-AZ database), and follow [docs/aws/teardown.md](docs/aws/teardown.md) so nothing keeps billing.
+
 ## Inference benchmarking
 
 `eval/` holds a harness for measuring serving performance under load (TTFT, decode throughput, p95/p99, queueing, KV-cache use, GPU utilization, cost), plus held-out serving and answer-quality evaluations. Realistic DocChat-shaped prompts, cache-busting by default and a positive control keep the numbers honest.
@@ -129,10 +145,12 @@ Earlier findings (hosted-API concurrency limits, KV-cache saturation, the harnes
 
 ```bash
 ruff check .                      # clean
-pytest -m "not eval" -q           # 629 passed, 8 deselected
+pytest -m "not eval" -q           # 834 passed, 7 skipped, 8 deselected
 cd frontend && npm test -- --run  # frontend tests
 python eval/benchmark.py          # critic benchmark; calls the live LLM, opt-in
 ```
+
+The 7 skipped tests need a real PostgreSQL. With `TEST_DATABASE_URL` pointing at a throwaway database whose name contains "test", the same command gives 841 passed (see `tests/test_pg_concurrency.py`). No test needs AWS credentials or network access.
 
 The frontend tests were last recorded at 3 files / 6 tests on 2026-10-01 and were not re-run for this change. Live LLM evals are opt-in because they cost money.
 
@@ -141,6 +159,7 @@ The frontend tests were last recorded at 3 files / 6 tests on 2026-10-01 and wer
 | Doc | Contents |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | Project structure, RAG/LLM/agent decisions, guardrails, hardening, observability, productionising |
+| [docs/aws/](docs/aws/architecture.md) | AWS platform: architecture, deployment, operations, security, cost, teardown, rollback, backups, known limitations |
 | [docs/api.md](docs/api.md) | API reference, configuration variables, database schema, folders |
 | [docs/benchmarking.md](docs/benchmarking.md) | Sustained benchmark, artifacts, comparisons, GPU runbook |
 | [docs/serving-observability.md](docs/serving-observability.md) | Serving adapter and timing definitions |
