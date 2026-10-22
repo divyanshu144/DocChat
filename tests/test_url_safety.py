@@ -250,6 +250,11 @@ def test_default_limits_are_sensible():
 
 
 # ---------------- wiring ----------------
+def test_unsafe_url_is_a_permanent_ingest_error():
+    from app.services.ingestion.runner import is_permanent
+    assert is_permanent(us.UnsafeURLError("x"))
+
+
 def test_scrape_uses_guard_only_when_enabled(monkeypatch):
     from app.services.ingestion import web
 

@@ -34,6 +34,13 @@ async def _probe(check) -> str:
         return "error"
 
 
+@router.get("/health/live")
+async def liveness():
+    """Process is up and the event loop responds. No dependency checks, so an outage of
+    PostgreSQL or Qdrant never makes the load balancer or ECS kill healthy tasks."""
+    return {"status": "ok"}
+
+
 @router.get("/health")
 async def health_check():
     """Dependency readiness; failures return 503 without exposing connection details."""

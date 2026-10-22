@@ -5,6 +5,8 @@ _BUCKETS = (.01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 40, 80, 160, 320)
 _STAGES = {"planner", "retriever", "synthesizer", "grounding", "critic",
            "retrieval.embedding_init", "retrieval.embedding", "retrieval.search",
            "retrieval.reranking", "answer.persistence"}
+_SOURCE_TYPES = {"pdf", "youtube", "web"}
+_INGEST_OUTCOMES = {"done", "retry", "failed", "dead_letter", "duplicate", "cancelled"}
 _PROVIDERS = {"local", "groq", "openai", "mistral"}
 
 
@@ -38,6 +40,14 @@ class Metrics:
                                       registry=self.registry)
         self.critic_parse = Counter("docchat_critic_parse_failures_total", "Invalid critic JSON",
                                     registry=self.registry)
+        self.ingest_jobs = Counter("docchat_ingest_jobs_total", "Queue-driven ingest attempts by outcome",
+                                   ["source_type", "outcome"], registry=self.registry)
+        self.ingest_duration = Histogram("docchat_ingest_job_duration_seconds", "Ingest attempt duration",
+                                         ["source_type", "outcome"], buckets=_BUCKETS, registry=self.registry)
+        self.worker_polls = Counter("docchat_worker_polls_total", "Queue receive calls by result",
+                                    ["result"], registry=self.registry)
+        self.worker_inflight = Gauge("docchat_worker_inflight_jobs", "Jobs being processed",
+                                     registry=self.registry)
         self.replans = Counter("docchat_replans_total", "Critic requested another graph pass",
                                registry=self.registry)
 
@@ -58,6 +68,13 @@ class Metrics:
             self.latency.labels(route, outcome).observe(record["duration_s"])
             if record.get("first_answer_s") is not None:
                 self.first_answer.labels(route).observe(record["first_answer_s"])
+        elif event == "ingest_job":
+            source_type = record.get("source_type")
+            source_type = source_type if source_type in _SOURCE_TYPES else "other"
+            outcome = record.get("outcome")
+            outcome = outcome if outcome in _INGEST_OUTCOMES else "other"
+            self.ingest_jobs.labels(source_type, outcome).inc()
+            self.ingest_duration.labels(source_type, outcome).observe(record["duration_s"])
         elif event == "llm_retry":
             provider = record.get("provider")
             self.retries.labels(provider if provider in _PROVIDERS else "other").inc()

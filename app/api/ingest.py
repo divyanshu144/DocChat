@@ -19,6 +19,7 @@ from app.models.user import User
 from app.services.ingestion.pdf import ingest_pdf, SUPPORTED_TYPES
 from app.services.ingestion.youtube import ingest_youtube
 from app.services.ingestion.web import ingest_web
+from app.services.ingestion.enqueue import enqueue_ingest
 
 router = APIRouter()
 
@@ -78,6 +79,11 @@ class IngestJobStatus(BaseModel):
     message: str
     source_id: str | None = None
     error: str | None = None
+
+
+def _remote_response(result: tuple[str, str, str, str]) -> "IngestJobResponse":
+    job_id, job_status, phase, message = result
+    return IngestJobResponse(job_id=job_id, status=job_status, phase=phase, message=message)
 
 
 async def _set_job(
@@ -217,6 +223,14 @@ async def start_pdf_ingest_job(
 
     tmp_path = await _save_upload(file)
 
+    if settings.queue_backend == "sqs":
+        try:
+            return _remote_response(await enqueue_ingest(
+                db, "pdf", tmp_path=tmp_path, filename=file.filename or "upload",
+                content_type=file.content_type))
+        finally:
+            Path(tmp_path).unlink(missing_ok=True)
+
     job_id = str(_uuid.uuid4())
     filename = file.filename or "upload"
     db.add(IngestJob(
@@ -264,6 +278,8 @@ async def start_youtube_ingest_job(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if settings.queue_backend == "sqs":
+        return _remote_response(await enqueue_ingest(db, "youtube", url=req.url))
     job_id = str(_uuid.uuid4())
     db.add(IngestJob(
         id=job_id,
@@ -288,6 +304,8 @@ async def start_web_ingest_job(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if settings.queue_backend == "sqs":
+        return _remote_response(await enqueue_ingest(db, "web", url=req.url))
     job_id = str(_uuid.uuid4())
     db.add(IngestJob(
         id=job_id,
