@@ -409,3 +409,96 @@ def test_text_survives_a_chunk_without_text():
     chunk = MagicMock()
     chunk.text = None
     assert llm._text([chunk, "tail"]) == "tail"
+
+
+# --- OpenAI primary, Groq as the graceful-degradation fallback -------------------------
+
+def _openai_primary(**extra):
+    stack = [
+        patch.object(llm.settings, "llm_provider", "openai"),
+        patch.object(llm.settings, "fallback_llm_provider", "groq"),
+        patch.object(llm.settings, "groq_api_key", extra.get("groq_key", "gsk-test")),
+    ]
+    return stack
+
+
+@pytest.mark.asyncio
+async def test_openai_complete_falls_back_to_groq_on_retryable_error():
+    p1, p2, p3 = _openai_primary()
+    with p1, p2, p3, \
+         patch.object(llm, "_get_client", return_value=AsyncMock()), \
+         patch.object(llm, "_openai_complete", new_callable=AsyncMock,
+                      side_effect=RuntimeError("429 rate limit")), \
+         patch.object(llm, "_groq_complete_with_temporary_client", new_callable=AsyncMock,
+                      return_value="from groq") as groq_complete:
+        assert await llm.chat_complete([{"role": "user", "content": "hi"}]) == "from groq"
+    groq_complete.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_openai_complete_does_not_fall_back_without_a_groq_key_or_on_bad_requests():
+    for key, error in (("", "429 rate limit"), ("gsk-test", "400 invalid request")):
+        p1, p2, p3 = _openai_primary(groq_key=key)
+        with p1, p2, p3, \
+             patch.object(llm, "_get_client", return_value=AsyncMock()), \
+             patch.object(llm, "_openai_complete", new_callable=AsyncMock,
+                          side_effect=RuntimeError(error)), \
+             patch.object(llm, "_groq_complete_with_temporary_client",
+                          new_callable=AsyncMock) as groq_complete:
+            with pytest.raises(RuntimeError, match=error):
+                await llm.chat_complete([{"role": "user", "content": "hi"}])
+        groq_complete.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_provider_never_falls_back_to_itself():
+    with patch.object(llm.settings, "llm_provider", "openai"), \
+         patch.object(llm.settings, "fallback_llm_provider", "openai"), \
+         patch.object(llm.settings, "openai_api_key", "sk-test"), \
+         patch.object(llm, "_get_client", return_value=AsyncMock()), \
+         patch.object(llm, "_openai_complete", new_callable=AsyncMock,
+                      side_effect=RuntimeError("503 unavailable")):
+        with pytest.raises(RuntimeError, match="503"):
+            await llm.chat_complete([{"role": "user", "content": "hi"}])
+
+
+def test_httpx_timeouts_count_as_retryable_even_with_an_empty_message():
+    import httpx
+
+    assert llm._is_retryable_llm_error(httpx.ReadTimeout(""))
+    assert llm._is_retryable_llm_error(httpx.ConnectError(""))
+    assert not llm._is_retryable_llm_error(ValueError("bad payload"))
+
+
+@pytest.mark.asyncio
+async def test_openai_stream_falls_back_to_groq_only_before_any_token():
+    async def failing(*_a, **_k):
+        raise RuntimeError("503 unavailable")
+        yield  # pragma: no cover
+
+    async def groq_tokens(*_a, **_k):
+        yield "from "
+        yield "groq"
+
+    p1, p2, p3 = _openai_primary()
+    with p1, p2, p3, \
+         patch.object(llm, "_get_client", return_value=AsyncMock()), \
+         patch.object(llm, "_openai_stream", failing), \
+         patch.object(llm, "_groq_stream_with_temporary_client", groq_tokens):
+        tokens = [t async for t in llm.chat_stream([{"role": "user", "content": "hi"}])]
+    assert "".join(tokens) == "from groq"
+
+    async def fails_midway(*_a, **_k):
+        yield "partial"
+        raise RuntimeError("503 unavailable")
+
+    p1, p2, p3 = _openai_primary()
+    with p1, p2, p3, \
+         patch.object(llm, "_get_client", return_value=AsyncMock()), \
+         patch.object(llm, "_openai_stream", fails_midway), \
+         patch.object(llm, "_groq_stream_with_temporary_client", groq_tokens):
+        got = []
+        with pytest.raises(RuntimeError, match="503"):
+            async for t in llm.chat_stream([{"role": "user", "content": "hi"}]):
+                got.append(t)
+    assert got == ["partial"]

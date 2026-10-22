@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # Which backend `app.services.llm` talks to. Per-provider model names are kept
     # separate so switching providers is a one-variable change, not two.
     llm_provider: Literal["groq", "mistral", "openai", "local"] = "groq"
-    fallback_llm_provider: Literal["none", "openai"] = "openai"
+    fallback_llm_provider: Literal["none", "openai", "groq"] = "openai"  # "groq" pairs with llm_provider="openai"
 
     groq_api_key: str = ""
     # Used when llm_provider="groq". Was llama-3.3-70b-versatile, which Groq has since
