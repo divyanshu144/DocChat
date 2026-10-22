@@ -8,6 +8,8 @@ import trafilatura
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 import uuid as _uuid
+from app.core.config import settings
+from app.core.url_safety import fetch_public
 from app.core.sources import source_collection
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
 from app.services.ingestion.storage import build_points, replace_source_points
@@ -43,7 +45,10 @@ def _source_id_for_url(url: str) -> str:
 
 
 def _scrape(url: str) -> dict:
-    response = httpx.get(url, timeout=30, follow_redirects=True, headers=_HEADERS)
+    if settings.ingest_block_private_urls:
+        response = fetch_public(url, headers=_HEADERS)
+    else:
+        response = httpx.get(url, timeout=30, follow_redirects=True, headers=_HEADERS)
     response.raise_for_status()
     content = trafilatura.extract(response.text, include_comments=False, include_tables=False)
     if not content:
