@@ -1,0 +1,25 @@
+.git
+.env
+venv/
+**/__pycache__/
+*.pyc
+frontend/node_modules/
+frontend/dist/
+qdrant_data/
+postgres_data/
+reports/
+Claude outputs/
+docs/
+.claude/
+tests/
+uploads/
+*.db
+# added with the AWS platform work (build context only; the image COPYs app/ explicitly)
+.github/
+infra/
+data/
+graphify-out/
+eval/
+deploy/
+frontend/
+node_modules/

@@ -1,0 +1,104 @@
+name: Deploy
+
+# Manual, environment-gated. The images are built ONCE, in the CI job this workflow calls, and scanned there. The
+# deploy job loads those exact images, checks the image id matches what was scanned, uploads them to ECR under the
+# commit SHA (tags are immutable), and rolls out by digest. Task definitions are registered per service and the
+# services are updated API first (it owns schema changes), then the worker. It never runs `terraform apply`.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub environment (and Terraform environment) to deploy to
+        type: choice
+        options: [dev, staging, prod]
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+    with:
+      export_images: true
+
+  deploy:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ inputs.environment }} # required reviewers live on this GitHub environment
+    permissions:
+      id-token: write # OIDC to AWS; no long-lived keys are stored anywhere
+      contents: read
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
+      PROJECT: docchat
+      SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Get the images that were scanned
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: image-*
+          path: scanned
+
+      - name: Push exactly the scanned images and record their digests
+        run: |
+          set -euo pipefail
+          : > digests.env
+          for svc in api worker; do
+            repo="$PROJECT/$ENVIRONMENT/$svc"
+            uri=$(aws ecr describe-repositories --repository-names "$repo" --query 'repositories[0].repositoryUri' --output text)
+            docker load --input "scanned/image-$svc/image.tar"
+            loaded=$(docker image inspect --format '{{.Id}}' "docchat-$svc:ci")
+            if [ "$loaded" != "$(cat "scanned/image-$svc/image.id")" ]; then
+              echo "::error::$svc image id differs from the scanned image"
+              exit 1
+            fi
+            if aws ecr describe-images --repository-name "$repo" --image-ids imageTag="$SHA" >/dev/null 2>&1; then
+              echo "$svc:$SHA is already in ECR (tags are immutable); using its digest"
+            else
+              aws ecr get-login-password | docker login --username AWS --password-stdin "${uri%%/*}"
+              docker tag "docchat-$svc:ci" "$uri:$SHA"
+              docker image push "$uri:$SHA"
+            fi
+            digest=$(aws ecr describe-images --repository-name "$repo" --image-ids imageTag="$SHA" --query 'imageDetails[0].imageDigest' --output text)
+            echo "$svc=$digest" >> digests.env
+            echo "$svc digest: $digest"
+          done
+
+      - name: Roll out (API first, then worker); fail if ECS rolled the deployment back
+        run: |
+          set -euo pipefail
+          cluster="$PROJECT-$ENVIRONMENT"
+          for svc in api worker; do
+            uri=$(aws ecr describe-repositories --repository-names "$PROJECT/$ENVIRONMENT/$svc" --query 'repositories[0].repositoryUri' --output text)
+            digest=$(grep "^$svc=" digests.env | cut -d= -f2)
+            # Start from the newest registered revision (Terraform's config) and change only the image.
+            new=$(aws ecs describe-task-definition --task-definition "$cluster-$svc" --query taskDefinition --output json \
+              | jq --arg img "$uri@$digest" '.containerDefinitions[0].image = $img
+                  | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+            arn=$(aws ecs register-task-definition --cli-input-json "$new" --query taskDefinition.taskDefinitionArn --output text)
+            echo "$svc -> $arn"
+            aws ecs update-service --cluster "$cluster" --service "$svc" --task-definition "$arn" >/dev/null
+            aws ecs wait services-stable --cluster "$cluster" --services "$svc"
+            # `wait` also succeeds after a circuit-breaker rollback, so check what is actually primary.
+            # shellcheck disable=SC2016 # backticks are JMESPath string literals, not shell substitution
+            primary=$(aws ecs describe-services --cluster "$cluster" --services "$svc" \
+              --query 'services[0].deployments[?status==`PRIMARY`].taskDefinition | [0]' --output text)
+            if [ "$primary" != "$arn" ]; then
+              echo "::error::$svc deployment was rolled back by ECS (primary is $primary)"
+              exit 1
+            fi
+          done
