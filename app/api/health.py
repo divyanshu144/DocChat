@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import engine
+from app.core.qdrant import qdrant_headers
 from app.agent.nodes.retriever import _get_http_client
 
 router = APIRouter()
@@ -19,7 +20,8 @@ async def _database_probe() -> None:
 
 async def _qdrant_probe() -> None:
     response = await _get_http_client().get(
-        f"http://{settings.qdrant_host}:{settings.qdrant_port}/collections", timeout=3.0
+        f"http://{settings.qdrant_host}:{settings.qdrant_port}/collections", timeout=3.0,
+        headers=qdrant_headers(),
     )
     response.raise_for_status()
 
