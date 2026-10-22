@@ -7,6 +7,7 @@ from qdrant_client.models import Filter, FieldCondition, MatchAny
 from app.agent.state import AgentState
 from app.core.config import settings
 from app.core.telemetry import span, annotate
+from app.core.qdrant import qdrant_headers
 from app.core.sources import source_collection
 from app.services.embedder import get_embedder
 
@@ -42,6 +43,7 @@ async def _search(collection_name: str, query_vector: list, limit: int, qdrant_f
     resp = await _get_http_client().post(
         f"{base_url}/collections/{collection_name}/points/search",
         json=payload,
+        headers=qdrant_headers(),
     )
     resp.raise_for_status()
     return resp.json()["result"]

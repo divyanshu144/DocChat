@@ -106,6 +106,10 @@ def _is_retryable_llm_error(exc: Exception) -> bool:
     status_code = getattr(exc, "status_code", None)
     if status_code in {408, 409, 429, 500, 502, 503, 504}:
         return True
+    import httpx
+
+    if isinstance(exc, (httpx.TimeoutException, httpx.ConnectError)):
+        return True  # str() of these is often empty, so the marker scan below misses them
 
     message = str(exc).lower()
     retryable_markers = (
@@ -483,6 +487,28 @@ async def _openai_stream_with_temporary_client(
         await client.aclose()
 
 
+async def _groq_complete_with_temporary_client(
+    messages: list[dict], max_tokens: int, temperature: float | None = None
+) -> str:
+    client = _build_client("groq")
+    try:
+        return await _groq_complete(client, messages, max_tokens, temperature)
+    finally:
+        await client.close()
+
+
+async def _groq_stream_with_temporary_client(
+    messages: list[dict], max_tokens: int, usage_sink: dict | None = None
+) -> AsyncGenerator[str, None]:
+    client = _build_client("groq")
+    try:
+        async with aclosing(_groq_stream(client, messages, max_tokens, usage_sink)) as stream:
+            async for token in stream:
+                yield token
+    finally:
+        await client.close()
+
+
 # ---------------------------------------------------------------------------
 # Local (self-hosted, e.g. vLLM's OpenAI-compatible server)
 # ---------------------------------------------------------------------------
@@ -533,12 +559,21 @@ async def _local_stream(
             yield text
 
 
+def _can_fallback(exc: Exception, primary: str) -> bool:
+    """Whether a failed `primary` call may be retried on `settings.fallback_llm_provider`.
+
+    Only groq and openai fall back to each other, only for retryable errors, and only
+    when the fallback provider's API key is configured.
+    """
+    fallback = settings.fallback_llm_provider
+    if primary not in {"groq", "openai"} or fallback not in {"groq", "openai"} or fallback == primary:
+        return False
+    key = settings.openai_api_key if fallback == "openai" else settings.groq_api_key
+    return bool(key) and _is_retryable_llm_error(exc)
+
+
 def _can_fallback_to_openai(exc: Exception) -> bool:
-    return (
-        settings.fallback_llm_provider == "openai"
-        and bool(settings.openai_api_key)
-        and _is_retryable_llm_error(exc)
-    )
+    return _can_fallback(exc, "groq")
 
 
 # ---------------------------------------------------------------------------
@@ -601,7 +636,7 @@ async def chat_complete(
         try:
             return await _groq_complete(client, messages, max_tokens, temperature)
         except Exception as exc:
-            if not _can_fallback_to_openai(exc):
+            if not _can_fallback(exc, "groq"):
                 raise
             emit({"event": "llm_retry", "provider": "groq"})
             logger.warning(
@@ -612,7 +647,16 @@ async def chat_complete(
                 messages, max_tokens, temperature
             )
     if settings.llm_provider == "openai":
-        return await _openai_complete(client, messages, max_tokens, temperature)
+        try:
+            return await _openai_complete(client, messages, max_tokens, temperature)
+        except Exception as exc:
+            if not _can_fallback(exc, "openai"):
+                raise
+            emit({"event": "llm_retry", "provider": "openai"})
+            logger.warning("openai_chat_failed_retrying_groq")
+            return await _groq_complete_with_temporary_client(
+                messages, max_tokens, temperature
+            )
     if settings.llm_provider == "local":
         return await _local_complete(client, messages, max_tokens, temperature)
     raise ValueError(
@@ -649,13 +693,13 @@ async def chat_stream(
                 yielded = True
                 yield token
     except Exception as exc:
-        if provider != "groq" or yielded or not _can_fallback_to_openai(exc):
+        if yielded or not _can_fallback(exc, provider):
             raise
         sink.clear()
-        emit({"event": "llm_retry", "provider": "groq"})
-        logger.warning("groq_stream_failed_retrying_openai")
-        async with aclosing(_openai_stream_with_temporary_client(
-            messages, max_tokens, sink
-        )) as stream:
+        emit({"event": "llm_retry", "provider": provider})
+        logger.warning("%s_stream_failed_retrying_fallback", provider)
+        fallback_stream = (_openai_stream_with_temporary_client if provider == "groq"
+                           else _groq_stream_with_temporary_client)
+        async with aclosing(fallback_stream(messages, max_tokens, sink)) as stream:
             async for token in stream:
                 yield token

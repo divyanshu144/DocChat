@@ -561,3 +561,50 @@ when no space is found within some reasonable distance of the end.
 - With prefix caching off, vLLM 0.30.0 reports no prefix-cache queries at all: show the hit rate as unavailable, not 0%.
 - The legacy `inference_benchmark` default `--out` is a tracked append-only file; pass `--out` into the run folder.
 - Billing readback lags: only the first hourly bucket had posted after termination. Report estimate and readback separately.
+
+## 2026-10-22 - AWS platform work: lessons
+- The brief assumed Celery, Redis, pgvector. The repo had none: jobs were FastAPI BackgroundTasks, vectors are in Qdrant.
+  Inspect before designing; record where the brief and the repo disagree and say what was decided.
+- A DB lease that equals the SQS visibility timeout is wrong: the claim happens after the receive, so a crashed worker's
+  redelivered message still sees a live lease, is dropped as a "duplicate", and the job is stuck in `running`. Lease must be
+  shorter (now 2/3, heartbeat 1/3). Found by reasoning, then a failing test written first.
+- The worker loop blocked in `asyncio.wait(tasks)` when all slots were busy and never re-checked `stopping`, so SIGTERM under
+  load would not drain. Found by a unit test of exactly that case. Always wait on `tasks + stop event`.
+- Scanning REAL container logs found httpx logging every ingested URL at INFO. A scrubber that only strips query strings is
+  not enough; cap chatty client libraries at WARNING. Also: `extra={"filename": ...}` is illegal in `logging`.
+- `requirements.txt` was unpinned, so the image resolved qdrant-client 1.20 while the tests had run on 1.18. Lock what ships
+  (`requirements.lock`) and run the suite on that set. Then Trivy found fixable CVEs: bump, and read `pip check` conflicts
+  before accepting them (fastembed `pillow<13`, python-jose `pyasn1<0.5`: both verified irrelevant to this app's paths).
+- Remaining image CVEs were pip's own vendored copies; the runtime image does not need pip, so remove it.
+- uvicorn `--forwarded-allow-ips '*'` trusts the left-most (client-supplied) X-Forwarded-For entry; a CIDR trusts the right
+  one. Behind an ALB use the VPC CIDR or per-IP rate limits are spoofable (tested against uvicorn itself).
+- Cloud-specific SSRF: a user-supplied URL fetched from a task with an IAM role can reach the link-local credentials
+  endpoint, which security groups cannot block. Guard in the app, including redirect hops.
+- Worker role validation conflict: a config check that required JWT_SECRET_KEY in prod would have crashed the worker, which
+  deliberately never gets that secret. Validate per-process needs, not global ones.
+- Tooling/sandbox: `docker stop|rm|kill` and a heredoc containing `-f ... push` were denied/blocked (heuristic hook);
+  create files with the Write tool, run containers with `docker run` only, and report what could not be run.
+  zsh errors on unquoted `--include=*.py` (the earlier grep silently did not run); macOS `sed -i` needs a suffix arg;
+  `docker cp` fails into a `--read-only` container (pipe via stdin); a `# syntax=docker/dockerfile` line makes the build
+  wait on a registry fetch; `terraform validate` passing proves syntax only.
+
+## 2026-10-22 - AWS platform second pass: lessons
+- A test that passes on its first run proves little: for the new Postgres tests I disabled the locks and confirmed the two
+  right tests failed, then restored. Do this for every concurrency test.
+- RDS managed rotation changes the DB password in place every 7 days, so a password injected as an env var at task start
+  breaks on the next reconnect. Read it at connect time (SQLAlchemy `async_creator` gives exact control of the one retry).
+- Order of writes beats a repair job: send the message first, then insert the row, and let the consumer create a missing row.
+  That removes the "queued forever" state instead of sweeping for it.
+- ECS scale-in is blind to in-flight SQS messages unless the alarm adds `ApproximateNumberOfMessagesNotVisible`; and
+  protection (agent endpoint) only stops autoscaling, not deploys or Spot reclaims. An interrupted job still costs an attempt.
+- Connecting to a pre-validated IP while sending the real Host header and `sni_hostname` closes DNS rebinding in httpx. A
+  negative TLS control can be fooled by a wildcard certificate (example.com covers *.example.org), so pick a clearly unrelated name.
+- zsh gotchas that silently broke checks: `$t:local` is a modifier (mangled image names; a stale tarball then "passed" Trivy),
+  and `T="docker run ..."; $T` does not word-split. Use `${t}` and shell functions, and confirm the artifact exists.
+- A heuristic safety hook blocks shell commands whose text contains destructive SQL keywords, even inside a test file or a
+  note being written. Use the Write or Edit tool for file content, and word notes so they do not quote such statements.
+- A test that built a real `QdrantClient` contacted localhost:6333 (the developer's real Qdrant). Never construct real network
+  clients in unit tests; stand in a fake that raises the same warning.
+- `terraform validate` accepts a lot; static tests over the HCL (separation of IAM, no wildcard proxy trust, demo never touching
+  networking) are what keep later edits honest. Mutate once to prove they fail.
+

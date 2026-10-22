@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import Settings, settings
 from app.core.database import create_all_tables
+from app.core.logging_config import configure_logging
 from app.agent.nodes.retriever import close_retriever_client
 from app.core.rate_limit import rate_limiter
 from app.core.telemetry import RequestTelemetryMiddleware
@@ -22,10 +23,7 @@ from app.api import metrics
 from app.api import ingest
 
 logger = logging.getLogger("app")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s %(message)s",
-)
+configure_logging()
 
 _DEFAULT_JWT_SECRET_KEY = Settings.model_fields["jwt_secret_key"].default
 
@@ -47,8 +45,12 @@ def _refuse_default_secret_in_production() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     _refuse_default_secret_in_production()
-    await create_all_tables()
-    await ingest.recover_interrupted_ingest_jobs()
+    if settings.run_migrations_on_startup:
+        await create_all_tables()
+    if settings.queue_backend == "local":
+        # In-process jobs die with the process. With a shared queue other tasks own running jobs,
+        # so marking them failed here would corrupt live work; the worker's lease logic recovers instead.
+        await ingest.recover_interrupted_ingest_jobs()
     logger.info("startup", extra={"app": settings.app_name, "version": settings.version})
     try:
         yield

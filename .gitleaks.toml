@@ -1,0 +1,8 @@
+# Extends the default ruleset. Only documented false positives are allowed here.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Git commit SHAs recorded in benchmark manifests; metric-name tuples in eval harness"
+regexes = ['''\b[0-9a-f]{40}\b''']
+paths = ['''eval/serving_load\.py''']
