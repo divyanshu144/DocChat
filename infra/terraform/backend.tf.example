@@ -1,0 +1,12 @@
+# Copy to backend.tf and fill in. The state bucket and lock table are bootstrapped out of band
+# (they must exist before `terraform init`); this repo deliberately does not create them.
+#
+# terraform {
+#   backend "s3" {
+#     bucket         = "<your-state-bucket>"
+#     key            = "docchat/<environment>/terraform.tfstate"
+#     region         = "<region>"
+#     encrypt        = true
+#     dynamodb_table = "<your-lock-table>"   # or use_lockfile = true on recent Terraform
+#   }
+# }
