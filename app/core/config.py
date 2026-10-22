@@ -1,11 +1,13 @@
 from pathlib import Path
 from functools import lru_cache
 from typing import Literal
-from pydantic import Field
+from urllib.parse import quote
+from pydantic import Field, model_validator
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+_DEFAULT_JWT_SECRET_KEY = "change-me-in-production-use-a-long-random-string"
 
 
 class Settings(BaseSettings):
@@ -66,6 +68,8 @@ class Settings(BaseSettings):
     # Qdrant
     qdrant_host: str = "localhost"
     qdrant_port: int = 6333
+    # Optional. Blank (the local default) sends no key. In AWS the key is injected from Secrets Manager.
+    qdrant_api_key: str = ""
 
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
@@ -109,10 +113,102 @@ class Settings(BaseSettings):
     db_max_overflow: int = 20
 
     # JWT Authentication
-    jwt_secret_key: str = "change-me-in-production-use-a-long-random-string"
+    jwt_secret_key: str = _DEFAULT_JWT_SECRET_KEY
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
+
+    # --- Cloud platform (all defaults keep the local, no-AWS behaviour) ---
+    environment: Literal["local", "dev", "staging", "prod"] = "local"
+    # "json" emits one redacted JSON object per line (CloudWatch); "text" is the local default.
+    log_format: Literal["text", "json"] = "text"
+
+    # Database as parts. When DATABASE_HOST is set, database_url is assembled from them, so
+    # the RDS-managed secret can be injected as DATABASE_PASSWORD without a URL in Terraform state.
+    database_host: str = ""
+    database_port: int = Field(default=5432, ge=1, le=65535)
+    database_name: str = "docchat"
+    database_user: str = "docchat"
+    database_password: str = ""
+    # AWS mode: read the password from this Secrets Manager secret each time a connection is opened
+    # (it rotates). Mutually exclusive with DATABASE_PASSWORD, which stays the local-development path.
+    database_password_secret_arn: str = ""
+    database_ssl: Literal["", "require"] = ""
+    # Only one task may run DDL at a time; AWS API tasks serialise on an advisory lock,
+    # workers never run DDL.
+    run_migrations_on_startup: bool = True
+
+    # Document storage and ingestion queue. "local" = this repo's original behaviour.
+    storage_backend: Literal["local", "s3"] = "local"
+    local_storage_dir: str = str(_PROJECT_ROOT / "data" / "storage")
+    s3_bucket: str = ""
+    s3_prefix: str = "uploads/"
+    aws_region: str = ""
+    # Keep uploaded originals after a successful ingest. Required for DLQ redrive/re-ingest.
+    retain_uploads: bool = False
+
+    queue_backend: Literal["local", "sqs"] = "local"
+    sqs_queue_url: str = ""
+    sqs_wait_seconds: int = Field(default=20, ge=0, le=20)
+    sqs_visibility_timeout_s: int = Field(default=300, ge=30)
+    # Must equal the queue's redrive maxReceiveCount (Terraform sets both from one variable).
+    ingest_max_attempts: int = Field(default=3, ge=1, le=20)
+    ingest_retry_base_delay_s: int = Field(default=15, ge=1)
+    ingest_retry_max_delay_s: int = Field(default=600, ge=1)
+    ingest_job_timeout_s: int = Field(default=1800, ge=30)
+    # An identical queued/running job younger than this is returned instead of enqueuing another.
+    ingest_dedupe_window_s: int = Field(default=3600, ge=0)
+    # A job still "queued" and untouched for this long is treated as dead for dedupe, so one stale row can
+    # never block a fresh submission of the same source.
+    ingest_queued_stale_s: int = Field(default=600, ge=1)
+
+    # SSRF guard for web ingestion (see app/core/url_safety.py). Off locally so localhost docs still
+    # work; required in staging/prod because the cloud worker has credentials a fetched URL could reach.
+    ingest_block_private_urls: bool = False
+    # Limits for guarded fetches (apply when the guard above is on): largest accepted response body after
+    # decompression, and the total time for all redirects plus reading the body.
+    web_max_bytes: int = Field(default=5 * 1024 * 1024, ge=1024)
+    web_fetch_timeout_s: float = Field(default=30.0, gt=0)
+
+    worker_concurrency: int = Field(default=2, ge=1, le=32)
+    worker_shutdown_timeout_s: int = Field(default=90, ge=1)
+    worker_http_port: int = Field(default=8080, ge=1, le=65535)
+
+    @model_validator(mode="after")
+    def _validate_platform(self):
+        if self.database_host:
+            if "database_url" in self.model_fields_set:
+                raise ValueError("Set either DATABASE_URL or DATABASE_HOST, not both")
+            if self.database_password and self.database_password_secret_arn:
+                raise ValueError("Set either DATABASE_PASSWORD or DATABASE_PASSWORD_SECRET_ARN, not both")
+            if not self.database_password and not self.database_password_secret_arn:
+                raise ValueError("DATABASE_PASSWORD (or DATABASE_PASSWORD_SECRET_ARN) is required "
+                                 "when DATABASE_HOST is set")
+            query = f"?ssl={self.database_ssl}" if self.database_ssl else ""
+            secret = f":{quote(self.database_password, safe='')}" if self.database_password else ""
+            self.database_url = (
+                f"postgresql+asyncpg://{quote(self.database_user, safe='')}{secret}"
+                f"@{self.database_host}:{self.database_port}/{self.database_name}{query}"
+            )
+        elif self.database_password_secret_arn:
+            raise ValueError("DATABASE_PASSWORD_SECRET_ARN needs DATABASE_HOST")
+        if self.storage_backend == "s3" and not self.s3_bucket:
+            raise ValueError("S3_BUCKET is required when STORAGE_BACKEND=s3")
+        if self.queue_backend == "sqs":
+            if not self.sqs_queue_url:
+                raise ValueError("SQS_QUEUE_URL is required when QUEUE_BACKEND=sqs")
+            if self.storage_backend != "s3":
+                # API and worker tasks do not share a filesystem.
+                raise ValueError("QUEUE_BACKEND=sqs requires STORAGE_BACKEND=s3")
+        if self.ingest_retry_max_delay_s < self.ingest_retry_base_delay_s:
+            raise ValueError("INGEST_RETRY_MAX_DELAY_S must be >= INGEST_RETRY_BASE_DELAY_S")
+        if self.environment in ("staging", "prod"):
+            if self.debug:
+                raise ValueError("DEBUG must be false in staging/prod")
+            # JWT_SECRET_KEY is enforced at API startup (app.main); the worker never receives it.
+            if not self.ingest_block_private_urls:
+                raise ValueError("INGEST_BLOCK_PRIVATE_URLS must be true in staging/prod")
+        return self
 
 
 @lru_cache()
