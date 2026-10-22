@@ -1,3 +1,101 @@
+## Active: AWS platform follow-up fixes (2026-10-22, second pass) - DONE (offline); see HANDOFF.md
+
+Rules: no terraform plan/apply, no AWS, no AWS-dependent tests. No commit, never `git add -A`. Do not touch
+app/services/llm.py, tests/test_llm_provider_seam.py, reports/, "Claude outputs/", docs/project-walkthrough.md.
+Local backends stay the default. Plain English, no em-dashes. A test for every behaviour change.
+Baseline now: ruff clean, 778 passed (634 at the start of the first pass = 629 at HEAD + 5 uncommitted llm-seam tests).
+
+### 1 Scale-in kills running jobs (required)
+- [x] ecs.tf: scale-in alarm uses metric math: visible + not-visible (`ApproximateNumberOfMessagesNotVisible`), per minute, 15 periods.
+- [x] New `app/worker/protection.py`: ECS scale-in protection via the agent endpoint (`ECS_AGENT_URI/task-protection/v1/state`, PUT
+      `ProtectionEnabled` with expiry). Injected client so tests use a fake. Fail safe: endpoint missing or error means
+      no protection and a content-free warning, never a crash. Enabled while jobs are in flight, released when idle, renewed
+      during long jobs, released on shutdown.
+- [x] Wire into Worker (`_run_one` counter). Tests: on at first job, off at last, renewed, fake down, no env var (local).
+- [x] IAM: task-protection calls use the task role (agent endpoint), check which permission applies (`ecs:UpdateTaskProtection`)
+      and add it to the worker task role only, scoped to this cluster's tasks.
+- [x] Defaults: ingest_job_timeout_s vs visibility vs max attempts. Document that an interrupted job still uses a receive
+      count, and the rule: max attempts >= 3 and timeout well under visibility x attempts. Add a config check where cheap.
+- [x] docs/aws/operations.md section.
+
+### 2 RDS rotated password (required)
+- [x] Read the AWS docs on managed master secret rotation (7-day schedule, password changed in place?) and record findings
+      in docs/aws/security.md. The design below is only kept if the docs show new connections break.
+- [x] If so: `app/core/db_secret.py` secrets reader (boto3, injected client, short TTL cache, retry once on auth failure);
+      database.py passes it to asyncpg via `connect_args={"password": callable}`; setting `DATABASE_PASSWORD_SECRET_ARN`
+      (env `DATABASE_PASSWORD` stays for local). ecs.tf passes the ARN instead of injecting the password; task roles get
+      `secretsmanager:GetSecretValue` on the DB secret only (worker keeps DB secret only). Tests with a fake client that rotates.
+- [x] Open point: SQLAlchemy pool_pre_ping plus asyncpg password callable support; check the installed versions first.
+
+### 3 Dual-write gap, stuck queued jobs (required)
+- [x] Setting `INGEST_QUEUED_STALE_S` (default 600).
+- [x] enqueue.py: dedupe ignores `queued` jobs older than the threshold (running jobs keep the lease rule).
+- [x] Worker sweeper: every N seconds, find jobs `queued` and stale, re-send their message (needs the message fields:
+      PDF storage key is derivable from job id; URL jobs need the URL, which is not stored. Decision needed, see questions).
+- [x] Tests: crash between commit and send, sweeper re-sends once per interval, dedupe skips a stale job, duplicate send is harmless.
+
+### 4 Concurrency tests on real Postgres (required)
+- [x] `pg` marker in pytest.ini; fixture reads `TEST_DATABASE_URL`, skips cleanly if unset or unreachable.
+- [x] Tests: two workers claim one job (exactly one wins), source_lock serialises two writers of one source, lease expiry vs redelivery.
+- [x] ci.yml: `postgres` job with a postgres:16 service container and `TEST_DATABASE_URL`. Run locally against a throwaway
+      Docker Postgres (docker run only; stop/rm may be denied).
+
+### 5 Build once, scan, deploy the same image
+- [x] ci.yml builds and scans, uploads the image tar as an artifact (or deploy builds once, scans, then pushes the same image).
+- [x] deploy.yml: reuse CI result, load that image, push, record digest, register task definition with `repo@sha256:...`.
+      Keep the checks gate, OIDC, SHA pins. actionlint.
+
+### 6 Qdrant hardening
+- [x] App: `QDRANT_API_KEY` setting, passed to QdrantClient and the health probe header. Tests.
+- [x] secrets.tf container, ecs.tf secret on API and worker, instance gets the key at boot from Secrets Manager (instance role read on that one secret).
+- [x] ECR repo for the Qdrant mirror, instance pulls from ECR by digest (instance role: auth token + pull on that repo only).
+- [x] deployment.md: mirroring steps (pull, verify digest, push). Hygiene tests updated.
+
+### 7 URL fetcher limits
+- [x] `WEB_MAX_BYTES` (default 5 MiB) and total deadline across redirects; stream with a cap. Tests: oversize, slow body, redirect chain.
+- [x] DNS rebinding: connect to the validated IP with Host header and `sni_hostname` extension in httpx. Expected to be feasible; if tests show it is not, keep the guard and document why.
+
+### 8 Cost-lean demo profile
+- [x] `demo` variable (default false): worker Fargate Spot, worker min 0 with scale-out alarm at 1 visible, db.t4g.micro single AZ, 7-day logs.
+- [x] AWS Budget with email (limit and email variables).
+- [x] NAT-less demo: decided NOT to build (docs/aws/cost.md explains why).
+- [x] docs/aws/teardown.md, cost.md (estimates only), dev.tfvars.example.
+
+### 9 Smaller items
+- [x] security.md: lock pins pillow 13 / old pyasn1 against declared caps, resolver fails on the lock, how it is verified (pip check allowlist, tests on the lock). PyJWT move planned as a separate step, not now.
+- [x] Logging: the `request` telemetry event already carries method, route template, status, duration and request id, so the disabled uvicorn access log is covered. Add a test that proves it, and a small line only if the proof fails.
+- [x] cloudwatch.tf: alarm on the `IngestDeadLettered` metric.
+- [x] limitations.md: explain 629 at HEAD / 634 with uncommitted llm tests / current count.
+
+### Closing
+- [x] ruff, pytest -m "not eval", pg tests, terraform fmt/init/validate, Trivy config, both Docker builds, actionlint. Say what could not run.
+- [x] HANDOFF.md, tasks/lessons.md, CLAUDE.md baseline.
+
+### Answered (2026-10-22): 1) no URL storage, send-then-insert + stale dedupe, no sweeper; 2) yes, read secret at connect time; 3) skip NAT-less; 4) API key, no TLS, keep ECR mirror
+### Original questions
+1. Item 3: URL jobs do not store the URL (kept out of the DB on purpose). For the sweeper to re-send, either store the URL in the job row (encrypted-at-rest DB, never logged) or mark stale URL jobs as failed and let the user resubmit. I prefer storing it. OK?
+2. Item 2: if the AWS docs show rotation breaks new connections, the app reads the password from Secrets Manager at connect time. This adds boto3 to the DB path in AWS mode only. OK?
+3. Item 8, NAT-less demo: tasks in public subnets with public IPs is workable (no inbound, egress-only security groups), but Qdrant and RDS stay private and Qdrant then needs ECR/SSM reachability, which means VPC endpoints that cost about as much as a NAT. My lean is not to implement the NAT-less part and say why. Agree?
+4. Item 6: Qdrant API key over plain HTTP is sent unencrypted inside the VPC. Accept that and document it, or add TLS (more work)?
+
+## Previous pass: AWS platform (2026-10-22)
+
+Plan: docs/superpowers/plans/2026-10-22-aws-platform.md. No `terraform apply`, no live AWS, no secrets, no AWS-dependent tests.
+Baseline before work: ruff clean, 634 passed (uncommitted llm.py work already in tree; not mine, do not stage).
+
+- [x] 1 config: backends, DB parts, prod validation
+- [x] 2 blob stores (local, s3) + tests
+- [x] 3 queue (message, sqs) + tests
+- [x] 4 ingest_jobs columns, runner, claim/idempotency, retries + tests
+- [x] 5 ingest API wired to queue backend; gate startup recovery/migrations
+- [x] 6 worker loop, graceful shutdown, health/metrics server + tests
+- [x] 7 JSON logging + redaction, /health/live, worker metrics + tests
+- [x] 8 Dockerfile (api, worker), build + run read-only check
+- [x] 9 Terraform + fmt/validate
+- [x] 10 GitHub Actions
+- [x] 11 docs/aws/*, HANDOFF, lessons
+- [ ] 12 full gates, diff security review  (gates green: ruff clean, 778 passed; diff review in progress)
+
 ## Active: close the remaining inference-serving gaps (2026-10-06, third session)
 
 Goal: honestly measured evidence for (A) GPU utilization, (B) a failure test, (C) a stronger benchmark harness.

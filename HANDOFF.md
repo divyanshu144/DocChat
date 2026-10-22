@@ -1,6 +1,80 @@
 # DocChat session handoff
 
-## Latest: live GPU session done and pod terminated (2026-10-06); report written, nothing committed yet
+## Latest: AWS platform second pass (2026-10-22): 9 fixes done offline; still NOTHING applied, NOTHING committed
+
+Plan and checklist: `tasks/todo.md`. Read `docs/aws/limitations.md` first (verification table, test-count explanation).
+
+Done (each has tests; `ruff` clean; **841 passed** with Postgres, 834 passed + 7 skipped without; baseline was 634):
+1. Scale-in: alarm counts visible + in-flight (metric math); worker sets ECS task scale-in protection while jobs run
+   (`app/worker/protection.py`, fails safe); `docs/aws/operations.md` explains that interrupted jobs still use attempts.
+2. RDS rotation: AWS docs say rotation is every 7 days and changes the DB password in place, so env-injected passwords
+   break. AWS mode now reads the secret at connect time (`app/core/db_secret.py`, `db_connect.py`, setting
+   `DATABASE_PASSWORD_SECRET_ARN`), one forced refresh + one retry on auth failure; task roles read the DB secret only.
+3. Dual-write: enqueue now sends first, then inserts the row (ON CONFLICT DO NOTHING); worker creates a missing row;
+   stale `queued` rows are ignored by dedupe (`INGEST_QUEUED_STALE_S`). No sweeper, no URL stored.
+4. Real-Postgres tests (`-m pg`, `tests/test_pg_concurrency.py`) + CI `postgres` job (`REQUIRE_PG=1`).
+5. Deploy pushes the scanned image: CI exports it (only when called by deploy), deploy checks the image id, pushes, rolls out by digest.
+6. Qdrant API key (app + Terraform), ECR mirror pulled by digest, instance role limited to ECR pull + that one secret.
+7. Fetcher: IP-pinned connection (Host + TLS server name kept), 5 MiB body cap after decompression, 30 s total deadline.
+8. `demo` profile (Spot worker from zero, db.t4g.micro single AZ, 7-day logs), AWS Budget, `docs/aws/teardown.md`.
+   NAT-less demo deliberately NOT built (reasons in `docs/aws/cost.md`).
+9. Dependency overrides documented; access-log test proved the `request` event already covers it (no new log line);
+   alarm on the dead-letter log metric; limitations updated.
+
+Run the Postgres tests: start `postgres:16-alpine` with `-p 55432:5432`, create a database named `docchat_test`, then
+`TEST_DATABASE_URL=postgresql+asyncpg://<user>:<pw>@127.0.0.1:55432/docchat_test pytest -m pg`.
+
+NOT verified (see limitations): any real AWS behaviour, the `postgres` and deploy CI jobs on GitHub, ECS task protection
+on Fargate, real RDS rotation, Spot/scale-from-zero timing, the Qdrant boot script and mirror commands, live SIGTERM/kill tests.
+
+Cleanup needed (stop/rm was denied in-session): `docker rm -f dc-api dc-worker dc-pg dc-qd dc-aws dc-pgtest && docker network rm dc-test`.
+
+Left alone as instructed: `app/services/llm.py`, `tests/test_llm_provider_seam.py`, `reports/`, `Claude outputs/`,
+`docs/project-walkthrough.md`. `app/core/config.py` still mixes the earlier one-line `fallback_llm_provider` change with this work.
+
+Next: review the diff and commit in logical pieces (never `git add -A`); replace python-jose with PyJWT as its own change (plan in
+`docs/aws/security.md`); first real `dev` apply following `docs/aws/deployment.md`; bulk re-index command.
+
+## Previously: AWS platform first pass (2026-10-22)
+
+Original summary: AWS platform built and validated offline (2026-10-22); NOTHING applied, NOTHING committed
+
+Plan: `docs/superpowers/plans/2026-10-22-aws-platform.md`. Docs: `docs/aws/` (architecture, deployment, rollback,
+backups-and-recovery, security, operations, cost, **limitations: read first**). Checklist: `tasks/todo.md`.
+
+Built (all additive; local defaults unchanged, no AWS needed locally):
+- Config/backends: `app/core/config.py` (storage/queue backends, DB-from-parts, prod validation); `app/services/blobs/`
+  (local, S3); `app/services/queueing/` (SQS); `app/services/ingestion/{runner,enqueue}.py`; `app/worker/`
+  (`python -m app.worker`); `app/core/{logging_config,url_safety}.py`; `/health/live`; ingest metrics; `ingest_jobs`
+  gained `attempts`, `dedupe_key`, `lease_until` (auto-migrated).
+- `docker/Dockerfile` (targets `api`, `worker`), `requirements.lock` (images install ONLY this), `.dockerignore` additions.
+- `infra/terraform/` (ECR, S3+KMS, SQS+DLQ, RDS, Qdrant on EC2+EBS, Secrets Manager, per-service IAM, ECS, ALB, CloudWatch).
+- `.github/workflows/{ci,deploy}.yml`, `dependabot.yml`, `.gitleaks.toml`.
+
+Verified: ruff clean; **778 passed** (634 baseline + 144 new) incl. in a venv built from `requirements.lock`; both images
+build, run `--read-only --cap-drop ALL`, embed offline; Trivy: no fixable HIGH/CRITICAL in either image or in Terraform;
+`terraform fmt/validate`; `actionlint`; gitleaks (history) clean; real end-to-end in containers against Postgres 16 + Qdrant
+with a local FAKE of SQS/S3 (enqueue, dedupe, PDF via object store, retries, DLQ). NOT verified: any real AWS behaviour
+(plan/apply, IAM, ECS, KMS), live SIGTERM drain / hard-kill recovery in a container (container stop/kill was denied), Qdrant
+server v1.20 live, deploy workflow, restore procedures. See `docs/aws/limitations.md`.
+
+Decisions made without asking (revisit if wrong): kept Qdrant (no pgvector); SQS instead of Celery/Redis (neither existed);
+Qdrant on a single EC2 node; HTTPS-only egress; SSRF guard required in staging/prod; python-jose/ecdsa advisories
+accepted by ID (follow-up: PyJWT); pillow bumped to 13 past fastembed's `<13` cap (text embedding verified).
+
+**Cleanup needed (leftover test containers; stop/rm was denied in-session):**
+`docker rm -f dc-api dc-worker dc-pg dc-qd dc-aws && docker network rm dc-test`
+
+Uncommitted and NOT part of this work: `app/services/llm.py`, `tests/test_llm_provider_seam.py`, one line of
+`app/core/config.py` (`fallback_llm_provider`), `reports/**`, `Claude outputs/`. `app/core/config.py` mixes that line with this work.
+Do not stage `.env` (ignored), `reports/heldout-serving-*/events.jsonl`, or `Claude outputs/`.
+
+Next actions: (1) review the diff and commit in logical pieces; (2) in a throwaway AWS account run phase one of
+`docs/aws/deployment.md` and `terraform plan` (expect first-run errors); (3) rehearse the backup checklist; (4) build a bulk
+re-index command; (5) replace python-jose with PyJWT. Open questions: Qdrant Cloud vs self-hosted EC2; whether to add a WAF;
+metrics collector choice (see `docs/aws/operations.md`).
+
+## Previously: live GPU session done and pod terminated (2026-10-06); report written, nothing committed yet
 
 Report: `reports/gpu-live-2026-10-06.md` (artifacts in `reports/gpu-live-2026-10-06/`, uncommitted). One L40S pod
 (`7mx8ltjpq14vku`, 75.3 min, about $1.37 estimated; provider billing readback incomplete because it lags) was terminated and

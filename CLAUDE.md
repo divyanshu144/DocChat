@@ -23,8 +23,10 @@ docker compose up --build         # full stack
 # UI + API docs: http://localhost:8081  /  http://localhost:8081/docs
 ```
 
-**Verification baseline (2026-10-06):** both gates are green — `ruff check .` clean,
-`pytest -m "not eval"` **629 passed, 0 failed**. There are no known-failing tests, so
+**Verification baseline (2026-10-22):** both gates are green — `ruff check .` clean,
+`pytest -m "not eval"` **841 passed, 0 failed** with a PostgreSQL available (`TEST_DATABASE_URL`, see HANDOFF.md);
+without one it shows **834 passed, 7 skipped** (the `pg` tests skip cleanly). History: 629 at git HEAD on 2026-10-06;
+634 once the uncommitted llm-seam tests are counted; +207 from the AWS platform work. There are no known-failing tests, so
 *any* red is a real regression you introduced. Do not rationalise a failure as
 pre-existing without diffing against a stash.
 
@@ -112,7 +114,7 @@ date while a whole feature shipped. Treat updating it as part of the task, not c
 A task is not complete until **all** of these hold:
 
 1. `ruff check .` passes clean
-2. `pytest -m "not eval" -q` is fully green — 629 passed, 0 failed
+2. `pytest -m "not eval" -q` is fully green — 834 passed, 7 skipped (841 passed with Postgres), 0 failed
 3. New logic has tests
 4. `HANDOFF.md` reflects current state
 
