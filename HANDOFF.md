@@ -1,5 +1,35 @@
 # DocChat session handoff
 
+## Latest: LiteLLM backend done, LoRA fine-tune NOT started (2026-11-02, branch `feat/litellm-lora-finetune`)
+
+Brief: `tasks/litellm-and-lora-finetune-agent-prompt.md`. Spec and plan: `docs/superpowers/{specs,plans}/2026-11-02-litellm-lora-finetune*.md`.
+Checklist: `tasks/todo.md`. Branch was cut from `feat/aws-platform` (PR #9), so merge or rebase that first.
+
+Part 1 done (opt-in, default stays `native`; nothing deployed or pushed):
+- `LLM_BACKEND=litellm` -> `app/services/llm_litellm.py` (Router from settings only, one deployment per model, chain driven
+  by our own retry classification). `requirements-litellm.txt` pins LiteLLM 1.83.0 (newest that fits the `httpx<0.28` pin;
+  not in `requirements.lock`, so the images are unchanged). Full write-up with measurements: `docs/litellm-backend.md`.
+- Findings worth remembering: the Router's own fallbacks fire on 400/401 and splice a fallback answer into a stream after
+  tokens were sent, so they are NOT used; LiteLLM logs prompts and URLs at DEBUG, so its loggers are clamped to WARNING.
+- Tests: `tests/test_llm_litellm.py` (fake package; 4 more tests use the real package and skip when it is missing).
+  Each guard was broken on purpose and a test failed (local as fallback target, no retry gate, fallback after first token,
+  temperature rule, blank-key refusal, logger clamp). `eval/llm_backend_parity.py`: identical text, usage, spans and error
+  classification against a local mock; overhead about 1 ms per call. No live provider was called: live parity NOT claimed.
+- Baseline now: ruff clean; **875 passed, 11 skipped** without Postgres or LiteLLM (7 pg + 4 real-LiteLLM tests skip);
+  879 passed, 7 skipped in a venv with LiteLLM 1.83.0; add the 7 pg tests with `TEST_DATABASE_URL`.
+
+Decisions from the user: build a NEW larger held-out set (the old one is only 16 distinct questions); teacher is
+Qwen2.5-72B-Instruct (open weights, different family from the judge); stop after Part 1 and bring a PRICED plan (GPU type,
+hourly price, total, cap) before any billable action.
+
+NOT done: all of Part 2 (data tooling, training, serving, evaluation, report). Nothing billable has run. Next step: write the
+data tooling locally (no GPU), then ask the user to approve a priced plan. Scratch venvs with LiteLLM are in the session
+scratchpad, not in the repo.
+
+Untouched and uncommitted on purpose: `Claude outputs/`, `docs/project-walkthrough.md`, raw files under `reports/`.
+
+---
+
 ## Latest: AWS platform second pass (2026-10-22): 9 fixes done offline; still NOTHING applied, NOTHING committed
 
 Plan and checklist: `tasks/todo.md`. Read `docs/aws/limitations.md` first (verification table, test-count explanation).

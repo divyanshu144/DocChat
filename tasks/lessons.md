@@ -608,3 +608,18 @@ when no space is found within some reasonable distance of the end.
 - `terraform validate` accepts a lot; static tests over the HCL (separation of IAM, no wildcard proxy trust, demo never touching
   networking) are what keep later edits honest. Mutate once to prove they fail.
 
+## 2026-11-02: LiteLLM backend
+
+- **A framework's fallback is not your fallback.** I assumed `Router(fallbacks=...)` could reproduce the native chain. Probing it
+  against a loopback server showed it falls back on any error (400 and 401 too) and, after a stream has started, continues on
+  the fallback model so the first tokens are sent twice. Root cause: the Router treats fallback as "get an answer from somewhere",
+  the app treats it as "only for transient faults, never mid-answer". Next time: probe the library's behaviour with a mock
+  server for each rule before designing around its feature, and keep the decision in our own code if it differs.
+- **Check dependency pins before choosing a version.** The latest LiteLLM needs `httpx>=0.28`; the repo pins `<0.28`. Bisecting
+  with `pip install --dry-run` found 1.83.0 as the newest that resolves. A scratch venv with the cap lifted passed the suite,
+  but changing the pin touches the lock file and the images, so it was left as a separate decision.
+- **Third-party debug logging can break a privacy rule.** LiteLLM logs whole prompts and URLs at DEBUG. Clamp its loggers and
+  test it (the test fails without the clamp).
+- **zsh:** `echo =====` fails ("= not found" is zsh's `=cmd` expansion). Quote it. `rm -rf` of a scratch venv was denied; use a
+  new directory name instead.
+

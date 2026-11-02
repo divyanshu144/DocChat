@@ -1,3 +1,28 @@
+## Active: LiteLLM backend + LoRA fine-tune (2026-11-02, branch feat/litellm-lora-finetune)
+
+Brief: `tasks/litellm-and-lora-finetune-agent-prompt.md`. Spec/plan: `docs/superpowers/{specs,plans}/2026-11-02-litellm-lora-finetune*.md`.
+Rules: no push, no billable action (GPU or hosted teacher) without the user's approval of a priced plan, stage by explicit path
+(never `git add -A`), leave `Claude outputs/`, `docs/project-walkthrough.md` and raw `reports/` alone, plain English, no em-dashes.
+Baseline at start: ruff clean, 834 passed + 7 skipped (841 with Postgres).
+User answers: new larger held-out set (keep old 16 for continuity); teacher Qwen2.5-72B-Instruct; Part 1 first, stop before GPU spend.
+
+### Part 1: LiteLLM behind the facade
+- [x] Compatibility check. Finding: `requirements.txt` pins `httpx<0.28`; LiteLLM 1.106.6 (latest) needs `httpx>=0.28`. Newest LiteLLM that resolves with the pin is 1.83.0. A scratch venv with httpx 0.28.1 + LiteLLM 1.106.6 passed 834 + 7 skipped, so lifting the pin is a possible separate change (touches `requirements.lock` and the images, so NOT done here).
+- [x] `requirements-litellm.txt` pinned to the version that resolves (not in `requirements.lock`; production images unchanged).
+- [x] `llm_backend` setting (default `native`) + test that the default is native.
+- [x] `app/services/llm_litellm.py` (lazy import, Router from settings only, same contract) + delegation in `llm.py`.
+- [x] Tests (mocked): completion, streaming, usage, retryable error, fallback to second provider, `local` never a fallback target, temperature drop-and-record, keys from settings not env.
+- [x] Break-the-guard checks (allow `local` as a fallback target; stop dropping temperature) and restore.
+- [x] `eval/llm_backend_parity.py` + `docs/litellm-backend.md` (import time, size, per-call overhead, differences). No live parity claim unless a live provider is used.
+- [x] `ruff check .` + `pytest -m "not eval" -q` green; HANDOFF.md and lessons updated; commit Part 1; STOP and report.
+
+### Part 2: LoRA fine-tune (only after the user approves a priced plan)
+- [ ] 2a data tooling: source manifest, corpus builder, example generator, validator, decontamination, heldout-v2 builder, tests.
+- [ ] Priced plan to the user (GPU type, hourly price, expected total, cap) and approval.
+- [ ] 2b training (smoke run first). 2c serve and evaluate base vs fine-tuned vs hosted. 2d report + README link.
+
+---
+
 ## Active: AWS platform follow-up fixes (2026-10-22, second pass) - DONE (offline); see HANDOFF.md
 
 Rules: no terraform plan/apply, no AWS, no AWS-dependent tests. No commit, never `git add -A`. Do not touch
