@@ -629,6 +629,10 @@ async def chat_complete(
         streaming=False,
         temperature=temperature,
     )
+    if settings.llm_backend == "litellm":
+        from app.services import llm_litellm
+
+        return await llm_litellm.complete(messages, max_tokens, temperature)
     client = _get_client()
     if settings.llm_provider == "mistral":
         return await _mistral_complete(client, messages, max_tokens, temperature)
@@ -679,6 +683,13 @@ async def chat_stream(
     the caller omits the sink; yielded text and optional sink shape are unchanged.
     """
     _tag_run(provider=settings.llm_provider, model=_active_model(), streaming=True)
+    if settings.llm_backend == "litellm":
+        from app.services import llm_litellm
+
+        async with aclosing(llm_litellm.stream(messages, max_tokens, usage_sink)) as tokens:
+            async for token in tokens:
+                yield token
+        return
     client = _get_client()
     sink = usage_sink if usage_sink is not None else {}
     provider = settings.llm_provider
