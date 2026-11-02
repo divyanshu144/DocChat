@@ -16,10 +16,14 @@ User answers: new larger held-out set (keep old 16 for continuity); teacher Qwen
 - [x] `eval/llm_backend_parity.py` + `docs/litellm-backend.md` (import time, size, per-call overhead, differences). No live parity claim unless a live provider is used.
 - [x] `ruff check .` + `pytest -m "not eval" -q` green; HANDOFF.md and lessons updated; commit Part 1; STOP and report.
 
-### Part 2: LoRA fine-tune (only after the user approves a priced plan)
-- [ ] 2a data tooling: source manifest, corpus builder, example generator, validator, decontamination, heldout-v2 builder, tests.
-- [ ] Priced plan to the user (GPU type, hourly price, expected total, cap) and approval.
-- [ ] 2b training (smoke run first). 2c serve and evaluate base vs fine-tuned vs hosted. 2d report + README link.
+### Part 2: LoRA fine-tune (billable steps only after the user approves a priced plan)
+Done locally, no spend (tooling in `finetune/`, see `finetune/README.md`):
+- [x] Manifest of 56 open-licence documents (48 GOV.UK guides under the OGL, 8 NIST publications that state they are not subject to copyright in the US), split by document: 34 train, 4 validation, 15 held out, 3 excluded. All downloaded, sha256 in `finetune/sources.lock.json`; 2,024 chunks embedded with the app's chunkers and embedder.
+- [x] Validator (format, citations exist in context, no body citations, duplicates, abstention rate, serving-prompt prefix), decontamination (8-gram) with a planted-leak test, document-level leakage report: no shared 8-grams with any evaluation file; held-out text found in training text: max 1.4%, mean 0.4% (stock text ignored, 3 near-copy documents excluded; the exclusion rules were chosen after looking at the overlap numbers, which the report must say).
+- [x] Teacher client, question and example generator, `eval/prepare_heldout_v2.py` (about 100 questions; categories as in the old set), all tested with fakes. Every guard was broken on purpose; one equivalent mutant survived (fraction denominator).
+Still to do:
+- [ ] Priced plan approved by the user (cap), then: generate held-out v2 questions and training examples with Qwen2.5-72B, validate, example-level decontamination, manual spot-check of a sample.
+- [ ] 2b training (`requirements-finetune.txt`, smoke run first). 2c serve and evaluate base vs fine-tuned vs hosted. 2d report + README link.
 
 ---
 

@@ -1,6 +1,6 @@
 # DocChat session handoff
 
-## Latest: LiteLLM backend done, LoRA fine-tune NOT started (2026-11-02, branch `feat/litellm-lora-finetune`)
+## Latest: LiteLLM backend done; fine-tune DATA TOOLING done, no spend yet (2026-11-02, branch `feat/litellm-lora-finetune`)
 
 Brief: `tasks/litellm-and-lora-finetune-agent-prompt.md`. Spec and plan: `docs/superpowers/{specs,plans}/2026-11-02-litellm-lora-finetune*.md`.
 Checklist: `tasks/todo.md`. Branch was cut from `feat/aws-platform` (PR #9), so merge or rebase that first.
@@ -15,16 +15,22 @@ Part 1 done (opt-in, default stays `native`; nothing deployed or pushed):
   Each guard was broken on purpose and a test failed (local as fallback target, no retry gate, fallback after first token,
   temperature rule, blank-key refusal, logger clamp). `eval/llm_backend_parity.py`: identical text, usage, spans and error
   classification against a local mock; overhead about 1 ms per call. No live provider was called: live parity NOT claimed.
-- Baseline now: ruff clean; **875 passed, 11 skipped** without Postgres or LiteLLM (7 pg + 4 real-LiteLLM tests skip);
-  879 passed, 7 skipped in a venv with LiteLLM 1.83.0; add the 7 pg tests with `TEST_DATABASE_URL`.
+- Baseline now: ruff clean; **929 passed, 11 skipped** without Postgres or LiteLLM (7 pg + 4 real-LiteLLM tests skip);
+  933 passed, 7 skipped in a venv with LiteLLM 1.83.0; add the 7 pg tests with `TEST_DATABASE_URL`.
 
 Decisions from the user: build a NEW larger held-out set (the old one is only 16 distinct questions); teacher is
 Qwen2.5-72B-Instruct (open weights, different family from the judge); stop after Part 1 and bring a PRICED plan (GPU type,
 hourly price, total, cap) before any billable action.
 
-NOT done: all of Part 2 (data tooling, training, serving, evaluation, report). Nothing billable has run. Next step: write the
-data tooling locally (no GPU), then ask the user to approve a priced plan. Scratch venvs with LiteLLM are in the session
-scratchpad, not in the repo.
+Part 2a done (free, local): `finetune/` package + `eval/prepare_heldout_v2.py`, 54 new tests. Real data is on disk (git-ignored,
+`data/finetune/`): 56 open-licence documents, 2,024 chunks. `finetune/manifest.json`, `sources.lock.json` and
+`document-leakage-report.json` are the committed record. Leakage: no shared 8-grams with any evaluation file; held-out text in
+training text max 1.4%. NOTE: the stock-text rule and the 3 excluded documents were chosen after looking at overlap numbers.
+How to resume: read `finetune/README.md`. No teacher call, GPU or hosted model has been used and nothing billable has run.
+
+NOT done: priced-plan approval; training examples (need the Qwen2.5-72B teacher); held-out v2 questions (need the teacher);
+example-level decontamination and the manual spot-check; training; serving; evaluation; the report. Next step: the user approves
+a cap (plan estimate was about $15 to $18, cap $25), then generate with the teacher and validate.
 
 Untouched and uncommitted on purpose: `Claude outputs/`, `docs/project-walkthrough.md`, raw files under `reports/`.
 

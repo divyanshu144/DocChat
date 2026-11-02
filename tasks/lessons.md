@@ -623,3 +623,21 @@ when no space is found within some reasonable distance of the end.
 - **zsh:** `echo =====` fails ("= not found" is zsh's `=cmd` expansion). Quote it. `rm -rf` of a scratch venv was denied; use a
   new directory name instead.
 
+## 2026-11-02: fine-tune data tooling
+
+- **Overlap between documents from one publisher is mostly boilerplate, and the rule for "boilerplate" must not be circular.** The first
+  document-level leakage check failed on 4 held-out documents. Cause: every NIST publication repeats the same front matter and GOV.UK
+  guides repeat contact-line text. Counting an 8-gram as stock if it appears in 2+ documents is meaningless (a shared passage always appears
+  in two). Definition used: found in 3+ non-held-out documents, counted without the held-out one. Real near-copies (a training document
+  carrying over 1% of a held-out one's remaining text) are excluded and noted in the manifest. These choices were made after seeing the
+  numbers, so say so in the report.
+- **A stock-text set derived from the training documents changes when you exclude one.** After excluding a document the stock set shrank
+  and two other documents became "copies". Fix: excluded documents still count as evidence of stock text (with a regression test).
+- **Fake embedders score lower than real ones.** The hashing embedder in tests sits under the 0.3 retrieval threshold; tests lower the
+  threshold instead of weakening the code.
+- **A test can pass for the wrong reason.** The "window not retrieved" test survived removal of its guard until the document had chunks
+  that really differ and the expected count came from actual retrieval. Always mutate the guard to confirm.
+- **Python `str.replace(old, new)` with an empty `old` inserts at the start.** A slice taken between two markers came out empty (the second
+  marker occurred earlier) and clobbered a file. Assert `old` is non-empty and found before replacing, and read the file back.
+- **macOS `sed -i` needs a suffix**; use Python for edits.
+
