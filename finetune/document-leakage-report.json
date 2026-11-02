@@ -1,0 +1,34 @@
+{
+  "documents": {
+    "train": 34,
+    "validation": 4,
+    "heldout": 15,
+    "excluded": 3
+  },
+  "excluded": {
+    "govuk-disability-living-allowance-children": "Excluded from training: shares 1.6% of its non-stock text with held-out govuk-sure-start-maternity-grant.",
+    "nist-sp-800-128": "Excluded from training: shares 3.8% of its non-stock text with held-out nist-sp-800-171r3.",
+    "nist-sp-800-218": "Excluded: shares 2.6% of its non-stock text with held-out nist-sp-800-40r4."
+  },
+  "stock_ngrams_ignored": 704,
+  "references_checked": [
+    "reports/quality-review-pack.jsonl",
+    "reports/quality-review-pack-citations-fixed.jsonl",
+    "data/heldout-quality-workload.json",
+    "data/bench_prompts.jsonl",
+    "eval/retrieval_golden.json"
+  ],
+  "documents_vs_evaluation_files": "no shared 8-grams",
+  "heldout_in_training_text_fraction": {
+    "max": 0.0136,
+    "mean": 0.0044
+  },
+  "sha256": {
+    "sources_lock": "d7628ec76c2cacd9ac9e2e01a0b37e8f07368479705b317f4145385040eed942",
+    "reports/quality-review-pack.jsonl": "b7ca0c4a9ce7b21b07833ea7ede32bef6dfdffbb8893c75812e118c5e9eb4862",
+    "reports/quality-review-pack-citations-fixed.jsonl": "77d1b3b94482617159405831ee72fc8e3c3a1668c48b2777ec4a65c9bdb363d2",
+    "data/heldout-quality-workload.json": "3fb01bd9c48691a01667186e53d7cde4a8c4255feef676e32be499d69a884e0d",
+    "data/bench_prompts.jsonl": "6ed7de91878a84d0bdcd6394d02f6202256b29e22747def0b7f5435a848aba29",
+    "eval/retrieval_golden.json": "747569d4af15c2d3ed87bd0adacd4d712e5a92dc9de1c4d9303fd5e85611163b"
+  }
+}

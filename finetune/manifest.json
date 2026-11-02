@@ -1,0 +1,565 @@
+{
+  "schema_version": 1,
+  "documents": [
+    {
+      "id": "govuk-transfers-takeovers",
+      "title": "Business transfers, takeovers and TUPE",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/transfers-takeovers",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-tax-uk-income-live-abroad",
+      "title": "Tax on your UK income if you live abroad",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/tax-uk-income-live-abroad",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-apply-for-student-finance-lifelong-learning-entitlement",
+      "title": "Student finance: how to apply for courses starting in 2027",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/apply-for-student-finance-lifelong-learning-entitlement",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-get-document-legalised",
+      "title": "Get your document legalised",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/get-document-legalised",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-repaying-your-student-loan",
+      "title": "Repaying your student loan",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/repaying-your-student-loan",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-manage-lasting-power-attorney",
+      "title": "Manage a lasting power of attorney",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/manage-lasting-power-attorney",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-freshwater-rod-fishing-rules",
+      "title": "Freshwater rod fishing rules",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/freshwater-rod-fishing-rules",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-family-permit",
+      "title": "Apply for an EU Settlement Scheme family permit to join family in the UK",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/family-permit",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-sure-start-maternity-grant",
+      "title": "Sure Start Maternity Grant",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/sure-start-maternity-grant",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-employing-an-apprentice",
+      "title": "Employing an apprentice",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/employing-an-apprentice",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-change-vehicle-tax-class",
+      "title": "Change your vehicle's tax class",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/change-vehicle-tax-class",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-adi-part-2-test",
+      "title": "Approved driving instructor (ADI) part 2 test",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/adi-part-2-test",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "govuk-appeal-benefit-decision",
+      "title": "Appeal a benefit decision",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/appeal-benefit-decision",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "validation",
+      "note": ""
+    },
+    {
+      "id": "govuk-simpler-income-tax-cash-basis",
+      "title": "Cash basis",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/simpler-income-tax-cash-basis",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "validation",
+      "note": ""
+    },
+    {
+      "id": "govuk-introduction-to-business-rates",
+      "title": "Business rates",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/introduction-to-business-rates",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "validation",
+      "note": ""
+    },
+    {
+      "id": "govuk-running-payroll",
+      "title": "Running payroll",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/running-payroll",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "validation",
+      "note": ""
+    },
+    {
+      "id": "govuk-advanced-learner-loan",
+      "title": "Advanced Learner Loan",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/advanced-learner-loan",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-dispose-hazardous-waste",
+      "title": "Hazardous waste",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/dispose-hazardous-waste",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-motorcycle-cbt",
+      "title": "CBT motorcycle and moped training",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/motorcycle-cbt",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-national-insurance-credits",
+      "title": "National Insurance credits",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/national-insurance-credits",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-self-assessment-tax-returns",
+      "title": "Self Assessment tax returns",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/self-assessment-tax-returns",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-apply-as-child-to-join-or-stay-with-close-relative",
+      "title": "Apply as a child to join or stay with a close relative in the UK",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/apply-as-child-to-join-or-stay-with-close-relative",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-disability-living-allowance-children",
+      "title": "Disability Living Allowance (DLA) for children",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/disability-living-allowance-children",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "excluded",
+      "note": "Excluded from training: shares 1.6% of its non-stock text with held-out govuk-sure-start-maternity-grant."
+    },
+    {
+      "id": "govuk-access-to-work",
+      "title": "Access to Work: get support if you have a disability or health condition",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/access-to-work",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-dbs-check-applicant-criminal-record",
+      "title": "Check someone's criminal record",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/dbs-check-applicant-criminal-record",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-tax-sell-home",
+      "title": "Tax when you sell your home",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/tax-sell-home",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-help-with-childcare-costs",
+      "title": "Help paying for childcare",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/help-with-childcare-costs",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-free-childcare-if-working",
+      "title": "Free Childcare for Working Parents",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/free-childcare-if-working",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-support-for-mortgage-interest",
+      "title": "Support for Mortgage Interest (SMI)",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/support-for-mortgage-interest",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-child-trust-funds",
+      "title": "Child Trust Fund",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/child-trust-funds",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-how-to-register-a-trade-mark",
+      "title": "Register a trade mark ",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/how-to-register-a-trade-mark",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-tax-on-pension",
+      "title": "Tax when you get a pension",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/tax-on-pension",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-pay-psa",
+      "title": "Pay a PAYE Settlement Agreement",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/pay-psa",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-schools-admissions",
+      "title": "School admissions",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/schools-admissions",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-child-maintenance-for-employers",
+      "title": "Make child maintenance deductions from an employee's pay",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/child-maintenance-for-employers",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-masters-loan",
+      "title": "Master's Loan",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/masters-loan",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-driver-cpc-training",
+      "title": "Driver CPC training for qualified drivers",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/driver-cpc-training",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-british-national-overseas-bno-visa",
+      "title": "British National (Overseas) visa",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/british-national-overseas-bno-visa",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-arrested-your-rights",
+      "title": "Being arrested: your rights",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/arrested-your-rights",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-trusts-taxes",
+      "title": "Trusts and taxes",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/trusts-taxes",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-vehicle-approval",
+      "title": "Vehicle approval",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/vehicle-approval",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-apply-citizenship-indefinite-leave-to-remain",
+      "title": "Apply for citizenship if you have indefinite leave to remain or 'settled status'",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/apply-citizenship-indefinite-leave-to-remain",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-change-address-v5c",
+      "title": "Change your address on your vehicle log book (V5C)",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/change-address-v5c",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-creative-worker-visa",
+      "title": "Creative Worker visa (Temporary Work)",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/creative-worker-visa",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-workplace-fire-safety-your-responsibilities",
+      "title": "Fire safety in the workplace",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/workplace-fire-safety-your-responsibilities",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-valuing-estate-of-someone-who-died",
+      "title": "How to value an estate for Inheritance Tax and report its value",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/valuing-estate-of-someone-who-died",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-uk-border-control",
+      "title": "Entering the UK",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/uk-border-control",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "govuk-collective-group-passports",
+      "title": "Collective (group) passports",
+      "kind": "govuk_guide",
+      "url": "https://www.gov.uk/collective-group-passports",
+      "licence": "Open Government Licence v3.0 (Crown copyright)",
+      "licence_url": "https://www.gov.uk/help/terms-conditions",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "nist-sp-800-63-3",
+      "title": "NIST SP 800-63-3 Digital Identity Guidelines",
+      "kind": "pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63-3.pdf",
+      "licence": "US government work: the publication states it is not subject to copyright in the United States",
+      "licence_url": "https://www.nist.gov/oism/copyrights",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "nist-sp-800-61r2",
+      "title": "NIST SP 800-61 Rev. 2 Computer Security Incident Handling Guide",
+      "kind": "pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r2.pdf",
+      "licence": "US government work: the publication states it is not subject to copyright in the United States",
+      "licence_url": "https://www.nist.gov/oism/copyrights",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "nist-sp-800-88r1",
+      "title": "NIST SP 800-88 Rev. 1 Guidelines for Media Sanitization",
+      "kind": "pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-88r1.pdf",
+      "licence": "US government work: the publication states it is not subject to copyright in the United States",
+      "licence_url": "https://www.nist.gov/oism/copyrights",
+      "split": "train",
+      "note": ""
+    },
+    {
+      "id": "nist-sp-800-128",
+      "title": "NIST SP 800-128 Guide for Security-Focused Configuration Management of Information Systems",
+      "kind": "pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-128.pdf",
+      "licence": "US government work: the publication states it is not subject to copyright in the United States",
+      "licence_url": "https://www.nist.gov/oism/copyrights",
+      "split": "excluded",
+      "note": "Excluded from training: shares 3.8% of its non-stock text with held-out nist-sp-800-171r3."
+    },
+    {
+      "id": "nist-sp-800-218",
+      "title": "NIST SP 800-218 Secure Software Development Framework",
+      "kind": "pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218.pdf",
+      "licence": "US government work: the publication states it is not subject to copyright in the United States",
+      "licence_url": "https://www.nist.gov/oism/copyrights",
+      "split": "excluded",
+      "note": "Excluded: shares 2.6% of its non-stock text with held-out nist-sp-800-40r4."
+    },
+    {
+      "id": "nist-sp-800-171r3",
+      "title": "NIST SP 800-171 Rev. 3 Protecting Controlled Unclassified Information",
+      "kind": "pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-171r3.pdf",
+      "licence": "US government work: the publication states it is not subject to copyright in the United States",
+      "licence_url": "https://www.nist.gov/oism/copyrights",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "nist-sp-800-207",
+      "title": "NIST SP 800-207 Zero Trust Architecture",
+      "kind": "pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-207.pdf",
+      "licence": "US government work: the publication states it is not subject to copyright in the United States",
+      "licence_url": "https://www.nist.gov/oism/copyrights",
+      "split": "heldout",
+      "note": ""
+    },
+    {
+      "id": "nist-sp-800-40r4",
+      "title": "NIST SP 800-40 Rev. 4 Guide to Enterprise Patch Management Planning",
+      "kind": "pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-40r4.pdf",
+      "licence": "US government work: the publication states it is not subject to copyright in the United States",
+      "licence_url": "https://www.nist.gov/oism/copyrights",
+      "split": "heldout",
+      "note": ""
+    }
+  ]
+}
