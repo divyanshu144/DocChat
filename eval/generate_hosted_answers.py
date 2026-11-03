@@ -14,15 +14,33 @@ import json
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Awaitable, Callable
 
 from app.core.config import settings
 from app.services import llm
 from eval.workloads import load_workloads
 
 
-async def generate(prompts_path: Path, output_path: Path, *, max_tokens: int, concurrency: int) -> None:
+BACKOFF_S = (5, 15, 30, 60, 60)
+
+
+async def _with_backoff(call: Callable[[], Awaitable[str]], sleep=asyncio.sleep) -> str:
+    """Retry rate limits and server errors with a pause. Anything else (a bad key, a bad request) is raised at once."""
+    for pause in BACKOFF_S:
+        try:
+            return await call()
+        except Exception as exc:
+            if not llm._is_retryable_llm_error(exc):
+                raise
+            await sleep(pause)
+    return await call()
+
+
+async def generate(prompts_path: Path, output_path: Path, *, max_tokens: int, concurrency: int, sleep=asyncio.sleep) -> None:
     if output_path.exists():
         raise FileExistsError(f"Refusing to overwrite {output_path}")
+    # These rows are labelled with one provider and model, so a failure must not be answered by another one.
+    settings.llm_provider, settings.fallback_llm_provider = "groq", "none"
     workloads = load_workloads(prompts_path, "replay")
     label = f"{settings.llm_provider}/{settings.chat_model}"
     gate = asyncio.Semaphore(concurrency)
@@ -36,8 +54,8 @@ async def generate(prompts_path: Path, output_path: Path, *, max_tokens: int, co
         started = time.perf_counter()
         async with gate:
             try:
-                row.update(answer=await llm.chat_complete(row["messages"], max_tokens=max_tokens, temperature=0.0),
-                           status="ok")
+                row.update(answer=await _with_backoff(lambda: llm.chat_complete(
+                    row["messages"], max_tokens=max_tokens, temperature=0.0), sleep), status="ok")
             except Exception as exc:  # keep failures in the denominator
                 row.update(status="error", error=f"{type(exc).__name__}: {str(exc)[:300]}")
         row["latency_s"] = time.perf_counter() - started
@@ -58,7 +76,7 @@ def main() -> None:
     parser.add_argument("--prompts", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-tokens", type=int, default=1400)
-    parser.add_argument("--concurrency", type=int, default=4)
+    parser.add_argument("--concurrency", type=int, default=1)
     args = parser.parse_args()
     asyncio.run(generate(args.prompts, args.output, max_tokens=args.max_tokens, concurrency=args.concurrency))
 

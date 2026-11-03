@@ -125,3 +125,39 @@ def test_a_negative_control_is_dropped_when_the_teacher_says_the_context_can_ans
     cases = build_cases(docs, index, Answerable(), random.Random(1))
     assert not any(c.category == "negative_control" for c in cases)
     assert any(c.category == "document_qa" for c in cases)
+
+
+def test_hosted_answers_never_fall_back_and_retry_rate_limits(held, tmp_path, monkeypatch):
+    import asyncio
+
+    import httpx
+
+    from app.core.config import settings
+    from eval import generate_hosted_answers as hosted
+
+    docs, index = held
+    cases = build_cases(docs, index, BroadTeacher(), random.Random(1))[:2]
+    workload = tmp_path / "w.json"
+    workload.write_text(Workloads(corpus_sha256=corpus_fingerprint(index, docs), cases=cases).model_dump_json())
+    monkeypatch.setattr(settings, "fallback_llm_provider", "openai")
+    seen, pauses = [], []
+
+    async def flaky(messages, max_tokens, temperature=None):
+        seen.append(settings.fallback_llm_provider)
+        if len(seen) == 1:
+            request = httpx.Request("POST", "https://api.groq.com/x")
+            raise httpx.HTTPStatusError("429", request=request, response=httpx.Response(429, request=request))
+        return "An answer.\n\nSources:\n\n[Web - Pay guide]"
+
+    async def no_close():
+        return None
+
+    async def fake_sleep(seconds):
+        pauses.append(seconds)
+
+    monkeypatch.setattr(hosted.llm, "chat_complete", flaky)
+    monkeypatch.setattr(hosted.llm, "close_llm_clients", no_close)
+    asyncio.run(hosted.generate(workload, tmp_path / "a.jsonl", max_tokens=50, concurrency=1, sleep=fake_sleep))
+    rows = [json.loads(line) for line in (tmp_path / "a.jsonl").read_text().splitlines()]
+    assert [r["status"] for r in rows] == ["ok", "ok"] and pauses == [5]  # one rate limit, one pause, then success
+    assert set(seen) == {"none"}  # a failure can never be answered by another provider
