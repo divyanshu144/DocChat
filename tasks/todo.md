@@ -1,4 +1,4 @@
-## Active: LiteLLM backend + LoRA fine-tune (2026-11-02, branch feat/litellm-lora-finetune)
+## Done and merged (PR #22, 2026-11-03): LiteLLM backend + LoRA fine-tune. Open follow-ups are listed in HANDOFF.md under "Next tasks"
 
 Brief: `tasks/litellm-and-lora-finetune-agent-prompt.md`. Spec/plan: `docs/superpowers/{specs,plans}/2026-11-02-litellm-lora-finetune*.md`.
 Rules: no push, no billable action (GPU or hosted teacher) without the user's approval of a priced plan, stage by explicit path

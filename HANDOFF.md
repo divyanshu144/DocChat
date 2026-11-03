@@ -1,6 +1,35 @@
 # DocChat session handoff
 
-## Latest: LoRA fine-tune RUN finished and written up (2026-11-03, branch `feat/litellm-lora-finetune`, NOT pushed)
+## Latest: LiteLLM + LoRA work MERGED to master (2026-11-03, PR #22, merge commit `b896a0e`)
+
+Everything below this section is merged: PR #9 (AWS platform) went in first, then #22 (this work), rebased onto it. CI was green on all six
+checks. One extra commit rode along: `pyasn1` 0.6.4 -> 0.6.5 in `requirements.lock`, because four new HIGH advisories made the dependency
+audit and both image scans fail (not caused by this work). Baseline on master: ruff clean, **973 passed, 11 skipped**.
+Also done after the fine-tune write-up: a live Groq parity check of the LiteLLM backend (`eval/llm_backend_live_parity.py`, result in
+`reports/llm-backend-live-parity-2026-11-03.json`, section in `docs/litellm-backend.md`). Finding: LiteLLM raised Groq 429s that the native
+client silently retries (SDK default of 2 retries; the LiteLLM backend uses `num_retries=0`). Left as is on the user's decision.
+**Decision: `LLM_BACKEND` stays `native` by default.** LiteLLM adds about 120 MB, slower imports and a retry gap, and gives nothing the four
+current providers need. Revisit only if a provider is added that the native code lacks.
+
+### Next tasks (in suggested order; the first three need the user)
+1. **Read the Qwen LICENSE** (full text, not the fetch summary) before sharing the adapter anywhere; it needs "Built with Qwen" / "Improved using Qwen" if a derived model is distributed. About 10 minutes.
+2. **Add judge credit** (OpenAI `gpt-5.6-luna` as in earlier reports, or Anthropic), then run the judge commands at the end of
+   `reports/finetune-vs-base-2026-11-03.md` on the ready packs in `data/finetune/eval/`. Until then nothing measures answer correctness.
+3. **Fill in the human spot-check sheet** (`eval/build_spot_check_sheet.py`); even 20 to 30 verdicts help. Results stay labelled "LLM-assisted, not human-verified" until then.
+4. Optional: the hosted `openai/gpt-oss-120b` arm. Groq free tier is 200,000 tokens a day, the job needs about 600,000: run
+   `python -m eval.generate_hosted_answers --prompts data/finetune/heldout-v2-workload.json --output data/finetune/eval/answers-hosted-v2.jsonl --resume`
+   once a day, or upgrade the tier.
+5. Optional: a second training seed, or a few-shot prompt for the base model, to see how much of the 0/84 -> 69/84 gap a prompt alone closes. Needs a priced plan and a yes first.
+6. Optional: LiteLLM retry parity (`num_retries=2` or a short retry in our wrapper, with a test), only if LiteLLM is ever going to be used.
+7. Housekeeping: delete the local branch `feat/litellm-lora-finetune` and the tag `pre-rebase-litellm-lora`; `git pull` master.
+
+Rules that still hold: never print keys; no billable action without stating GPU type, hourly price, expected total and cap and getting a yes
+(Runpod billing lags 1 to 2 hours, re-check with the billing tools); the user pushes; stage explicit paths; leave `Claude outputs/`,
+`docs/project-walkthrough.md` and raw `reports/` files alone.
+
+---
+
+## Earlier: LoRA fine-tune RUN finished and written up (2026-11-03, was on branch `feat/litellm-lora-finetune`, now merged)
 
 Report: `reports/finetune-vs-base-2026-11-03.md` (read its "what the numbers do not show" first). Run record: `reports/finetune-run-2026-11-03/`.
 The user approved a $25 cap covering everything. Runpod spend is about $5.1 (billing had posted $4.07 when written; re-check with the
@@ -27,7 +56,7 @@ Blocked on the user, not on code:
    commands are at the end of the report. Human verdicts are for the user to fill in.
 2. The hosted gpt-oss-120b arm: Groq's free tier allows 200,000 tokens a day, the job needs about 600,000. Run
    `python -m eval.generate_hosted_answers ... --resume` daily, or upgrade the Groq tier.
-3. Push (`! git push -u origin feat/litellm-lora-finetune`) only after PR #9 is merged or this is rebased; read the Qwen licence file before sharing the adapter.
+3. (Pushed and merged since, see the section above.) Read the Qwen licence file before sharing the adapter.
 
 Git-ignored, on this machine only: `data/finetune/` (documents, corpus, examples, answers, packs), `finetune/artifacts/run-2026-11-03/` (adapter,
 sha256 `9fbf8dcc4b73b5e306b8db6f216fbeb8980d0026a01c4db7f3b7d9063967e8f8`). Baseline: ruff clean, **973 passed, 11 skipped**.
@@ -35,7 +64,7 @@ Untouched and uncommitted on purpose: `Claude outputs/`, `docs/project-walkthrou
 
 ---
 
-## Latest: LiteLLM backend done; fine-tune DATA TOOLING done, no spend yet (2026-11-02, branch `feat/litellm-lora-finetune`)
+## Earlier: LiteLLM backend done; fine-tune DATA TOOLING done, no spend yet (2026-11-02, branch `feat/litellm-lora-finetune`)
 
 Brief: `tasks/litellm-and-lora-finetune-agent-prompt.md`. Spec and plan: `docs/superpowers/{specs,plans}/2026-11-02-litellm-lora-finetune*.md`.
 Checklist: `tasks/todo.md`. Branch was cut from `feat/aws-platform` (PR #9), so merge or rebase that first.
