@@ -155,3 +155,54 @@ def test_excluded_documents_still_count_as_evidence_of_stock_text(tmp_path):
     # Without the excluded document only two documents carry it, so it is no longer stock and the held-out doc is flagged.
     with pytest.raises(LeakageError):
         run(Manifest(documents=[d for d in docs if d.id != "dropped"]), tmp_path, [ref], lock)
+
+
+def test_the_shared_prompt_scaffolding_alone_is_not_a_leak(tmp_path):
+    """Every evaluation prompt carries the history header, 'Context:' and 'Source marker:' labels. Found on the real
+    data: all examples were flagged for those eight-word runs and nothing else."""
+    reference = tmp_path / "pack.jsonl"
+    other = system(body="Railway timetables change twice a year and platform alterations are announced on the day itself.")
+    reference.write_text(json.dumps({"messages": [{"role": "system", "content": other}]}) + "\n")
+    index = build_reference_index([reference])
+    check_examples([example(GOOD)], index)  # must pass: only the scaffolding is shared
+    shared_content = system(body="Railway timetables change twice a year and platform alterations are announced on the day itself.")
+    with pytest.raises(LeakageError):  # the same prompt shape with real shared content is still caught
+        check_examples([example(GOOD, sys_prompt=shared_content)], index)
+
+
+def test_stock_text_is_ignored_but_other_shared_text_still_fails(tmp_path):
+    from finetune.decontaminate import stock_ngrams, without_stock
+    boiler = "this guide is also available in welsh cymraeg and you can ask for another format"
+    docs = {f"doc{i}": f"{boiler} plus words unique to document number {i} about something else entirely here" for i in range(3)}
+    stock = stock_ngrams(docs)
+    reference = tmp_path / "held.json"
+    reference.write_text(json.dumps({"held": f"{boiler} and then a long unrelated sentence about held out material only"}))
+    index = build_reference_index([reference])
+    with pytest.raises(LeakageError):  # without the stock rule the shared boilerplate is flagged
+        check_examples([example(GOOD, sys_prompt=system(body=boiler))], index)
+    check_examples([example(GOOD, sys_prompt=system(body=boiler))], without_stock(index, stock))
+    with pytest.raises(LeakageError):  # real shared content still fails once stock is removed
+        leaked = system(body="a long unrelated sentence about held out material only that appears in the reference")
+        check_examples([example(GOOD, sys_prompt=leaked)], without_stock(index, stock))
+
+
+def test_held_out_documents_are_held_to_a_fraction_not_to_zero(tmp_path):
+    from finetune.decontaminate import examples_vs_heldout_documents
+    shared = "the allowance is paid monthly in arrears directly into the bank account of the person named on the claim form"
+    own = " ".join(f"word{i}" for i in range(200))
+    held = {"held": f"{shared} {own}"}
+    small = examples_vs_heldout_documents([example(GOOD, sys_prompt=system(body=shared))], held, stock=set(), max_fraction=0.5)
+    assert 0 < small["held"] < 0.2  # a shared passage is measured and reported
+    with pytest.raises(LeakageError, match="above 2%"):  # the default cap is 2%; this passage is about 5% of the document
+        examples_vs_heldout_documents([example(GOOD, sys_prompt=system(body=shared))], held, stock=set())
+    stock = {h for h in ngram_hashes(shared)}
+    assert examples_vs_heldout_documents([example(GOOD, sys_prompt=system(body=shared))], held, stock=stock)["held"] == 0.0
+
+
+def test_leaking_examples_can_be_split_out_and_the_rest_pass(index):
+    from finetune.decontaminate import split_leaking
+    clean_one = example(GOOD, question="A different question altogether?")
+    leaked = example(GOOD, sys_prompt=system(body=EVAL_CHUNK), question="Another question again?")
+    clean, leaks = split_leaking([clean_one, leaked], index)
+    assert clean == [clean_one] and [i for i, _, _ in leaks] == [leaked.id]
+    check_examples(clean, index)  # what is kept passes the strict check

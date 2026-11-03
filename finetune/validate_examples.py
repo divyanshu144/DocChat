@@ -118,6 +118,24 @@ def check_abstention_rate(examples: list[TrainingExample], low: float = 0.08, hi
     return rate
 
 
+def cap_abstention_rate(examples: list[TrainingExample], target: float, seed: int = 11) -> tuple[list[TrainingExample], int]:
+    """Drop abstentions, chosen by a seeded random draw within each split, until they are at most `target` of the split.
+
+    Answerable examples are never dropped. Too many abstentions teaches a model to refuse questions it could answer.
+    """
+    rng = random.Random(seed)
+    kept_ids: set[str] = set()
+    for split in sorted({e.split for e in examples}):
+        answerable = [e for e in examples if e.split == split and e.kind == "answerable"]
+        abstain = sorted((e for e in examples if e.split == split and e.kind == "abstain"), key=lambda e: e.id)
+        room = int(target / (1 - target) * len(answerable))
+        if len(abstain) > room:
+            abstain = rng.sample(abstain, room)
+        kept_ids.update(e.id for e in answerable + abstain)
+    kept = [e for e in examples if e.id in kept_ids]
+    return kept, len(examples) - len(kept)
+
+
 def summarize(examples: list[TrainingExample]) -> dict:
     answers = [len(e.answer) for e in examples]
     return {
@@ -150,6 +168,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True, help="where to write the examples that pass")
     parser.add_argument("--report", type=Path, help="write the counts and rejection reasons here")
     parser.add_argument("--sample", type=int, default=12)
+    parser.add_argument("--max-abstention-rate", type=float, help="drop abstentions (seeded draw) down to this share")
     args = parser.parse_args()
     examples = load_examples(args.examples)
     rejected: Counter = Counter()
@@ -161,8 +180,12 @@ def main() -> None:
         if not problems:
             passing.append(example)
     unique, dropped = dedupe(passing)
+    capped = 0
+    if args.max_abstention_rate is not None:
+        unique, capped = cap_abstention_rate(unique, args.max_abstention_rate)
+    check_abstention_rate(unique)  # fails loudly when the share is outside 8% to 25%
     report = {"read": len(examples), "passed_rules": len(passing), "duplicates_dropped": dropped,
-              "rejected_reasons": dict(rejected), "summary": summarize(unique), "review_sample": review_sample(unique, args.sample)}
+              "abstentions_removed_by_cap": capped, "rejected_reasons": dict(rejected), "summary": summarize(unique), "review_sample": review_sample(unique, args.sample)}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text("".join(e.model_dump_json() + "\n" for e in unique))
     text = json.dumps(report, indent=2, ensure_ascii=False)

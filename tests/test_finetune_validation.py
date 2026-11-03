@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from finetune.citations import body_markers, cited_markers, context_markers, split_answer
 from finetune.schema import Manifest, SourceDoc, TrainingExample
 from finetune.validate_examples import (
-    SERVING_PREFIX, abstention_rate, check_abstention_rate, dedupe, summarize, validate_example)
+    SERVING_PREFIX, abstention_rate, cap_abstention_rate, check_abstention_rate, dedupe, summarize, validate_example)
 
 M1 = "[Web - Maternity pay]"
 M2 = "[PDF - guide.pdf p.3]"
@@ -90,6 +90,17 @@ def test_abstention_rate_bounds():
     with pytest.raises(ValueError, match="outside"):
         check_abstention_rate([example(ABSTAIN, kind="abstain")] * 5 + [example(GOOD)] * 5)
     assert summarize(ex)["by_kind"] == {"answerable": 9, "abstain": 1}
+
+
+def test_the_abstention_cap_drops_only_abstentions_and_is_reproducible():
+    answers = [example(GOOD, question=f"Question {i}?") for i in range(40)]
+    abstains = [example(ABSTAIN, kind="abstain", question=f"Other thing {i}?") for i in range(30)]
+    kept, removed = cap_abstention_rate(answers + abstains, 0.2, seed=3)
+    assert abstention_rate(kept) <= 0.2 and removed == len(answers + abstains) - len(kept) > 0
+    assert all(a in kept for a in answers)  # answerable examples are never dropped
+    assert cap_abstention_rate(answers + abstains, 0.2, seed=3)[0] == kept  # same seed, same draw
+    assert cap_abstention_rate(answers + abstains, 0.2, seed=4)[0] != kept  # a different seed draws differently
+    assert cap_abstention_rate(answers, 0.2) == (answers, 0)  # nothing to cap
 
 
 # ---------------- manifest ----------------
