@@ -16,7 +16,7 @@ DEFAULT_KEY = Path("/private/tmp/docchat-quality-review-key.json")
 SMALL_SAMPLE = 30
 DISCLAIMER = ("LLM-assisted labels from a blinded judge; not fully human-verified. "
               "Confidence intervals are 95% Wilson intervals and are wide for small samples.")
-_FORMAT = re.compile(r"answers-(fp16|awq|gptq)")
+_FORMAT = re.compile(r"answers-(fp16|awq|gptq|base|tuned)")
 
 
 def model_format(record: dict) -> str:

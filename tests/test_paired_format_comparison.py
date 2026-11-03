@@ -37,3 +37,30 @@ def test_pairs_the_same_case_across_formats_and_skips_failed_rows(tmp_path):
     assert split["comparisons"]["fp16_vs_gptq"]["paired_cases"] == 1       # c2's gptq row failed to parse
     assert fp_awq["metrics"]["unsupported_claims"]["exploratory"] is True
     assert result["human_verified"] is False
+
+
+def test_base_and_tuned_arms_are_kept_apart_and_paired(tmp_path):
+    """Regression: base/tuned answer files used to fall into one 'fp16' bucket, so nothing was compared."""
+    from eval.aggregate_judge_labels import aggregate, model_format as agg_format
+    from eval.paired_format_comparison import model_format
+    for fn in (model_format, agg_format):
+        assert fn({"answer_file": "d/answers-base-v2.jsonl", "model": "Qwen2.5-7B-Instruct"}) == "base"
+        assert fn({"answer_file": "d/answers-tuned-old.jsonl", "model": "docchat-lora"}) == "tuned"
+    specs = [("a1", "c1", "base", labels("no")), ("a2", "c1", "tuned", labels("yes")),
+             ("b1", "c2", "base", labels("partial")), ("b2", "c2", "tuned", labels("partial"))]
+    pack, key, rows = [], [], []
+    for blind, case, arm, lab in specs:
+        pack.append({"blind_id": blind, "split": "held_out", "expected_abstention": False})
+        key.append({"blind_id": blind, "workload_case_id": case, "answer_file": f"d/answers-{arm}-v2.jsonl"})
+        rows.append({"blind_id": blind, "parse_status": "ok", "labels": lab, "judge": {"m": 1}})
+    p, k, lp = tmp_path / "p.jsonl", tmp_path / "k.json", tmp_path / "l.jsonl"
+    p.write_text("\n".join(map(json.dumps, pack)))
+    k.write_text(json.dumps({"records": key}))
+    lp.write_text("\n".join(map(json.dumps, rows)))
+    result = paired(lp, p, k, formats=("base", "tuned"))
+    cmp_ = result["by_split"]["held_out"]["comparisons"]
+    assert list(cmp_) == ["base_vs_tuned"]
+    score = cmp_["base_vs_tuned"]["metrics"]["answer_score"]
+    assert (score["base_better"], score["tuned_better"], score["ties"]) == (0, 1, 1)
+    arms = aggregate(lp, p, k)["by_split"]["held_out"]
+    assert set(arms) == {"base", "tuned"} and arms["base"]["scored"] == 2

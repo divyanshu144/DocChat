@@ -12,8 +12,13 @@ client silently retries (SDK default of 2 retries; the LiteLLM backend uses `num
 current providers need. Revisit only if a provider is added that the native code lacks.
 
 ### Next tasks (in suggested order; the first three need the user)
-1. **Read the Qwen LICENSE** (full text, not the fetch summary) before sharing the adapter anywhere; it needs "Built with Qwen" / "Improved using Qwen" if a derived model is distributed. About 10 minutes.
-2. **Add judge credit** (OpenAI `gpt-5.6-luna` as in earlier reports, or Anthropic), then run the judge commands at the end of
+1. **Qwen LICENSE: DONE 2026-11-03.** Full text read. Needs "Built with Qwen" (5(b)) plus the Alibaba notice; added `finetune/NOTICE`, `finetune/licenses/Qwen-LICENSE.txt`, README and report wording. Copy NOTICE and the licence next to the adapter when sharing it.
+2a. **Judged comparison DONE 2026-11-03 with OpenAI `gpt-5.6-luna`** (credit added; 278 judgments, all parsed). Written up in the report ("Judged comparison"): tuned 69/99 correct vs
+   base 57/99, fully supported 55 vs 39, negative controls 14 vs 9 of 15; old PDF/Wikipedia set shows no difference. LLM-assisted, default sampling (OpenAI rejected temperature 0).
+   Fixed on the way: `model_format` in `eval/aggregate_judge_labels.py` and `eval/paired_format_comparison.py` put base and tuned into one "fp16" bucket; now `base`/`tuned`
+   are recognised and `paired_format_comparison --formats base,tuned` exists (regression test added). The Groq daily-runner (`scripts/judge_daily.sh`, plist not loaded) is no longer needed.
+   Remaining: human spot-check, hosted gpt-oss arm, second seed. Do not describe results as human-verified.
+2. (DONE, see 2a) **Add judge credit** (OpenAI `gpt-5.6-luna` as in earlier reports, or Anthropic), then run the judge commands at the end of
    `reports/finetune-vs-base-2026-11-03.md` on the ready packs in `data/finetune/eval/`. Until then nothing measures answer correctness.
 3. **Fill in the human spot-check sheet** (`eval/build_spot_check_sheet.py`); even 20 to 30 verdicts help. Results stay labelled "LLM-assisted, not human-verified" until then.
 4. Optional: the hosted `openai/gpt-oss-120b` arm. Groq free tier is 200,000 tokens a day, the job needs about 600,000: run
@@ -21,7 +26,8 @@ current providers need. Revisit only if a provider is added that the native code
    once a day, or upgrade the tier.
 5. Optional: a second training seed, or a few-shot prompt for the base model, to see how much of the 0/84 -> 69/84 gap a prompt alone closes. Needs a priced plan and a yes first.
 6. Optional: LiteLLM retry parity (`num_retries=2` or a short retry in our wrapper, with a test), only if LiteLLM is ever going to be used.
-7. Housekeeping: delete the local branch `feat/litellm-lora-finetune` and the tag `pre-rebase-litellm-lora`; `git pull` master.
+7. Housekeeping: DONE 2026-11-03. Deleted local branch `feat/litellm-lora-finetune` (was `cff391e`, merged) and tag `pre-rebase-litellm-lora`
+   (was `c19464e`); local `master` already equalled `origin/master`, so no pull was needed.
 
 Rules that still hold: never print keys; no billable action without stating GPU type, hourly price, expected total and cap and getting a yes
 (Runpod billing lags 1 to 2 hours, re-check with the billing tools); the user pushes; stage explicit paths; leave `Claude outputs/`,

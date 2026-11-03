@@ -45,14 +45,15 @@ def bootstrap_ci(diffs: list[float], seed: int = 20261006, draws: int = 5000) ->
 
 
 def model_format(record: dict) -> str:
-    match = re.search(r"answers-(fp16|awq|gptq)", record.get("answer_file", ""))
+    match = re.search(r"answers-(fp16|awq|gptq|base|tuned)", record.get("answer_file", ""))
     if match:
         return match.group(1)
     model = record.get("model", "").lower()
     return next((name for name in ("awq", "gptq") if model.endswith(name)), "fp16")
 
 
-def paired(labels_path: Path, pack_path: Path, key_path: Path, audit_path: Path | None = None) -> dict:
+def paired(labels_path: Path, pack_path: Path, key_path: Path, audit_path: Path | None = None,
+           formats: tuple[str, ...] = FORMATS) -> dict:
     key = {r["blind_id"]: r for r in json.loads(key_path.read_text())["records"]}
     pack = {r["blind_id"]: r for r in map(json.loads, pack_path.read_text().splitlines()) if r}
     rows = {r["blind_id"]: r for r in map(json.loads, labels_path.read_text().splitlines()) if r}
@@ -72,7 +73,7 @@ def paired(labels_path: Path, pack_path: Path, key_path: Path, audit_path: Path 
     for split in sorted({s for s, _ in cases}):
         split_cases = {c: v for (s, c), v in cases.items() if s == split}
         result = {"cases": len(split_cases), "comparisons": {}}
-        for a, b in combinations(FORMATS, 2):
+        for a, b in combinations(formats, 2):
             shared = [v for v in split_cases.values() if a in v and b in v]
             entry = {"paired_cases": len(shared), "metrics": {}}
             for name, fn in METRICS.items():
@@ -96,9 +97,11 @@ def main() -> None:
     parser.add_argument("--audit", type=Path, help="Optional audit overlay (corrected labels)")
     parser.add_argument("--pack", type=Path, default=Path("reports/quality-review-pack.jsonl"))
     parser.add_argument("--key", type=Path, default=Path("/private/tmp/docchat-quality-review-key.json"))
+    parser.add_argument("--formats", default=",".join(FORMATS),
+                        help="Arms to compare, in order, e.g. base,tuned for the fine-tune evaluation")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    rendered = json.dumps(paired(args.labels, args.pack, args.key, args.audit), indent=2)
+    rendered = json.dumps(paired(args.labels, args.pack, args.key, args.audit, tuple(args.formats.split(","))), indent=2)
     if args.output:
         args.output.write_text(rendered + "\n")
     print(rendered)

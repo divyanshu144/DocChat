@@ -28,3 +28,7 @@ finetune/artifacts/
 *.safetensors
 *.gguf
 adapter_model.*
+
+# Qwen attribution files, kept local (see finetune/README.md)
+finetune/NOTICE
+finetune/licenses/
