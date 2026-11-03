@@ -101,6 +101,10 @@ def test_hosted_answers_keep_failures_in_workload_order_and_feed_the_review_pack
     async def no_close():
         return None
 
+    from app.core.config import settings
+    # generate() switches the global provider settings; monkeypatch puts the originals back after the test
+    monkeypatch.setattr(settings, "llm_provider", settings.llm_provider)
+    monkeypatch.setattr(settings, "fallback_llm_provider", settings.fallback_llm_provider)
     monkeypatch.setattr(hosted.llm, "chat_complete", fake_chat)
     monkeypatch.setattr(hosted.llm, "close_llm_clients", no_close)
     out = tmp_path / "answers.jsonl"
@@ -139,6 +143,7 @@ def test_hosted_answers_never_fall_back_and_retry_rate_limits(held, tmp_path, mo
     cases = build_cases(docs, index, BroadTeacher(), random.Random(1))[:2]
     workload = tmp_path / "w.json"
     workload.write_text(Workloads(corpus_sha256=corpus_fingerprint(index, docs), cases=cases).model_dump_json())
+    monkeypatch.setattr(settings, "llm_provider", settings.llm_provider)
     monkeypatch.setattr(settings, "fallback_llm_provider", "openai")
     seen, pauses = [], []
 
