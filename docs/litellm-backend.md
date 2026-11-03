@@ -90,6 +90,34 @@ overhead only, on one machine, with a Python mock server that adds its own noise
 So LiteLLM adds roughly 0.7 to 1.4 ms per call and about 0.8 ms to the first token, and about 3 ms to a short stream. Against
 a real provider call (hundreds of milliseconds and up) that is small. Only a very fast local model would notice it.
 
+## Live check against Groq (2026-11-03)
+
+`python -m eval.llm_backend_live_parity --reps 5` sent the same 3 short prompts to Groq (`openai/gpt-oss-120b`) through both
+backends, alternating which went first, with the OpenAI fallback switched off. 15 complete and 15 streamed calls per backend.
+Raw results: `reports/llm-backend-live-parity-2026-11-03.json`. One run, one afternoon, free-tier key.
+
+| | native | litellm |
+|---|---|---|
+| Complete calls that worked | 15 of 15 | 12 of 15 (3 rate-limited, 429) |
+| Streamed calls that worked | 15 of 15 | 10 of 15 (5 rate-limited, 429) |
+| Finish reason, model, usage recorded | stop, same model, always | the same on every call that worked |
+| Same text, complete (temperature 0) | n/a | 12 of 12 pairs identical |
+| Same text, streamed (no temperature sent) | n/a | 7 of 10 pairs identical (the model is not deterministic here) |
+| Bad key / unknown model | 401 / 404, not retryable | 401 / 404, not retryable |
+| Median time, complete / first token | 0.48 s / 0.42 s | 0.43 s / 0.22 s (see below) |
+
+**A real difference found: retries.** The native Groq client keeps the SDK default of 2 retries, so it quietly retried
+brief 429s (the native calls that took 2.3 to 2.6 s). The LiteLLM backend uses `num_retries=0`, so it raised those 429s at once.
+In the app that sends the request to the OpenAI fallback (a 429 is retryable), or fails if there is none. So on a rate-limited
+key the LiteLLM backend is less forgiving than the native one. The timing rows are not a speed comparison: the LiteLLM medians
+leave out the failed calls and the native ones include retry waits. Not fixed here; the options are `num_retries=2` on the
+Router or a short retry in our wrapper, and either needs its own test.
+
+Small differences: on a bad key LiteLLM raised `BadRequestError` carrying status 401 (native raised `AuthenticationError`).
+The status and the retry classification match.
+
+Not covered: OpenAI as the primary, Mistral, the groq to openai fallback on a real outage, concurrency, one model only.
+
 ## What it costs to carry
 
 | | Without | With LiteLLM 1.83.0 |

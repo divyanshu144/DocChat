@@ -1,0 +1,1400 @@
+{
+  "reps": 5,
+  "max_tokens": 400,
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "summary": {
+    "native": {
+      "complete": {
+        "calls": 15,
+        "ok": 15,
+        "errors": [],
+        "finish_reasons": [
+          "stop"
+        ],
+        "elapsed": {
+          "n": 15,
+          "median_s": 0.477,
+          "max_s": 2.611
+        },
+        "usage_recorded": 15,
+        "models": [
+          "openai/gpt-oss-120b"
+        ]
+      },
+      "stream": {
+        "calls": 15,
+        "ok": 15,
+        "errors": [],
+        "finish_reasons": [
+          "stop"
+        ],
+        "elapsed": {
+          "n": 15,
+          "median_s": 0.456,
+          "max_s": 1.562
+        },
+        "ttft": {
+          "n": 15,
+          "median_s": 0.423,
+          "max_s": 1.559
+        },
+        "usage_recorded": 15,
+        "models": [
+          "openai/gpt-oss-120b"
+        ]
+      }
+    },
+    "litellm": {
+      "complete": {
+        "calls": 15,
+        "ok": 12,
+        "errors": [
+          "RateLimitError:429"
+        ],
+        "finish_reasons": [
+          "stop"
+        ],
+        "elapsed": {
+          "n": 12,
+          "median_s": 0.428,
+          "max_s": 4.184
+        },
+        "usage_recorded": 12,
+        "models": [
+          "openai/gpt-oss-120b"
+        ]
+      },
+      "stream": {
+        "calls": 15,
+        "ok": 10,
+        "errors": [
+          "RateLimitError:429"
+        ],
+        "finish_reasons": [
+          "stop"
+        ],
+        "elapsed": {
+          "n": 10,
+          "median_s": 0.265,
+          "max_s": 0.503
+        },
+        "ttft": {
+          "n": 10,
+          "median_s": 0.215,
+          "max_s": 0.459
+        },
+        "usage_recorded": 10,
+        "models": [
+          "openai/gpt-oss-120b"
+        ]
+      }
+    }
+  },
+  "paired": {
+    "complete": {
+      "pairs_both_ok": 12,
+      "exact_same_text": 12,
+      "same_finish_reason": 12,
+      "same_provider_and_model": 12
+    },
+    "stream": {
+      "pairs_both_ok": 10,
+      "exact_same_text": 7,
+      "same_finish_reason": 10,
+      "same_provider_and_model": 10
+    }
+  },
+  "error_cases": {
+    "native": {
+      "bad_key": {
+        "ok": false,
+        "elapsed_s": 0.11277720890939236,
+        "ttft_s": null,
+        "error": "AuthenticationError",
+        "status": 401,
+        "retryable": false,
+        "attempts": []
+      },
+      "unknown_model": {
+        "ok": false,
+        "elapsed_s": 0.1101210005581379,
+        "ttft_s": null,
+        "error": "NotFoundError",
+        "status": 404,
+        "retryable": false,
+        "attempts": []
+      }
+    },
+    "litellm": {
+      "bad_key": {
+        "ok": false,
+        "elapsed_s": 0.05862537585198879,
+        "ttft_s": null,
+        "error": "BadRequestError",
+        "status": 401,
+        "retryable": false,
+        "attempts": []
+      },
+      "unknown_model": {
+        "ok": false,
+        "elapsed_s": 0.06403333507478237,
+        "ttft_s": null,
+        "error": "NotFoundError",
+        "status": 404,
+        "retryable": false,
+        "attempts": []
+      }
+    }
+  },
+  "rows": {
+    "native": {
+      "complete": [
+        {
+          "ok": true,
+          "elapsed_s": 1.2770273759961128,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 0,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.47679541632533073,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 0,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.3436155840754509,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 0,
+          "text_chars": 106
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.3292031232267618,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 1,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.41539366543293,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 1,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.32992641627788544,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 1,
+          "text_chars": 106
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.49701295606791973,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 2,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.4342412482947111,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 2,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.3365874160081148,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 2,
+          "text_chars": 106
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.3154127895832062,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 3,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 2.2670505419373512,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 3,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 2.6110926661640406,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 3,
+          "text_chars": 106
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.5860899146646261,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 4,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 2.557085247710347,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 4,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 2.386094292625785,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 4,
+          "text_chars": 106
+        }
+      ],
+      "stream": [
+        {
+          "ok": true,
+          "elapsed_s": 0.3002970404922962,
+          "ttft_s": 0.27473654225468636,
+          "usage_sink": {
+            "prompt_tokens": 89,
+            "completion_tokens": 64,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 64,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 0,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.23788808472454548,
+          "ttft_s": 0.23530316911637783,
+          "usage_sink": {
+            "prompt_tokens": 80,
+            "completion_tokens": 41,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 41,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 0,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.45611320808529854,
+          "ttft_s": 0.4008709564805031,
+          "usage_sink": {
+            "prompt_tokens": 87,
+            "completion_tokens": 78,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 78,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 0,
+          "text_chars": 103
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.4297710433602333,
+          "ttft_s": 0.40787295810878277,
+          "usage_sink": {
+            "prompt_tokens": 89,
+            "completion_tokens": 53,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 53,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 1,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.4256829172372818,
+          "ttft_s": 0.42324795573949814,
+          "usage_sink": {
+            "prompt_tokens": 80,
+            "completion_tokens": 35,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 1,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.559171624481678,
+          "ttft_s": 0.5019714180380106,
+          "usage_sink": {
+            "prompt_tokens": 87,
+            "completion_tokens": 78,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 78,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 1,
+          "text_chars": 112
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.5046283341944218,
+          "ttft_s": 0.48226029239594936,
+          "usage_sink": {
+            "prompt_tokens": 89,
+            "completion_tokens": 78,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 78,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 2,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 1.5622291695326567,
+          "ttft_s": 1.558965876698494,
+          "usage_sink": {
+            "prompt_tokens": 80,
+            "completion_tokens": 40,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 40,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 2,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.5342250820249319,
+          "ttft_s": 0.4978812076151371,
+          "usage_sink": {
+            "prompt_tokens": 87,
+            "completion_tokens": 84,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 84,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 2,
+          "text_chars": 53
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.4561144597828388,
+          "ttft_s": 0.43395112454891205,
+          "usage_sink": {
+            "prompt_tokens": 89,
+            "completion_tokens": 59,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 59,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 3,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.21638170816004276,
+          "ttft_s": 0.21305612474679947,
+          "usage_sink": {
+            "prompt_tokens": 80,
+            "completion_tokens": 35,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 3,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.47082100063562393,
+          "ttft_s": 0.41731979325413704,
+          "usage_sink": {
+            "prompt_tokens": 87,
+            "completion_tokens": 69,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 69,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 3,
+          "text_chars": 105
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.5443805828690529,
+          "ttft_s": 0.5226789992302656,
+          "usage_sink": {
+            "prompt_tokens": 89,
+            "completion_tokens": 67,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 67,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 4,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.643240250647068,
+          "ttft_s": 0.6396398339420557,
+          "usage_sink": {
+            "prompt_tokens": 80,
+            "completion_tokens": 34,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 34,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 4,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.3172720428556204,
+          "ttft_s": 0.2608312498778105,
+          "usage_sink": {
+            "prompt_tokens": 87,
+            "completion_tokens": 80,
+            "finish_reason": "stop"
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 80,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 4,
+          "text_chars": 110
+        }
+      ]
+    },
+    "litellm": {
+      "complete": [
+        {
+          "ok": true,
+          "elapsed_s": 4.183669084683061,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 0,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.13396704010665417,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 0,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.24620349891483784,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 0,
+          "text_chars": 106
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.24604691751301289,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 1,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.1225387491285801,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 1,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.4566220846027136,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 1,
+          "text_chars": 106
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.5475566666573286,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 2,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.39855349995195866,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 2,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.49606600031256676,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 2,
+          "text_chars": 106
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.4611919987946749,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 3,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.15867720916867256,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 35,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 3,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.4867672920227051,
+          "ttft_s": null,
+          "usage_sink": {},
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": false,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 81,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 3,
+          "text_chars": 106
+        },
+        {
+          "ok": false,
+          "elapsed_s": 0.06562579236924648,
+          "ttft_s": null,
+          "error": "RateLimitError",
+          "status": 429,
+          "retryable": true,
+          "attempts": [],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 4,
+          "text_chars": 0
+        },
+        {
+          "ok": false,
+          "elapsed_s": 0.061568835750222206,
+          "ttft_s": null,
+          "error": "RateLimitError",
+          "status": 429,
+          "retryable": true,
+          "attempts": [],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 4,
+          "text_chars": 0
+        },
+        {
+          "ok": false,
+          "elapsed_s": 0.06818358227610588,
+          "ttft_s": null,
+          "error": "RateLimitError",
+          "status": 429,
+          "retryable": true,
+          "attempts": [],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 4,
+          "text_chars": 0
+        }
+      ],
+      "stream": [
+        {
+          "ok": true,
+          "elapsed_s": 0.2238692082464695,
+          "ttft_s": 0.19495216384530067,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 89,
+            "completion_tokens": 62
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 62,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 0,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.433505168184638,
+          "ttft_s": 0.42753679119050503,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 80,
+            "completion_tokens": 37
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 37,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 0,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.24246608279645443,
+          "ttft_s": 0.18832212686538696,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 87,
+            "completion_tokens": 77
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 77,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 0,
+          "text_chars": 87
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.2173642497509718,
+          "ttft_s": 0.1937110424041748,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 89,
+            "completion_tokens": 82
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 82,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 1,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.3649164568632841,
+          "ttft_s": 0.3590190839022398,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 80,
+            "completion_tokens": 43
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 43,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 1,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.2538215406239033,
+          "ttft_s": 0.1921037919819355,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 87,
+            "completion_tokens": 80
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 80,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 1,
+          "text_chars": 105
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.244269460439682,
+          "ttft_s": 0.2160853762179613,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 89,
+            "completion_tokens": 74
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 74,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 2,
+          "text_chars": 46
+        },
+        {
+          "ok": false,
+          "elapsed_s": 0.07240220904350281,
+          "ttft_s": null,
+          "error": "RateLimitError",
+          "status": 429,
+          "retryable": true,
+          "attempts": [],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 2,
+          "text_chars": 0
+        },
+        {
+          "ok": false,
+          "elapsed_s": 0.047177789732813835,
+          "ttft_s": null,
+          "error": "RateLimitError",
+          "status": 429,
+          "retryable": true,
+          "attempts": [],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 2,
+          "text_chars": 0
+        },
+        {
+          "ok": false,
+          "elapsed_s": 0.06978820823132992,
+          "ttft_s": null,
+          "error": "RateLimitError",
+          "status": 429,
+          "retryable": true,
+          "attempts": [],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 3,
+          "text_chars": 0
+        },
+        {
+          "ok": false,
+          "elapsed_s": 0.06428691558539867,
+          "ttft_s": null,
+          "error": "RateLimitError",
+          "status": 429,
+          "retryable": true,
+          "attempts": [],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 3,
+          "text_chars": 0
+        },
+        {
+          "ok": false,
+          "elapsed_s": 0.06678429245948792,
+          "ttft_s": null,
+          "error": "RateLimitError",
+          "status": 429,
+          "retryable": true,
+          "attempts": [],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 3,
+          "text_chars": 0
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.5031235404312611,
+          "ttft_s": 0.45897016674280167,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 89,
+            "completion_tokens": 69
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 89,
+              "completion_tokens": 69,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "What does RAG stand for in AI?",
+          "rep": 4,
+          "text_chars": 46
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.36345516704022884,
+          "ttft_s": 0.35544862411916256,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 80,
+            "completion_tokens": 42
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 80,
+              "completion_tokens": 42,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Name the capital of France. One word.",
+          "rep": 4,
+          "text_chars": 5
+        },
+        {
+          "ok": true,
+          "elapsed_s": 0.27596704103052616,
+          "ttft_s": 0.21313149854540825,
+          "usage_sink": {
+            "finish_reason": "stop",
+            "prompt_tokens": 87,
+            "completion_tokens": 79
+          },
+          "attempts": [
+            {
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "streaming": true,
+              "outcome": "ok",
+              "prompt_tokens": 87,
+              "completion_tokens": 79,
+              "finish_reason": "stop"
+            }
+          ],
+          "prompt": "Is 17 a prime number? Answer yes or no, then one reason.",
+          "rep": 4,
+          "text_chars": 105
+        }
+      ]
+    }
+  }
+}
