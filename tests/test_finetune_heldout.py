@@ -166,3 +166,87 @@ def test_hosted_answers_never_fall_back_and_retry_rate_limits(held, tmp_path, mo
     rows = [json.loads(line) for line in (tmp_path / "a.jsonl").read_text().splitlines()]
     assert [r["status"] for r in rows] == ["ok", "ok"] and pauses == [5]  # one rate limit, one pause, then success
     assert set(seen) == {"none"}  # a failure can never be answered by another provider
+
+
+def _hosted_workload(held, tmp_path, count=4):
+    docs, index = held
+    cases = build_cases(docs, index, BroadTeacher(), random.Random(1))[:count]
+    path = tmp_path / "w.json"
+    path.write_text(Workloads(corpus_sha256=corpus_fingerprint(index, docs), cases=cases).model_dump_json())
+    return path, cases
+
+
+def test_hosted_run_stops_cleanly_at_a_daily_token_limit_and_resumes_the_rest(held, tmp_path, monkeypatch):
+    import asyncio
+
+    import httpx
+
+    from app.core.config import settings
+    from eval import generate_hosted_answers as hosted
+
+    workload, cases = _hosted_workload(held, tmp_path)
+    monkeypatch.setattr(settings, "llm_provider", settings.llm_provider)
+    monkeypatch.setattr(settings, "fallback_llm_provider", settings.fallback_llm_provider)
+    calls = []
+
+    async def spent_after_two(messages, max_tokens, temperature=None):
+        calls.append(messages[-1]["content"])
+        if len(calls) > 2:
+            request = httpx.Request("POST", "https://api.groq.com/x")
+            body = '{"error":{"message":"Rate limit reached ... on tokens per day (TPD): Limit 200000, Used 199000"}}'
+            raise httpx.HTTPStatusError("429", request=request, response=httpx.Response(429, request=request, text=body))
+        return "An answer.\n\nSources:\n\n[Web - Pay guide]"
+
+    async def fine(messages, max_tokens, temperature=None):
+        calls.append(messages[-1]["content"])
+        return "An answer.\n\nSources:\n\n[Web - Pay guide]"
+
+    async def no_close():
+        return None
+
+    async def no_sleep(seconds):
+        return None
+
+    monkeypatch.setattr(hosted.llm, "close_llm_clients", no_close)
+    out = tmp_path / "a.jsonl"
+    monkeypatch.setattr(hosted.llm, "chat_complete", spent_after_two)
+    first = asyncio.run(hosted.generate(workload, out, max_tokens=50, concurrency=1, sleep=no_sleep))
+    rows = [json.loads(line) for line in out.read_text().splitlines()]
+    assert first["answered"] == 2 and first["not_tried_daily_limit"] == 2 and first["errors"] == 0
+    assert [r["status"] for r in rows] == ["ok", "ok"]  # no error rows invented for cases that were never tried
+    calls.clear()
+    monkeypatch.setattr(hosted.llm, "chat_complete", fine)
+    second = asyncio.run(hosted.generate(workload, out, max_tokens=50, concurrency=1, sleep=no_sleep, resume=True))
+    rows = [json.loads(line) for line in out.read_text().splitlines()]
+    assert second["answered"] == 4 and len(calls) == 2  # only the two missing cases were asked
+    assert [r["case_id"] for r in rows] == [c.id for c in cases]
+
+
+def test_resume_retries_error_rows_and_keeps_good_ones(held, tmp_path, monkeypatch):
+    import asyncio
+
+    from app.core.config import settings
+    from eval import generate_hosted_answers as hosted
+
+    workload, cases = _hosted_workload(held, tmp_path, count=2)
+    monkeypatch.setattr(settings, "llm_provider", settings.llm_provider)
+    monkeypatch.setattr(settings, "fallback_llm_provider", settings.fallback_llm_provider)
+    out = tmp_path / "a.jsonl"
+    good = {"case_id": cases[0].id, "status": "ok", "answer": "kept answer"}
+    bad = {"case_id": cases[1].id, "status": "error", "error": "RuntimeError: boom"}
+    out.write_text(json.dumps(good) + "\n" + json.dumps(bad) + "\n")
+    asked = []
+
+    async def fine(messages, max_tokens, temperature=None):
+        asked.append(messages[-1]["content"])
+        return "fresh answer"
+
+    async def no_close():
+        return None
+
+    monkeypatch.setattr(hosted.llm, "chat_complete", fine)
+    monkeypatch.setattr(hosted.llm, "close_llm_clients", no_close)
+    asyncio.run(hosted.generate(workload, out, max_tokens=50, concurrency=1, resume=True))
+    rows = {json.loads(line)["case_id"]: json.loads(line) for line in out.read_text().splitlines()}
+    assert rows[cases[0].id]["answer"] == "kept answer" and rows[cases[1].id]["answer"] == "fresh answer"
+    assert len(asked) == 1
