@@ -42,11 +42,13 @@ def test_cases_cover_every_category_and_are_held_out(held):
 def test_document_questions_are_grounded_in_retrieval_and_negatives_expect_nothing(held):
     docs, index = held
     cases = build_cases(docs, index, BroadTeacher(), random.Random(1))
+    asked = {c.query for c in cases if c.category == "document_qa"}
+    assert any(c.category == "negative_control" for c in cases)
     for c in cases:
         if c.category == "document_qa":
             assert c.evidence_retrieved and set(c.evidence_retrieved) <= set(c.expected_evidence)
         if c.category == "negative_control":
-            assert c.expected_evidence == [] and "bonus" in c.query
+            assert c.expected_evidence == [] and c.query in asked  # borrowed from a document question, not invented
 
 
 def test_only_the_held_out_documents_are_ever_used(held):
@@ -110,3 +112,16 @@ def test_hosted_answers_keep_failures_in_workload_order_and_feed_the_review_pack
     assert len(pack) == len(cases) and {k["model"] for k in key} == {rows[0]["model"]}
     with pytest.raises(FileExistsError):
         asyncio.run(hosted.generate(workload, out, max_tokens=100, concurrency=2))
+
+
+def test_a_negative_control_is_dropped_when_the_teacher_says_the_context_can_answer_it(held):
+    class Answerable(BroadTeacher):
+        def complete(self, messages, *a, **k):
+            if messages[0]["content"].startswith("Decide whether the passages"):
+                return json.dumps({"answerable": True})
+            return super().complete(messages, *a, **k)
+
+    docs, index = held
+    cases = build_cases(docs, index, Answerable(), random.Random(1))
+    assert not any(c.category == "negative_control" for c in cases)
+    assert any(c.category == "document_qa" for c in cases)

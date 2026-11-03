@@ -8,7 +8,7 @@ retriever logic and the prompt is the real synthesizer prompt. Questions are wri
 LLM-generated; the report must say so.
 
 Mix (per held-out document unless noted): 4 document questions, 1 summary (first 8 docs), 1 long-context (first 8),
-1 unanswerable negative control, plus one comparison per pair of documents (first 8 pairs).
+1 negative control (a question about another held-out document that the teacher confirms the context cannot answer), plus one comparison per pair of documents (first 8 pairs).
 """
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ from pathlib import Path
 from eval.workloads import Message, WorkloadCase, Workloads
 from finetune.corpus import read_points, source_id
 from finetune.fetch_sources import load_manifest
+from finetune.abstentions import borrowed_candidates, unanswerable_for
 from finetune.questions import ask_questions, pick_windows
 from finetune.retrieval import CorpusIndex, build_messages
 from finetune.schema import SourceDoc
@@ -52,8 +53,9 @@ def _case(case_id, category, query, scope, index, expected_evidence, expected_fa
 
 
 def build_cases(docs: list[SourceDoc], index: CorpusIndex, teacher: Teacher, rng: random.Random,
-                qa_windows: int = 2, broad_docs: int = 8, pairs: int = 8) -> list[WorkloadCase]:
+                qa_windows: int = 2, broad_docs: int = 8, pairs: int = 8, negative_attempts: int = 10) -> list[WorkloadCase]:
     cases: list[WorkloadCase] = []
+    asked: dict[str, list[str]] = {}
     for position, doc in enumerate(docs):
         sid = source_id(doc)
         ids = index.chunk_ids_in_order(sid)
@@ -67,12 +69,7 @@ def build_cases(docs: list[SourceDoc], index: CorpusIndex, teacher: Teacher, rng
                 case = _case(f"v2-qa-{doc.id}-{count}", "document_qa", item["question"], [sid], index, window.chunk_ids, item["facts"])
                 if case and case.evidence_retrieved:  # keep only questions whose source passage was actually retrieved
                     cases.append(case)
-        if windows:
-            _, off_topic = ask_questions(teacher, windows[-1], answerable=0, unanswerable=1)
-            for question in off_topic:
-                case = _case(f"v2-negative-{doc.id}", "negative_control", question, [sid], index, [])
-                if case:
-                    cases.append(case)
+                    asked.setdefault(doc.id, []).append(item["question"])
         if position < broad_docs:
             summary = f"Summarise the main points of '{doc.title}': what it covers, who it applies to, the key rules and any exceptions."
             for case in [_case(f"v2-summary-{doc.id}", "summarisation", summary, [sid], index, ids)]:
@@ -84,6 +81,16 @@ def build_cases(docs: list[SourceDoc], index: CorpusIndex, teacher: Teacher, rng
                 case = _case(f"v2-long-{doc.id}", "long_context", broad, [sid], index, ids)
                 if case:
                     cases.append(case)
+    # Negative controls: a question written about another held-out document, asked against this one, kept only when the
+    # teacher confirms the retrieved context cannot answer it. (Questions the teacher wrote as "not answered by this
+    # excerpt" were often answered elsewhere in the same document, so they were not negative.)
+    for doc in docs:
+        sid = source_id(doc)
+        candidates = borrowed_candidates(asked, doc, docs, rng, negative_attempts)
+        for question, _ in unanswerable_for(doc, index, candidates, teacher, wanted=1):
+            case = _case(f"v2-negative-{doc.id}", "negative_control", question, [sid], index, [])
+            if case:
+                cases.append(case)
     for a, b in zip(docs[:pairs], docs[1:pairs + 1], strict=False):
         query = f"Compare the purpose and key information in '{a.title}' and '{b.title}'."
         case = _case(f"v2-multi-{a.id}-{b.id}"[:128], "multi_document", query, [source_id(a), source_id(b)], index,

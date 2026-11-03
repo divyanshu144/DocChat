@@ -92,6 +92,10 @@ class FakeTeacher:
                 {"question": "How long does statutory pay last?", "facts": ["It lasts 39 weeks."]},
                 {"question": "When must I tell my employer about the pay start?", "facts": ["28 days before."]}],
                 "unanswerable": ["What is the exact bonus rate paid on overtime in the pay guide?"]}) + "\n```")
+        if text.startswith("Decide whether the passages"):
+            return json.dumps({"answerable": False})
+        if "Instruction for this test only" in messages[-1]["content"]:
+            return "The provided sources do not contain the information needed to answer this question."
         marker = re.search(r"^Source marker: (\[[^\]\n]+\])", messages[0]["content"], re.MULTILINE).group(1)
         if "bonus" in messages[1]["content"]:
             return "The context does not contain the bonus rate for overtime."
