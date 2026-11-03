@@ -40,11 +40,13 @@ class HttpTeacher:
                 response.raise_for_status()
                 return response.json()["choices"][0]["message"].get("content") or ""
             except (httpx.TransportError, httpx.HTTPStatusError) as exc:
-                if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code not in {408, 409, 429, 500, 502, 503, 504}:
+                if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code not in {408, 409, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524}:
                     raise
                 last = exc
                 time.sleep(self._backoff * 2 ** attempt)
-        raise RuntimeError(f"teacher failed after {self._retries} attempts: {type(last).__name__}")
+        status = getattr(getattr(last, "response", None), "status_code", None)
+        raise RuntimeError(f"teacher failed after {self._retries} attempts: {type(last).__name__}"
+                           + (f" (HTTP {status})" if status else ""))
 
 
 _JSON_BLOCK = re.compile(r"\{.*\}", re.DOTALL)

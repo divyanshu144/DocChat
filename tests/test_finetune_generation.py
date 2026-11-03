@@ -225,6 +225,70 @@ def test_training_and_validation_documents_are_never_mixed(points, docs, tmp_pat
     assert any(len(r["doc_ids"]) == 2 for r in rows)  # multi-document contexts do get built, within a split
 
 
+def test_parallel_generation_gives_the_same_examples_as_serial(points, docs, tmp_path, monkeypatch):
+    for d in docs:
+        corpus.write_points(tmp_path / f"{d.id}.points.jsonl", points[d.id])
+    monkeypatch.setattr("app.services.embedder.get_embedder", lambda: FakeEmbedder())
+    manifest = Manifest(documents=docs)
+    serial, parallel = tmp_path / "serial.jsonl", tmp_path / "parallel.jsonl"
+    gen.generate(manifest, tmp_path, FakeTeacher(), serial, windows=2, multi_doc_rate=0.5, workers=1)
+    gen.generate(manifest, tmp_path, FakeTeacher(), parallel, windows=2, multi_doc_rate=0.5, workers=4)
+    # Documents are written as they finish, so only the order of the lines may differ.
+    assert sorted(serial.read_text().splitlines()) == sorted(parallel.read_text().splitlines()) != []
+
+
+class FlakyTeacher(FakeTeacher):
+    """Writes questions fine but fails every answer call."""
+
+    def complete(self, messages, max_tokens=700, temperature=0.2):
+        if not messages[0]["content"].startswith("You write test questions"):
+            raise RuntimeError("teacher failed after 3 attempts: HTTPStatusError (HTTP 503)")
+        return super().complete(messages, max_tokens, temperature)
+
+
+def _write_corpus(points, docs, tmp_path, monkeypatch):
+    for d in docs:
+        corpus.write_points(tmp_path / f"{d.id}.points.jsonl", points[d.id])
+    monkeypatch.setattr("app.services.embedder.get_embedder", lambda: FakeEmbedder())
+    return Manifest(documents=docs)
+
+
+def test_a_failed_teacher_call_is_skipped_and_counted_not_fatal(points, docs):
+    index = CorpusIndex([p for pts in points.values() for p in pts], FakeEmbedder().embed_query)
+    errors = []
+    out = gen.examples_for_document(docs[0], index, [], FlakyTeacher(), random.Random(1), windows=2,
+                                    multi_doc_rate=0.0, on_error=errors.append)
+    assert out == [] and errors  # nothing survived, and the failures were counted
+    with pytest.raises(RuntimeError):  # without a handler the error still surfaces
+        gen.examples_for_document(docs[0], index, [], FlakyTeacher(), random.Random(1), windows=2)
+
+
+def test_a_failed_question_call_loses_only_that_window(points, docs):
+    class NoQuestions(FakeTeacher):
+        def complete(self, messages, *a, **k):
+            raise RuntimeError("teacher failed after 3 attempts: HTTPStatusError (HTTP 504)")
+    index = CorpusIndex([p for pts in points.values() for p in pts], FakeEmbedder().embed_query)
+    errors = []
+    assert gen.examples_for_document(docs[0], index, [], NoQuestions(), random.Random(1), windows=3,
+                                     on_error=errors.append) == []
+    assert errors  # the failure was counted and the run went on
+
+
+def test_too_many_teacher_failures_fail_the_run(points, docs, tmp_path, monkeypatch):
+    manifest = _write_corpus(points, docs, tmp_path, monkeypatch)
+    with pytest.raises(RuntimeError, match="teacher calls failed"):
+        gen.generate(manifest, tmp_path, FlakyTeacher(), tmp_path / "ex.jsonl", windows=2)
+
+
+def test_resume_skips_documents_already_written(points, docs, tmp_path, monkeypatch):
+    manifest = _write_corpus(points, docs, tmp_path, monkeypatch)
+    out = tmp_path / "ex.jsonl"
+    gen.generate(manifest, tmp_path, FakeTeacher(), out, windows=2, multi_doc_rate=0.0)
+    first = out.read_text()
+    assert gen.generate(manifest, tmp_path, FakeTeacher(), out, windows=2, multi_doc_rate=0.0, resume=True) == 0
+    assert out.read_text() == first  # nothing re-generated, nothing duplicated
+
+
 # ---------------- teacher client ----------------
 def test_teacher_retries_transient_errors_and_not_client_errors(tmp_path):
     calls = []
