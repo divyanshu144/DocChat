@@ -21,9 +21,16 @@ Done locally, no spend (tooling in `finetune/`, see `finetune/README.md`):
 - [x] Manifest of 56 open-licence documents (48 GOV.UK guides under the OGL, 8 NIST publications that state they are not subject to copyright in the US), split by document: 34 train, 4 validation, 15 held out, 3 excluded. All downloaded, sha256 in `finetune/sources.lock.json`; 2,024 chunks embedded with the app's chunkers and embedder.
 - [x] Validator (format, citations exist in context, no body citations, duplicates, abstention rate, serving-prompt prefix), decontamination (8-gram) with a planted-leak test, document-level leakage report: no shared 8-grams with any evaluation file; held-out text found in training text: max 1.4%, mean 0.4% (stock text ignored, 3 near-copy documents excluded; the exclusion rules were chosen after looking at the overlap numbers, which the report must say).
 - [x] Teacher client, question and example generator, `eval/prepare_heldout_v2.py` (about 100 questions; categories as in the old set), all tested with fakes. Every guard was broken on purpose; one equivalent mutant survived (fraction denominator).
-Still to do:
-- [ ] Priced plan approved by the user (cap), then: generate held-out v2 questions and training examples with Qwen2.5-72B, validate, example-level decontamination, manual spot-check of a sample.
-- [ ] 2b training (`requirements-finetune.txt`, smoke run first). 2c serve and evaluate base vs fine-tuned vs hosted. 2d report + README link.
+Run on 2026-11-03 (user approved a $25 cap covering everything; Runpod spend about $5.1):
+- [x] Teacher (Qwen2.5-72B-Instruct AWQ on an A100) generated 1,175 examples, then 114 strict abstentions; validated, capped at 15% abstentions, leakage-checked: 405 examples (355 train, 50 validation). Held-out v2: 99 cases. First pod vanished mid-run; generator made incremental and resumable.
+- [x] Fixed on the way: abstention questions that retrieval could answer (also in the first held-out negatives); example-level leakage check that flagged everything on real data.
+- [x] 2b: QLoRA smoke run then full run (L40S, 36 minutes), adapter picked by validation loss (epoch 1). `finetune/train_lora.py`, `requirements-finetune.txt`.
+- [x] 2c (partly): vLLM with the adapter beside the base model; judge-free metrics (`eval/answer_behaviour_metrics.py`); short serving load test.
+- [x] 2d: `reports/finetune-vs-base-2026-11-03.md`, run record in `reports/finetune-run-2026-11-03/`, README link.
+Blocked on the user (not on code):
+- [ ] LLM-judged quality: needs credit on OpenAI (the judge used in earlier reports) or Anthropic. Packs are built: `data/finetune/eval/pack-v2.jsonl`, `pack-old.jsonl` (commands in the report). Human verdicts are the user's.
+- [ ] Hosted gpt-oss-120b arm: Groq's free tier allows 200,000 tokens a day, the job needs about 600,000. `python -m eval.generate_hosted_answers ... --resume` once a day, or upgrade the Groq tier.
+- [ ] Decide whether to push the branch, merge PR #9 first, and read the Qwen licence text before sharing the adapter.
 
 ---
 

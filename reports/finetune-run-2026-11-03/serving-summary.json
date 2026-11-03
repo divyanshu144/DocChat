@@ -1,0 +1,84 @@
+{
+ "Qwen2.5-7B-Instruct (base)": [
+  {
+   "concurrency": 1,
+   "offered": 6,
+   "completed_ok": 6,
+   "errors": 0,
+   "wall_s": 30.762149665504694,
+   "successful_requests_per_second": 0.19504488682493257,
+   "latency_p50_s": 3.274716041982174,
+   "latency_p95_s": null,
+   "ttft_p95_s": null,
+   "output_tokens_per_second": 41.447038450298166,
+   "truncated": 0
+  },
+  {
+   "concurrency": 8,
+   "offered": 43,
+   "completed_ok": 43,
+   "errors": 0,
+   "wall_s": 39.17031920701265,
+   "successful_requests_per_second": 1.0977699664061384,
+   "latency_p50_s": 5.521894834935665,
+   "latency_p95_s": 13.191093750298023,
+   "ttft_p95_s": 2.0666232090443373,
+   "output_tokens_per_second": 208.06570293511695,
+   "truncated": 0
+  },
+  {
+   "concurrency": 32,
+   "offered": 81,
+   "completed_ok": 80,
+   "errors": 1,
+   "wall_s": 37.054168835282326,
+   "successful_requests_per_second": 2.159001335467156,
+   "latency_p50_s": 12.178918832913041,
+   "latency_p95_s": 30.702101917937398,
+   "ttft_p95_s": 7.717372125014663,
+   "output_tokens_per_second": 378.4189590740057,
+   "truncated": 4
+  }
+ ],
+ "docchat-lora (base + adapter)": [
+  {
+   "concurrency": 1,
+   "offered": 6,
+   "completed_ok": 6,
+   "errors": 0,
+   "wall_s": 35.391662791371346,
+   "successful_requests_per_second": 0.16953145251663135,
+   "latency_p50_s": 2.7908974159508944,
+   "latency_p95_s": null,
+   "ttft_p95_s": null,
+   "output_tokens_per_second": 39.896401825580575,
+   "truncated": 1
+  },
+  {
+   "concurrency": 8,
+   "offered": 39,
+   "completed_ok": 39,
+   "errors": 0,
+   "wall_s": 38.79187825322151,
+   "successful_requests_per_second": 1.0053650855836351,
+   "latency_p50_s": 5.56992762349546,
+   "latency_p95_s": 17.925624126568437,
+   "ttft_p95_s": 2.31547150015831,
+   "output_tokens_per_second": 201.7948176909922,
+   "truncated": 2
+  },
+  {
+   "concurrency": 32,
+   "offered": 78,
+   "completed_ok": 78,
+   "errors": 0,
+   "wall_s": 40.02825933136046,
+   "successful_requests_per_second": 1.9486233301903857,
+   "latency_p50_s": 12.22432229295373,
+   "latency_p95_s": 34.46596637554467,
+   "ttft_p95_s": 8.639258917421103,
+   "output_tokens_per_second": 345.1811352979559,
+   "truncated": 2
+  }
+ ]
+}

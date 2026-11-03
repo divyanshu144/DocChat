@@ -13,6 +13,7 @@ model need an OpenAI-compatible endpoint and cost money, so they are run only af
 | Generate examples (teacher, billable) | `python -m finetune.generate_examples --base-url ... --model ...` | `data/finetune/examples.raw.jsonl` |
 | Validate and de-duplicate | `python -m finetune.validate_examples examples.raw.jsonl --output examples.jsonl --report report.json` | passing examples plus a review sample |
 | Check examples for leakage | `python -m finetune.decontaminate examples.jsonl --hashes-out hashes.json` | fails loudly on any overlap |
+| Strict abstention examples (teacher, billable) | `python -m finetune.abstentions --base-url ... --model ...` | `data/finetune/abstentions.raw.jsonl` |
 | Build the held-out set (teacher, billable) | `python -m eval.prepare_heldout_v2 --base-url ... --model ...` | `data/finetune/heldout-v2-workload.json` |
 
 **What is committed:** the code, `manifest.json` (every document with URL, licence and split), `sources.lock.json`
@@ -25,3 +26,18 @@ United States. The working-time PDF and the Wikipedia RAG article used by the ex
 
 **Splits are by document.** `excluded` documents stay in the manifest for the record but are used for nothing: they shared
 text with a held-out document (see each document's `note`).
+
+## After the data: training, serving, measuring (run 2026-11-03)
+
+| Step | Command | Notes |
+|---|---|---|
+| Cap abstentions, then validate | `python -m finetune.validate_examples raw.jsonl --output examples.jsonl --report r.json --max-abstention-rate 0.15` | fails if the share leaves 8 to 25% |
+| Leakage on the examples | `python -m finetune.decontaminate examples.jsonl --reference ... --heldout-texts ... --stock-from data/finetune/corpus --drop-leaking clean.jsonl` | zero shared 8-grams with the evaluation files and held-out questions; held-out document text under a 2% cap |
+| Train (GPU) | `python finetune/train_lora.py --train train.jsonl --validation validation.jsonl --output out/ --epochs 3` | needs `requirements-finetune.txt`; writes `run.json` with versions, losses and the adapter sha256 |
+| Serve both models | `vllm serve Qwen/Qwen2.5-7B-Instruct --enable-lora --lora-modules docchat-lora=<adapter dir> --max-lora-rank 16` | the venv's `bin` must be on PATH (vLLM needs `ninja`) |
+| Answers per arm | `python -m eval.generate_answer_samples --prompts <workload> --model <name> --output ...` | with `LOCAL_BASE_URL` and `LOCAL_API_KEY` set for that process |
+| Hosted arm | `python -m eval.generate_hosted_answers --prompts <workload> --output ... [--resume]` | Groq, fallback disabled, stops at a daily token limit |
+| Judge-free metrics | `python -m eval.answer_behaviour_metrics --run base:v2:a.jsonl --run tuned:v2:b.jsonl --pair tuned:base` | format, citations, abstention; does not check truth |
+
+The Runpod tools cannot open a shell or copy files, so training used a pod with SSH and a throwaway key passed as the `PUBLIC_KEY`
+environment variable (nothing was added to the account's SSH keys). Delete the pod and the key afterwards.
