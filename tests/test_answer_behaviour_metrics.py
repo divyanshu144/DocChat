@@ -76,3 +76,12 @@ def test_a_long_answer_that_notes_a_gap_is_not_a_short_abstention():
     assert analyse(row(ABSTAIN))["abstained_short"]
     summary = summarise([row(long_answer, case_id="a"), row(GOOD, case_id="b")])
     assert summary["answerable"]["false_refusal"]["k"] == 1 and summary["answerable"]["false_refusal_short"]["k"] == 0
+
+
+def test_a_file_that_mixes_splits_is_reported_per_split_not_pooled():
+    from eval.answer_behaviour_metrics import by_split
+    rows = [{**row(GOOD, case_id="d1"), "split": "development"}, {**row(GOOD, case_id="h1"), "split": "held_out"},
+            {**row(GOOD, case_id="h2"), "split": "held_out"}]
+    groups = by_split("old", rows)
+    assert set(groups) == {"old-development", "old-held_out"} and len(groups["old-held_out"]) == 2
+    assert set(by_split("v2", [{**row(GOOD), "split": "held_out"}])) == {"v2"}  # a single split keeps the plain name

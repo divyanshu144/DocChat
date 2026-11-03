@@ -105,6 +105,17 @@ def load(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
+def by_split(workload: str, rows: list[dict]) -> dict[str, list[dict]]:
+    """One group per `split` value when a file mixes splits (the old workload holds development and held_out cases).
+
+    Development cases were used to build the earlier pipeline; they are reported apart and never pooled into a headline.
+    """
+    splits = sorted({r.get("split") or "unsplit" for r in rows})
+    if len(splits) == 1:
+        return {workload: rows}
+    return {f"{workload}-{split}": [r for r in rows if (r.get("split") or "unsplit") == split] for split in splits}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", action="append", required=True, metavar="ARM:WORKLOAD:FILE",
@@ -115,7 +126,8 @@ def main() -> None:
     runs: dict[tuple[str, str], list[dict]] = {}
     for spec in args.run:
         arm, workload, file = spec.split(":", 2)
-        runs[(arm, workload)] = load(Path(file))
+        for group, rows in by_split(workload, load(Path(file))).items():
+            runs[(arm, group)] = rows
     report: dict = {"arms": {f"{arm}/{workload}": summarise(rows) for (arm, workload), rows in runs.items()}, "paired": {}}
     for pair in args.pair:
         first, second = pair.split(":")
