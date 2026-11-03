@@ -16,9 +16,9 @@ abstention on 14 of the 15 negative controls, where the base model does so on 3 
 answerable questions (the base model to 2). Serving the adapter on top of the base model cost about 3 to 10 percent of throughput
 (tokens per second down 3 to 9 percent, requests per second down 8 to 10 percent) at concurrency 8 and 32 in a short test.
 
-**What the numbers do not show.** Nothing here measures whether the answers are true or complete. No LLM judge or human verdict was
-produced, because the OpenAI and Anthropic accounts have no credit and Groq's free daily token limit is smaller than the job (details
-below). The hosted gpt-oss-120b arm was not measured for the same reason. The gain is in format, citations and abstention behaviour. On
+**What the numbers do not show.** The mechanical metrics do not measure whether answers are true or complete. A blinded LLM judge
+(`gpt-5.6-luna`, added later the same day; see "Judged comparison" below) did, but no human has verified its labels, so every
+correctness figure is LLM-assisted. The hosted gpt-oss-120b arm was not measured (Groq's free daily token limit is smaller than the job). The gain is in format, citations and abstention behaviour. On
 the old held-out documents (a PDF and a Wikipedia article, unlike the training material) the gain is much smaller and rests on 13
 answerable cases. Do not read this as "the fine-tuned model is better". Read it as "the fine-tuned model follows the output contract and
 the base model, with this prompt, does not".
@@ -29,7 +29,7 @@ the base model, with this prompt, does not".
 |---|---|
 | Source documents | 56 open-licence documents: 48 GOV.UK guides (Open Government Licence v3.0) and 8 NIST publications (each states it is not subject to copyright in the US). Hashes in `finetune/sources.lock.json`. |
 | Splits (by document) | 34 train, 4 validation, 15 held out, 3 excluded for sharing text with held-out documents |
-| Teacher | Qwen2.5-72B-Instruct (AWQ build `Qwen/Qwen2.5-72B-Instruct-AWQ`) served by vLLM 0.30.0 on one A100 80GB. Under the Qwen licence, using outputs to train another model is allowed; a model that is distributed must say "Built with Qwen" or "Improved using Qwen" and carry the licence notice (Sections 5(b) and 3(c)). I read this through a fetch tool's summary, not the full text, so read the LICENSE file in the `Qwen/Qwen2.5-72B-Instruct` repository before sharing the adapter. |
+| Teacher | Qwen2.5-72B-Instruct (AWQ build `Qwen/Qwen2.5-72B-Instruct-AWQ`) served by vLLM 0.30.0 on one A100 80GB. Under the Qwen licence, using outputs to train another model is allowed; a model that is distributed must say "Built with Qwen" or "Improved using Qwen" and carry the licence notice (Sections 5(b) and 3(c)). I have since read the full LICENSE text (identical in the 72B and 72B-AWQ repositories); the 7B student is Apache 2.0. Built with Qwen. Copy of the licence: `finetune/licenses/Qwen-LICENSE.txt`; notice: `finetune/NOTICE`. Ship both with any copy of the adapter. |
 | Student | Qwen2.5-7B-Instruct (its model card states Apache-2.0) |
 | Raw examples | 1289 (1,175 from the first pass and 114 abstentions from the strict method below) |
 | Passed format and citation rules | 535 |
@@ -154,9 +154,36 @@ Closed loop, 30 second windows, one repeat, prefix cache bypassed, from a laptop
 treat these as indicative. With the adapter, output tokens per second were 3% to 9% lower and requests per second 8% to 10% lower at concurrency 8 and 32,
 and latency was in the same range. One repeat cannot separate that from noise.
 
+## Judged comparison (added 2026-11-03, LLM-assisted, not human-verified)
+
+Judge: OpenAI `gpt-5.6-luna`, prompt v1, blinded (the judge sees neither the model nor the case id), a different family from the
+Qwen teacher and student. OpenAI rejected `temperature=0` for this model, so sampling was the provider default. All 278 judgments parsed.
+New 99-question set (84 answerable, 15 negative controls), base vs tuned, same cases for both:
+
+| | base | tuned |
+|---|---|---|
+| Answer correct: yes / partial / no | 57 / 27 / 15 | 69 / 24 / 6 |
+| Fully supported by the context | 39 | 55 |
+| Mean unsupported claims per answer | 1.75 | 0.94 |
+| Negative controls abstained correctly (of 15) | 9 | 14 |
+| False abstentions (of 84 answerable) | 0 | 0 |
+
+Paired by case (99 cases, ties not counted): tuned better on correctness in 24, base in 8 (exact sign test p = 0.007; mean score
+difference 0.11 on a 0 to 1 scale, bootstrap interval 0.04 to 0.18). Fully supported: tuned 28, base 12 (p = 0.017). Unsupported-claim
+counts are exploratory (they depend strongly on the judge and prompt): tuned fewer in 42 cases, base in 20.
+
+Old evaluation set (40 cases; 24 development and 16 held out; the held-out documents are a PDF and a Wikipedia article, unlike the training material): no measurable difference. Held out,
+correct yes: base 13, tuned 12 of 16; paired 2 vs 1 for base, p = 1.0. Development: 24 of 24 correct for both. So the gain shows
+on documents like the training ones, and is not shown on the PDF and Wikipedia material.
+
+Read with care: one judge, one prompt, no human check, default sampling, a single training seed, and a held-out set built by the same
+teacher family that wrote the training data (held out by document, with zero shared 8-grams). The sign-test p-values are descriptive.
+Judge labels: `data/finetune/eval/labels-v2.jsonl` and `labels-old.jsonl` (git-ignored); summaries `aggregate-*.json`, `paired-*.json`.
+The earlier 14 Groq `gpt-oss-120b` labels (`labels-v2-groq.jsonl`) are a different judge and are not used here.
+
 ## What was not done, and why
 
-- **No LLM judge, so no claim about correctness.** The earlier evaluation used `gpt-5.6-luna` through OpenAI. That account now returns
+- **(Superseded: the OpenAI judge ran later the same day, see "Judged comparison".) Original note, no LLM judge:** the earlier evaluation used `gpt-5.6-luna` through OpenAI. That account then returned
   "no credits remaining", and the Anthropic account says its credit balance is too low. No Mistral key is configured. Groq works, but its
   free tier allows 200,000 tokens a day for `openai/gpt-oss-120b`, which is far below the roughly 1.7 million tokens that about 350 judgments need.
 - **No hosted gpt-oss-120b arm.** The same Groq limit applies (about 600,000 tokens for 139 prompts). The first trial also exposed a
