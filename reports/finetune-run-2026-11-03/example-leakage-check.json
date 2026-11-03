@@ -1,0 +1,28 @@
+{
+  "checked_examples": 405,
+  "removed_for_overlap": 0,
+  "references": [
+    "reports/quality-review-pack.jsonl",
+    "reports/quality-review-pack-citations-fixed.jsonl",
+    "data/heldout-quality-workload.json",
+    "data/bench_prompts.jsonl",
+    "eval/retrieval_golden.json",
+    "data/finetune/heldout-v2-questions.json"
+  ],
+  "stock_ngrams_ignored": 704,
+  "result": "no shared 8-grams with the evaluation files; held-out documents within the cap",
+  "heldout_document_text_in_examples": {
+    "max": 0.0136,
+    "mean": 0.0034
+  },
+  "sha256": {
+    "data/finetune/examples.clean.jsonl": "16f34794f4635dd9cda50622c4848ea2e98417b006921e3587347bf8ecde5a9a",
+    "reports/quality-review-pack.jsonl": "b7ca0c4a9ce7b21b07833ea7ede32bef6dfdffbb8893c75812e118c5e9eb4862",
+    "reports/quality-review-pack-citations-fixed.jsonl": "77d1b3b94482617159405831ee72fc8e3c3a1668c48b2777ec4a65c9bdb363d2",
+    "data/heldout-quality-workload.json": "3fb01bd9c48691a01667186e53d7cde4a8c4255feef676e32be499d69a884e0d",
+    "data/bench_prompts.jsonl": "6ed7de91878a84d0bdcd6394d02f6202256b29e22747def0b7f5435a848aba29",
+    "eval/retrieval_golden.json": "747569d4af15c2d3ed87bd0adacd4d712e5a92dc9de1c4d9303fd5e85611163b",
+    "data/finetune/heldout-v2-questions.json": "7d67d439cfe2f17403aef06b2e61a0d466b8fff37748b56762b15de97457f2b6",
+    "data/finetune/heldout-texts.json": "af057f7b63d9b1e5ff1b69936a38e7ad4aaaeb293bc0f6834b230a5840793396"
+  }
+}

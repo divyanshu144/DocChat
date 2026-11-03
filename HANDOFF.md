@@ -1,5 +1,76 @@
 # DocChat session handoff
 
+## Latest: LoRA fine-tune RUN finished and written up (2026-11-03, branch `feat/litellm-lora-finetune`, NOT pushed)
+
+Report: `reports/finetune-vs-base-2026-11-03.md` (read its "what the numbers do not show" first). Run record: `reports/finetune-run-2026-11-03/`.
+The user approved a $25 cap covering everything. Runpod spend is about $5.1 (billing had posted $4.07 when written; re-check with the
+billing tools). No OpenAI or Anthropic spend. Every pod was deleted and the throwaway SSH key removed; `list-pods` was empty at the end.
+
+What happened: teacher Qwen2.5-72B-Instruct (AWQ, vLLM on an A100) produced the training examples and a 99-case held-out set; data went
+raw 1,289 -> 535 passing rules -> 475 after the 15% abstention cap -> **405** after removing examples that share an 8-gram with an
+evaluation file (355 train, 50 validation). QLoRA on Qwen2.5-7B-Instruct (L40S, 36 minutes), adapter chosen by validation loss
+(epoch 1). Both models served by vLLM with `--enable-lora`.
+
+Result (judge-free): on the 99 new questions the base model gives a well-formed answer (Sources section, valid markers, no Markdown) for 0
+of 84, the tuned model for 69 of 84; short abstentions on negative controls 3/15 vs 14/15; no short refusals on answerable questions. On the old
+held-out set (13 answerable cases, unlike the training documents) the gain is small and not significant. NOTHING here measures whether
+answers are correct.
+
+Things found and fixed (details in `tasks/lessons.md`): the first teacher pod vanished (generator now incremental and resumable); abstention
+questions that retrieval could answer, which also made the first held-out negatives unreliable; an example-level leakage check that
+flagged every real example; hosted-answer rows that had silently come from the OpenAI fallback; a test that leaked global settings (one
+commit, `7ff4ccf`, was made while two tests failed; fixed in `1d79d78`).
+
+Blocked on the user, not on code:
+1. A judge needs credit: the OpenAI account (the judge in earlier reports, `gpt-5.6-luna`) returns "no credits remaining" and the Anthropic one
+   "credit balance too low"; no Mistral key. Blinded packs are ready in `data/finetune/eval/` (`pack-v2.jsonl`, `pack-old.jsonl`); the exact
+   commands are at the end of the report. Human verdicts are for the user to fill in.
+2. The hosted gpt-oss-120b arm: Groq's free tier allows 200,000 tokens a day, the job needs about 600,000. Run
+   `python -m eval.generate_hosted_answers ... --resume` daily, or upgrade the Groq tier.
+3. Push (`! git push -u origin feat/litellm-lora-finetune`) only after PR #9 is merged or this is rebased; read the Qwen licence file before sharing the adapter.
+
+Git-ignored, on this machine only: `data/finetune/` (documents, corpus, examples, answers, packs), `finetune/artifacts/run-2026-11-03/` (adapter,
+sha256 `9fbf8dcc4b73b5e306b8db6f216fbeb8980d0026a01c4db7f3b7d9063967e8f8`). Baseline: ruff clean, **973 passed, 11 skipped**.
+Untouched and uncommitted on purpose: `Claude outputs/`, `docs/project-walkthrough.md`, raw files under `reports/`.
+
+---
+
+## Latest: LiteLLM backend done; fine-tune DATA TOOLING done, no spend yet (2026-11-02, branch `feat/litellm-lora-finetune`)
+
+Brief: `tasks/litellm-and-lora-finetune-agent-prompt.md`. Spec and plan: `docs/superpowers/{specs,plans}/2026-11-02-litellm-lora-finetune*.md`.
+Checklist: `tasks/todo.md`. Branch was cut from `feat/aws-platform` (PR #9), so merge or rebase that first.
+
+Part 1 done (opt-in, default stays `native`; nothing deployed or pushed):
+- `LLM_BACKEND=litellm` -> `app/services/llm_litellm.py` (Router from settings only, one deployment per model, chain driven
+  by our own retry classification). `requirements-litellm.txt` pins LiteLLM 1.83.0 (newest that fits the `httpx<0.28` pin;
+  not in `requirements.lock`, so the images are unchanged). Full write-up with measurements: `docs/litellm-backend.md`.
+- Findings worth remembering: the Router's own fallbacks fire on 400/401 and splice a fallback answer into a stream after
+  tokens were sent, so they are NOT used; LiteLLM logs prompts and URLs at DEBUG, so its loggers are clamped to WARNING.
+- Tests: `tests/test_llm_litellm.py` (fake package; 4 more tests use the real package and skip when it is missing).
+  Each guard was broken on purpose and a test failed (local as fallback target, no retry gate, fallback after first token,
+  temperature rule, blank-key refusal, logger clamp). `eval/llm_backend_parity.py`: identical text, usage, spans and error
+  classification against a local mock; overhead about 1 ms per call. No live provider was called: live parity NOT claimed.
+- Baseline now: ruff clean; **929 passed, 11 skipped** without Postgres or LiteLLM (7 pg + 4 real-LiteLLM tests skip);
+  933 passed, 7 skipped in a venv with LiteLLM 1.83.0; add the 7 pg tests with `TEST_DATABASE_URL`.
+
+Decisions from the user: build a NEW larger held-out set (the old one is only 16 distinct questions); teacher is
+Qwen2.5-72B-Instruct (open weights, different family from the judge); stop after Part 1 and bring a PRICED plan (GPU type,
+hourly price, total, cap) before any billable action.
+
+Part 2a done (free, local): `finetune/` package + `eval/prepare_heldout_v2.py`, 54 new tests. Real data is on disk (git-ignored,
+`data/finetune/`): 56 open-licence documents, 2,024 chunks. `finetune/manifest.json`, `sources.lock.json` and
+`document-leakage-report.json` are the committed record. Leakage: no shared 8-grams with any evaluation file; held-out text in
+training text max 1.4%. NOTE: the stock-text rule and the 3 excluded documents were chosen after looking at overlap numbers.
+How to resume: read `finetune/README.md`. No teacher call, GPU or hosted model has been used and nothing billable has run.
+
+NOT done: priced-plan approval; training examples (need the Qwen2.5-72B teacher); held-out v2 questions (need the teacher);
+example-level decontamination and the manual spot-check; training; serving; evaluation; the report. Next step: the user approves
+a cap (plan estimate was about $15 to $18, cap $25), then generate with the teacher and validate.
+
+Untouched and uncommitted on purpose: `Claude outputs/`, `docs/project-walkthrough.md`, raw files under `reports/`.
+
+---
+
 ## Latest: AWS platform second pass (2026-10-22): 9 fixes done offline; still NOTHING applied, NOTHING committed
 
 Plan and checklist: `tasks/todo.md`. Read `docs/aws/limitations.md` first (verification table, test-count explanation).

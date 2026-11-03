@@ -20,3 +20,11 @@ frontend/dist/
 
 # Generated analysis output
 graphify-out/
+
+# Fine-tune work: downloaded source documents, built corpora, generated examples, model weights and adapters.
+# Only the manifest, the hash lock and the code are committed. See finetune/README.md.
+data/finetune/
+finetune/artifacts/
+*.safetensors
+*.gguf
+adapter_model.*

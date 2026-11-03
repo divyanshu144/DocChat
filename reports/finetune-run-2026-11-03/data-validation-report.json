@@ -1,0 +1,34 @@
+{
+ "read": 1289,
+ "passed_rules": 535,
+ "duplicates_dropped": 0,
+ "abstentions_removed_by_cap": 60,
+ "rejected_reasons": {
+  "answerable example has no cited sources": 156,
+  "answer uses Markdown headings or bold, which the prompt forbids": 265,
+  "abstention cites sources": 412,
+  "abstention does not say the context lacks the information": 292,
+  "citation markers appear in the answer body instead of the Sources section": 58,
+  "cites a marker that was not in the context": 1,
+  "the same source is listed more than once": 5,
+  "answerable example reads like an abstention": 1
+ },
+ "summary": {
+  "examples": 475,
+  "by_kind": {
+   "answerable": 405,
+   "abstain": 70
+  },
+  "by_split": {
+   "validation": 50,
+   "train": 425
+  },
+  "documents": 38,
+  "abstention_rate": 0.147,
+  "answer_chars": {
+   "min": 104,
+   "max": 2082,
+   "mean": 436.0
+  }
+ }
+}

@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     # Which backend `app.services.llm` talks to. Per-provider model names are kept
     # separate so switching providers is a one-variable change, not two.
     llm_provider: Literal["groq", "mistral", "openai", "local"] = "groq"
+    # "native" uses the per-provider SDK/httpx code in app/services/llm.py. "litellm" is opt-in and needs
+    # requirements-litellm.txt; see docs/litellm-backend.md for what it does differently.
+    llm_backend: Literal["native", "litellm"] = "native"
     fallback_llm_provider: Literal["none", "openai", "groq"] = "openai"  # "groq" pairs with llm_provider="openai"
 
     groq_api_key: str = ""

@@ -1,3 +1,39 @@
+## Active: LiteLLM backend + LoRA fine-tune (2026-11-02, branch feat/litellm-lora-finetune)
+
+Brief: `tasks/litellm-and-lora-finetune-agent-prompt.md`. Spec/plan: `docs/superpowers/{specs,plans}/2026-11-02-litellm-lora-finetune*.md`.
+Rules: no push, no billable action (GPU or hosted teacher) without the user's approval of a priced plan, stage by explicit path
+(never `git add -A`), leave `Claude outputs/`, `docs/project-walkthrough.md` and raw `reports/` alone, plain English, no em-dashes.
+Baseline at start: ruff clean, 834 passed + 7 skipped (841 with Postgres).
+User answers: new larger held-out set (keep old 16 for continuity); teacher Qwen2.5-72B-Instruct; Part 1 first, stop before GPU spend.
+
+### Part 1: LiteLLM behind the facade
+- [x] Compatibility check. Finding: `requirements.txt` pins `httpx<0.28`; LiteLLM 1.106.6 (latest) needs `httpx>=0.28`. Newest LiteLLM that resolves with the pin is 1.83.0. A scratch venv with httpx 0.28.1 + LiteLLM 1.106.6 passed 834 + 7 skipped, so lifting the pin is a possible separate change (touches `requirements.lock` and the images, so NOT done here).
+- [x] `requirements-litellm.txt` pinned to the version that resolves (not in `requirements.lock`; production images unchanged).
+- [x] `llm_backend` setting (default `native`) + test that the default is native.
+- [x] `app/services/llm_litellm.py` (lazy import, Router from settings only, same contract) + delegation in `llm.py`.
+- [x] Tests (mocked): completion, streaming, usage, retryable error, fallback to second provider, `local` never a fallback target, temperature drop-and-record, keys from settings not env.
+- [x] Break-the-guard checks (allow `local` as a fallback target; stop dropping temperature) and restore.
+- [x] `eval/llm_backend_parity.py` + `docs/litellm-backend.md` (import time, size, per-call overhead, differences). No live parity claim unless a live provider is used.
+- [x] `ruff check .` + `pytest -m "not eval" -q` green; HANDOFF.md and lessons updated; commit Part 1; STOP and report.
+
+### Part 2: LoRA fine-tune (billable steps only after the user approves a priced plan)
+Done locally, no spend (tooling in `finetune/`, see `finetune/README.md`):
+- [x] Manifest of 56 open-licence documents (48 GOV.UK guides under the OGL, 8 NIST publications that state they are not subject to copyright in the US), split by document: 34 train, 4 validation, 15 held out, 3 excluded. All downloaded, sha256 in `finetune/sources.lock.json`; 2,024 chunks embedded with the app's chunkers and embedder.
+- [x] Validator (format, citations exist in context, no body citations, duplicates, abstention rate, serving-prompt prefix), decontamination (8-gram) with a planted-leak test, document-level leakage report: no shared 8-grams with any evaluation file; held-out text found in training text: max 1.4%, mean 0.4% (stock text ignored, 3 near-copy documents excluded; the exclusion rules were chosen after looking at the overlap numbers, which the report must say).
+- [x] Teacher client, question and example generator, `eval/prepare_heldout_v2.py` (about 100 questions; categories as in the old set), all tested with fakes. Every guard was broken on purpose; one equivalent mutant survived (fraction denominator).
+Run on 2026-11-03 (user approved a $25 cap covering everything; Runpod spend about $5.1):
+- [x] Teacher (Qwen2.5-72B-Instruct AWQ on an A100) generated 1,175 examples, then 114 strict abstentions; validated, capped at 15% abstentions, leakage-checked: 405 examples (355 train, 50 validation). Held-out v2: 99 cases. First pod vanished mid-run; generator made incremental and resumable.
+- [x] Fixed on the way: abstention questions that retrieval could answer (also in the first held-out negatives); example-level leakage check that flagged everything on real data.
+- [x] 2b: QLoRA smoke run then full run (L40S, 36 minutes), adapter picked by validation loss (epoch 1). `finetune/train_lora.py`, `requirements-finetune.txt`.
+- [x] 2c (partly): vLLM with the adapter beside the base model; judge-free metrics (`eval/answer_behaviour_metrics.py`); short serving load test.
+- [x] 2d: `reports/finetune-vs-base-2026-11-03.md`, run record in `reports/finetune-run-2026-11-03/`, README link.
+Blocked on the user (not on code):
+- [ ] LLM-judged quality: needs credit on OpenAI (the judge used in earlier reports) or Anthropic. Packs are built: `data/finetune/eval/pack-v2.jsonl`, `pack-old.jsonl` (commands in the report). Human verdicts are the user's.
+- [ ] Hosted gpt-oss-120b arm: Groq's free tier allows 200,000 tokens a day, the job needs about 600,000. `python -m eval.generate_hosted_answers ... --resume` once a day, or upgrade the Groq tier.
+- [ ] Decide whether to push the branch, merge PR #9 first, and read the Qwen licence text before sharing the adapter.
+
+---
+
 ## Active: AWS platform follow-up fixes (2026-10-22, second pass) - DONE (offline); see HANDOFF.md
 
 Rules: no terraform plan/apply, no AWS, no AWS-dependent tests. No commit, never `git add -A`. Do not touch

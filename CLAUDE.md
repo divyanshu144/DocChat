@@ -23,11 +23,11 @@ docker compose up --build         # full stack
 # UI + API docs: http://localhost:8081  /  http://localhost:8081/docs
 ```
 
-**Verification baseline (2026-10-22):** both gates are green — `ruff check .` clean,
-`pytest -m "not eval"` **841 passed, 0 failed** with a PostgreSQL available (`TEST_DATABASE_URL`, see HANDOFF.md);
-without one it shows **834 passed, 7 skipped** (the `pg` tests skip cleanly). History: 629 at git HEAD on 2026-10-06;
-634 once the uncommitted llm-seam tests are counted; +207 from the AWS platform work. There are no known-failing tests, so
-*any* red is a real regression you introduced. Do not rationalise a failure as
+**Verification baseline (2026-11-03):** both gates are green: `ruff check .` clean,
+`pytest -m "not eval"` **973 passed, 11 skipped** by default (7 `pg` tests need `TEST_DATABASE_URL`, 4 real-LiteLLM tests need
+`requirements-litellm.txt`); **933 passed, 7 skipped** in a venv with LiteLLM (measured on 2026-11-02, not re-run since); 7 more with Postgres. History: 629 at git HEAD on
+2026-10-06; 634 with the llm-seam tests; +207 from the AWS platform work; +41 for the LiteLLM backend; +54 for the fine-tune data tooling; +44 for the abstention, training, hosted-answer and behaviour-metric tooling. There are no known-failing
+tests, so *any* red is a real regression you introduced. Do not rationalise a failure as
 pre-existing without diffing against a stash.
 
 ## Architecture
@@ -114,7 +114,7 @@ date while a whole feature shipped. Treat updating it as part of the task, not c
 A task is not complete until **all** of these hold:
 
 1. `ruff check .` passes clean
-2. `pytest -m "not eval" -q` is fully green — 834 passed, 7 skipped (841 passed with Postgres), 0 failed
+2. `pytest -m "not eval" -q` is fully green: 973 passed, 11 skipped (the skips need Postgres or LiteLLM), 0 failed
 3. New logic has tests
 4. `HANDOFF.md` reflects current state
 

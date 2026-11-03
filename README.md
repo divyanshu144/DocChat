@@ -125,14 +125,22 @@ The most recent live run is [reports/gpu-live-2026-10-06.md](reports/gpu-live-20
 
 Earlier findings (hosted-API concurrency limits, KV-cache saturation, the harness catching its own measurement mistakes) are in [docs/inference-writeup.md](docs/inference-writeup.md) and [eval/BENCHMARK_RESULTS.md](eval/BENCHMARK_RESULTS.md).
 
+## Fine-tuning and the LiteLLM backend
+
+Two opt-in pieces sit on branch `feat/litellm-lora-finetune` and change nothing by default. `LLM_BACKEND=litellm` routes the LLM calls through LiteLLM with the same fallback and retry rules; measurements and caveats are in [docs/litellm-backend.md](docs/litellm-backend.md). The `finetune/` package builds a grounded-answer training set from open-licence documents, trains a QLoRA adapter and checks it for leakage against the evaluation sets.
+
+The first run is written up in [reports/finetune-vs-base-2026-11-03.md](reports/finetune-vs-base-2026-11-03.md): Qwen2.5-7B-Instruct with and without the adapter, 99 questions about 15 unseen documents. The adapter learns the output format (a well-formed answer for 69 of 84 answerable questions, against 0 of 84 for the base model with this prompt) and short abstentions, but the gain is much smaller on documents unlike the training ones, and no judge-based correctness result exists yet because the judge accounts had no credit. The report lists what the numbers do not show.
+
 ## Verification
 
 ```bash
 ruff check .                      # clean
-pytest -m "not eval" -q           # 629 passed, 8 deselected
+pytest -m "not eval" -q           # 973 passed, 11 skipped, 8 deselected
 cd frontend && npm test -- --run  # frontend tests
 python eval/benchmark.py          # critic benchmark; calls the live LLM, opt-in
 ```
+
+Of the 11 skipped tests, 7 need a real PostgreSQL and 4 need the optional LiteLLM package. With `TEST_DATABASE_URL` pointing at a throwaway database whose name contains "test", the same command gives 980 passed (see `tests/test_pg_concurrency.py`). No test needs AWS credentials or network access.
 
 The frontend tests were last recorded at 3 files / 6 tests on 2026-10-01 and were not re-run for this change. Live LLM evals are opt-in because they cost money.
 

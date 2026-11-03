@@ -1,0 +1,8 @@
+# Opt-in dependency for LLM_BACKEND=litellm. Install with:
+#   pip install -r requirements.txt -r requirements-litellm.txt
+# It is NOT in requirements.lock, so the production images do not contain it.
+#
+# 1.83.0 is the newest release that resolves against requirements.txt (httpx<0.28). From 1.83.3 onward LiteLLM
+# requires httpx>=0.28, so moving to a current LiteLLM means lifting that cap first (a separate change that
+# also touches requirements.lock and the images).
+litellm==1.83.0
