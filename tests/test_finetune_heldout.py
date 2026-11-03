@@ -77,3 +77,36 @@ def test_a_broad_question_that_is_not_a_question_is_dropped(held):
             return super().complete(messages, *a, **k)
 
     assert "long_context" not in {c.category for c in build_cases(docs, index, Rambling(), random.Random(1))}
+
+
+def test_hosted_answers_keep_failures_in_workload_order_and_feed_the_review_pack(held, tmp_path, monkeypatch):
+    import asyncio
+
+    from eval import generate_hosted_answers as hosted
+    from eval.build_answer_review_pack import build_pack
+
+    docs, index = held
+    cases = build_cases(docs, index, BroadTeacher(), random.Random(1))
+    workload = tmp_path / "w.json"
+    workload.write_text(Workloads(corpus_sha256=corpus_fingerprint(index, docs), cases=cases).model_dump_json())
+    failing = [c.id for c in cases if c.messages[-1].content == cases[1].messages[-1].content]
+
+    async def fake_chat(messages, max_tokens, temperature=None):
+        if messages[-1]["content"] == cases[1].messages[-1].content:
+            raise RuntimeError("provider down")
+        return "An answer.\n\nSources:\n\n[Web - Pay guide]"
+
+    async def no_close():
+        return None
+
+    monkeypatch.setattr(hosted.llm, "chat_complete", fake_chat)
+    monkeypatch.setattr(hosted.llm, "close_llm_clients", no_close)
+    out = tmp_path / "answers.jsonl"
+    asyncio.run(hosted.generate(workload, out, max_tokens=100, concurrency=2))
+    rows = [json.loads(line) for line in out.read_text().splitlines()]
+    assert [r["case_id"] for r in rows] == [c.id for c in cases]  # workload order
+    assert [r["case_id"] for r in rows if r["status"] == "error"] == failing  # kept in the denominator, marked as errors
+    pack, key = build_pack(workload, [out])  # the unchanged review-pack builder accepts the rows
+    assert len(pack) == len(cases) and {k["model"] for k in key} == {rows[0]["model"]}
+    with pytest.raises(FileExistsError):
+        asyncio.run(hosted.generate(workload, out, max_tokens=100, concurrency=2))
