@@ -1,8 +1,22 @@
 # DocChat session handoff
 
-## Latest: hybrid BM25 + RRF retrieval BUILT, opt-in, NOT merged (2026-11-04, branch `feat/hybrid-bm25-rrf-retrieval`)
+## Latest: FIRST REAL AWS apply in progress (2026-11-10): phase one applied, images/secrets/full apply NOT done
 
-**State:** implemented, tested (`ruff` clean, 1021 passed / 11 skipped), measured live; uncommitted on the branch. `README.md` also carries the separate uncommitted "MCP server" section from earlier; commit it on its own, not with this work.
+New AWS account, region `eu-north-1`, CLI profile `my-aws` (an `aws login` session; the old `default` profile was removed). `AWS_PROFILE` and `AWS_REGION` are exported in `~/.zshrc`.
+
+**Done (each read back from AWS):** account-level budget `docchat-account-monthly` ($25/month, alerts to the owner at 50% and 80% of actual and 100% of forecast; made with the CLI and deliberately NOT in Terraform, so tearing the stack down keeps it); state bucket `docchat-tfstate-<account-id>-eu-north-1` (versioned, encrypted, public access blocked, TLS only); `terraform init`; **phase one applied, 7 resources** (3 ECR repos `docchat/dev/{api,worker,qdrant-mirror}` and 4 EMPTY Secrets Manager secrets); Qdrant `v1.20.0` mirrored into ECR, digest verified equal to upstream and recorded in `dev.tfvars`.
+
+**Not done:** build and push the `api` and `worker` images (must be `--platform linux/amd64`; the docs are fixed), set the four secret values (the Groq key is the owner's), full plan and apply (billing starts here, about $4-5/day with `demo = true`), verify, tear down.
+
+**Gotchas found**
+- `infra/terraform/backend.tf` (git-ignored) has NO bucket line: the bucket name contains the account id, which `tests/test_infra_hygiene.py` forbids in any `*.tf`. Initialise with `terraform init -reconfigure -backend-config="bucket=<state-bucket>"`. The local file also adds one parametrised test case, so a local run shows 1022 passed while a clean checkout shows 1021.
+- The AWS provider is pinned `>= 5.70, < 6.0` (5.100.0) and cannot read `aws login` sessions; the S3 backend can. Until a refreshing profile exists, export short-lived credentials per command: `eval "$(aws configure export-credentials --profile my-aws --format env)"; unset AWS_PROFILE` (about 15 minutes of validity, too short for the full apply). Fix: a `[profile my-aws-tf]` with `credential_process = aws configure export-credentials --profile my-aws --format process`. Adding it to `~/.aws/config` was denied by the permission classifier, so the owner must add it.
+- ECR scan of the mirrored Qdrant amd64 image: 0 critical, 5 high, all Debian base packages (apt, zlib, glibc) with no fixed versions yet; reachability not verified; judged low risk for dev.
+- Do not merge Dependabot PR #24 (AWS provider 6.x) before the first deploy works.
+
+## Previously: hybrid BM25 + RRF retrieval BUILT, opt-in (2026-11-04, branch `feat/hybrid-bm25-rrf-retrieval`, committed in 34c19bf, not merged)
+
+**State:** implemented, tested (`ruff` clean, 1021 passed / 11 skipped), measured live, committed on the branch (not pushed, no PR). The README "MCP server" section is a separate change.
 
 **What exists**
 - `app/services/hybrid.py` (pure RRF), `fuse_hybrid` / `admit_hybrid_candidates` / `_hybrid_search` in `app/agent/nodes/retriever.py`, sparse (`Qdrant/bm25`, lazy) methods on the embedder, sparse vectors written by all three ingesters through `app/services/ingestion/storage.py` (stripped when the collection predates the field), `get_qdrant_collection(name, sparse=True)`.

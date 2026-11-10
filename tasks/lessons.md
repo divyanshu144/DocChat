@@ -669,3 +669,13 @@ when no space is found within some reasonable distance of the end.
 - **Check that a restore step can work before mutating.** A mutation loop restored from a backup path that did not exist, so three mutations stacked in the working file. It was recoverable only because an earlier backup existed. Take the backup first, confirm it with `ls`, restore, then `diff` to prove the file is back.
 - **Existing `MagicMock` collaborators answer any new method with a mock.** Adding `embed_sparse_documents` to the embedder made 7 ingestion tests fail with a count mismatch against a `MagicMock`. Give the mock an explicit return value; do not weaken the production check.
 
+
+## 2026-11-10: first real AWS apply
+
+- **A local git-ignored file can still trip a repo test that globs the directory.** `tests/test_infra_hygiene.py` scans every `infra/terraform/*.tf` it finds, so the untracked `backend.tf` failed it because the state bucket name contains the account id. Fix the file (partial backend config, bucket passed at `init`), never the guard. `pytest | tail` hid the failure once already: check the exit code.
+- **Provider and backend can read different credential types.** `terraform init` authenticated to S3 with an `aws login` session, then `plan` failed with "No valid credential sources" in AWS provider 5.x. Test `plan`, not just `init`, before trusting a credential setup.
+- **ECR basic scans attach to the per-platform image, not the multi-arch index digest.** Describing findings on the index digest returns `ScanNotFoundException`; resolve the `linux/amd64` child digest and scan that.
+- **Apple-silicon builds default to arm64.** The Terraform default is `X86_64`; a plain `docker build` image would fail on Fargate with `exec format error`, only after the full apply. Always build `--platform linux/amd64`.
+- **Alerts are not caps.** An AWS Budget emails; it cannot stop spend, and its data lags by many hours. Keep the account-level budget outside Terraform so tearing the stack down does not delete it, and tear down when done.
+- **The agent safety hook can mistake a long heredoc for a destructive command.** A commit script that also edited notes was refused as a "force push". Make file edits with the edit tool and keep git commands short and separate.
+
