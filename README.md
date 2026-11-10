@@ -86,6 +86,7 @@ npm run build
 - **Agentic retrieval:** the planner picks source types, the grounding node removes unsupported claims, the critic can trigger one replan.
 - **Citations:** inline `[PDF — name]`, `[YouTube — title]`, `[Web — url]` tags rendered as chips.
 - **Folders and history:** folders with drag-and-drop, persisted conversations, token streaming over SSE.
+- **MCP server:** query, ingest and list documents from any MCP client over stdio (see [MCP server](#mcp-server)).
 - **Observability:** LangSmith tracing (when configured), request-ID logging, an optional protected Prometheus endpoint.
 
 ## Tech stack
@@ -116,6 +117,41 @@ React + Vite UI --REST + SSE--> FastAPI API
 ```
 
 Layout and the reasoning behind the main decisions: [docs/architecture.md](docs/architecture.md).
+
+## MCP server
+
+`app/mcp_server.py` exposes the knowledge base to any MCP client (Claude Code, Claude Desktop and others) over stdio, using `FastMCP`. It is a separate entry point from the web API: it does not need the API running, but it does need Qdrant, and the LLM provider keys from `.env`, because `query_documents` runs the full agent pipeline.
+
+| Tool | Arguments | Returns |
+|---|---|---|
+| `query_documents` | `query` (required), `source_ids` (optional list; omit to search everything) | the answer with inline citations |
+| `ingest_document` | `source_type` (`pdf`, `youtube` or `web`), `location` (file path or URL), `name` (optional) | JSON `{source_id, source_type, name}` |
+| `list_documents` | none | JSON list of `{source_id, type, name}` |
+
+Add it to a client's MCP config (the `mcpServers` format used by Claude Desktop and by Claude Code's `.mcp.json`), with absolute paths:
+
+```json
+{
+  "mcpServers": {
+    "docchat": {
+      "command": "/path/to/docchat/venv/bin/python",
+      "args": ["-m", "app.mcp_server"],
+      "env": { "PYTHONPATH": "/path/to/docchat", "QDRANT_HOST": "localhost" }
+    }
+  }
+}
+```
+
+Or with the Claude Code CLI: `claude mcp add docchat -e PYTHONPATH=/path/to/docchat -e QDRANT_HOST=localhost -- /path/to/docchat/venv/bin/python -m app.mcp_server`.
+
+Notes:
+
+- **Start Qdrant first** (`docker compose up qdrant`). `.env` is read from the project root whatever directory the client starts the server in, but its Qdrant host is the Docker service name, so a server running on the host needs `QDRANT_HOST=localhost` as above. The server logs to stderr; stdout carries the protocol.
+- **No authentication or per-user scoping.** The tools do not go through the API's JWT login, folders or conversation history. Whoever can start the server can read, search and add to the whole knowledge base, and `ingest_document` with `pdf` reads any file path the server process can read. Use it on your own machine, not as a shared service.
+- **Each query is stateless:** no conversation history is sent or saved. A call can take as long as a chat turn, and counts against your LLM provider's limits.
+- **`name`** is stored for PDFs only (as the filename). For YouTube and web sources it is echoed back in the response and not stored.
+- Ingestion runs inside the tool call, so a large PDF keeps the call open until it finishes.
+- I checked the stdio handshake, the three tool schemas and `list_documents` against a live Qdrant. I did not call `query_documents` or `ingest_document` over stdio while writing this section.
 
 ## Inference benchmarking
 
