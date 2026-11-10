@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-SOURCE_CHUNKS_COLLECTION = "source_chunks"
+from app.core.config import settings
+
 LEGACY_SOURCE_COLLECTIONS = {
     "pdf": "pdf_chunks",
     "youtube": "youtube_chunks",
@@ -12,7 +13,7 @@ KNOWN_SOURCE_TYPES = tuple(LEGACY_SOURCE_COLLECTIONS.keys())
 
 
 def source_collection() -> str:
-    return SOURCE_CHUNKS_COLLECTION
+    return settings.qdrant_source_collection
 
 
 def legacy_collection_for_source(source_type: str) -> str | None:

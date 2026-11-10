@@ -74,7 +74,7 @@ async def ingest_web(url: str) -> str:
         {"source_type": "web", "url": normalized_url, "title": scraped["title"],
          "domain": domain, "scraped_at": datetime.now(timezone.utc).isoformat()},
     )
-    await asyncio.to_thread(get_qdrant_collection, COLLECTION)
+    await asyncio.to_thread(get_qdrant_collection, COLLECTION, sparse=True)
     client = await asyncio.to_thread(get_qdrant_client)
     await asyncio.to_thread(replace_source_points, client, COLLECTION, source_id, points)
     return source_id

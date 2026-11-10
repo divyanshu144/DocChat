@@ -17,9 +17,10 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-from app.agent.nodes.retriever import _rerank
+from app.agent.nodes.retriever import _rerank, admit_hybrid_candidates
 from app.core.config import settings
 from app.core.sources import source_collection
+from app.services.hybrid import reciprocal_rank_fusion
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -95,6 +96,20 @@ def corpus_digest(corpus: list[dict]) -> str:
     return hashlib.sha256(json.dumps(rows, ensure_ascii=False).encode()).hexdigest()
 
 
+def hybrid_rrf(candidates: list[dict], bm25_order: list[int], bm25_values: list[float], corpus: list[dict],
+               candidate_limit: int) -> list[dict]:
+    """The production hybrid policy (floor + admission + RRF) over this harness's exact dense and BM25 rankings."""
+    texts = {row["id"]: row["text"] for row in candidates}
+    sparse = [{"id": str(corpus[i]["id"]), "score": bm25_values[i]} for i in bm25_order[:candidate_limit]
+              if bm25_values[i] > 0]
+    dense, sparse = admit_hybrid_candidates(
+        candidates, sparse, min_score=settings.retrieval_min_score, bm25_min_score=settings.retrieval_bm25_min_score)
+    by_id = {str(point["id"]): point["payload"]["text"] for point in corpus}
+    fused = reciprocal_rank_fusion([[h["id"] for h in dense], [h["id"] for h in sparse]], k=settings.retrieval_rrf_k)
+    return [{"id": point_id, "text": texts.get(point_id) or by_id[point_id], "score": score}
+            for point_id, score in fused[:12]]
+
+
 def evaluate(corpus: list[dict], cases: list[dict], embedder, cross_encoder, *, candidate_limit: int = 24) -> dict:
     import numpy as np
 
@@ -134,19 +149,22 @@ def evaluate(corpus: list[dict], cases: list[dict], embedder, cross_encoder, *, 
             for index in bm25_order[:12] if bm25_values[index] > 0
         ]
         bm25_ms = (time.perf_counter() - started) * 1000
+        started = time.perf_counter()
+        hybrid = hybrid_rrf(candidates, bm25_order, bm25_values, corpus, candidate_limit)
+        hybrid_ms = (time.perf_counter() - started) * 1000
         rankings = {"dense": candidates[:12], "bm25": bm25, "dense_overlap_rerank": dense_overlap,
-                    "cross_encoder": cross}
+                    "hybrid_rrf": hybrid, "cross_encoder": cross}
         row = {"id": case["id"], "query": case["query"], "relevant_ids": case["relevant_ids"],
                "candidate_count": len(candidates), "bm25_corpus_count": len(corpus), "timing_ms": {
                    "dense": dense_ms, "bm25": bm25_ms, "dense_overlap_rerank": lexical_ms,
-                   "cross_encoder": cross_ms}, "rankings": {}}
+                   "hybrid_rrf": hybrid_ms, "cross_encoder": cross_ms}, "rankings": {}}
         for method, ranked in rankings.items():
             ids = [hit["id"] for hit in ranked]
             row["rankings"][method] = {"ids": ids, "reciprocal_rank": reciprocal_rank(ids, case["relevant_ids"]),
                                       **{f"recall@{k}": recall_at_k(ids, case["relevant_ids"], k) for k in (1, 3, 5)}}
         results.append(row)
     summary = {}
-    for method in ("dense", "bm25", "dense_overlap_rerank", "cross_encoder"):
+    for method in ("dense", "bm25", "dense_overlap_rerank", "hybrid_rrf", "cross_encoder"):
         summary[method] = {metric: statistics.mean(row["rankings"][method][metric] for row in results)
                            for metric in ("recall@1", "recall@3", "recall@5", "reciprocal_rank")}
         summary[method]["mean_ranking_ms"] = statistics.mean(row["timing_ms"][method] for row in results)
@@ -194,7 +212,7 @@ def main() -> None:
                   corpus_chunks=len(corpus), source_ids=sorted({p["payload"]["source_id"] for p in corpus}),
                   embedding_model=settings.embedding_model, cross_encoder=model,
                   candidate_limit=24, min_score=settings.retrieval_min_score, ranking_limit=12,
-                  method="Exact CPU dense cosine and full-corpus BM25; overlap and cross-encoder rerank the dense candidate pool",
+                  method="Exact CPU dense cosine and full-corpus BM25; overlap and cross-encoder rerank the dense candidate pool; hybrid_rrf fuses the dense and BM25 rankings with the production policy",
                   caveats=["Small two-source corpus; not a production generalization claim",
                            "Labels written from source chunks; no independent annotator",
                            "Ranking times exclude query embedding and network; no latency deployment claim",

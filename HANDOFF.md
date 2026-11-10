@@ -1,5 +1,19 @@
 # DocChat session handoff
 
+## Latest: hybrid BM25 + RRF retrieval BUILT, opt-in, NOT merged (2026-11-04, branch `feat/hybrid-bm25-rrf-retrieval`)
+
+**State:** implemented, tested (`ruff` clean, 1021 passed / 11 skipped), measured live; uncommitted on the branch. `README.md` also carries the separate uncommitted "MCP server" section from earlier; commit it on its own, not with this work.
+
+**What exists**
+- `app/services/hybrid.py` (pure RRF), `fuse_hybrid` / `admit_hybrid_candidates` / `_hybrid_search` in `app/agent/nodes/retriever.py`, sparse (`Qdrant/bm25`, lazy) methods on the embedder, sparse vectors written by all three ingesters through `app/services/ingestion/storage.py` (stripped when the collection predates the field), `get_qdrant_collection(name, sparse=True)`.
+- Migration: `app/services/hybrid_migration.py` + `python -m scripts.migrate_to_hybrid_collection` (copy, idempotent, verifies ids, never touches the source). Qdrant cannot add a sparse field to an existing collection.
+- Config: `QDRANT_SOURCE_COLLECTION`, `RETRIEVAL_MODE` (default `dense`), `RETRIEVAL_RRF_K`, `RETRIEVAL_CANDIDATES`, `RETRIEVAL_BM25_MIN_SCORE`. Eval harness has a `hybrid_rrf` arm.
+- Local Qdrant now also holds `source_chunks_hybrid` (17 points, migrated and verified). `.env` is unchanged, so the app still uses `source_chunks` in dense mode.
+
+**Result (honest):** on the 24-question golden set hybrid was NOT better: MRR 0.903 vs 0.958 for dense + overlap (Recall@3 1.000 vs 0.979). Fallback to dense on a dense-only collection is lossless. See `docs/retrieval-quality-evaluation.md`, "Hybrid retrieval".
+
+**Next action:** build a larger held-out retrieval set (harder negatives, exact-identifier queries, document-split), run `python -m eval.retrieval_eval`, flip the default only on the rule in that doc; tune `RETRIEVAL_BM25_MIN_SCORE` against negative controls then. Open the PR when the user asks.
+
 ## Latest: LiteLLM + LoRA work MERGED to master (2026-11-03, PR #22, merge commit `b896a0e`)
 
 Everything below this section is merged: PR #9 (AWS platform) went in first, then #22 (this work), rebased onto it. CI was green on all six

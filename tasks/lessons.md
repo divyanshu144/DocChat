@@ -659,3 +659,13 @@ when no space is found within some reasonable distance of the end.
 - **Probe every provider key before planning around it.** OpenAI and Anthropic both answered "no credits" only when called; Mistral had no key. Do a one-token call per provider at the start of an evaluation, not at the end.
 - **Runpod billing lags by one to two hours.** The billing API had posted $4.07 when the real spend was about $5.1. Estimate from pod run times and say which figure is which.
 - **A wait loop needs the failure condition, not just the success one.** The vLLM start failed in 90 seconds on a missing `ninja` and the loop waited eight minutes for a port. Check the server log for its startup error inside the loop.
+
+
+## 2026-11-04: hybrid BM25 + RRF retrieval
+
+- **Probe the vector database's limits on a scratch collection before designing the migration.** Qdrant 1.18.1 cannot add a new sparse vector name to an existing collection (`Not existing vector name: bm25`), which turned "add a field" into "copy into a new collection and switch over". A ten-line probe found it before any code assumed otherwise.
+- **Rank-only fusion throws away score gaps.** On the 17-chunk golden corpus cosine scores sit in 0.69 to 0.74, so the existing `0.75*cosine + 0.25*coverage` rerank beat RRF at rank 1 (MRR 0.958 vs 0.903). A better algorithm on paper is not a better default until it is measured with the production node on real data. Hybrid is therefore opt-in (`RETRIEVAL_MODE=hybrid`); do not tune weights or `k` on 24 questions, build the larger labelled set first.
+- **A diagnostic must use the metric's own definition of relevant.** I printed "rank of the relevant chunk" per ranking and it looked like a fusion bug (rank 1 in both lists, yet fused rank 2). The question had two labelled chunks and each list's best was a different one. Trace the actual output before suspecting the code.
+- **Check that a restore step can work before mutating.** A mutation loop restored from a backup path that did not exist, so three mutations stacked in the working file. It was recoverable only because an earlier backup existed. Take the backup first, confirm it with `ls`, restore, then `diff` to prove the file is back.
+- **Existing `MagicMock` collaborators answer any new method with a mock.** Adding `embed_sparse_documents` to the embedder made 7 ingestion tests fail with a count mismatch against a `MagicMock`. Give the mock an explicit return value; do not weaken the production check.
+

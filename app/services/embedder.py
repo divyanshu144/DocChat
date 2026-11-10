@@ -9,14 +9,25 @@ rest of the app can still start in degraded mode.
 from __future__ import annotations
 
 import logging
+import threading
+from typing import NamedTuple
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 try:
-    from fastembed import TextEmbedding
+    from fastembed import SparseTextEmbedding, TextEmbedding
 except ImportError:
+    SparseTextEmbedding = None  # type: ignore[assignment,misc]
     TextEmbedding = None  # type: ignore[assignment,misc]
+
+
+class SparseVec(NamedTuple):
+    """One BM25 vector: hashed token ids and their weights, parallel lists."""
+
+    indices: list[int]
+    values: list[float]
 
 _embedder_instance: "_Embedder | None" = None
 
@@ -42,6 +53,44 @@ class _Embedder:
             raise ImportError("fastembed is not installed")
         self._fe = TextEmbedding(model_name=model_name)
         list(self._fe.embed(["warmup"]))
+        self._sparse = None
+        self._sparse_failed = False
+        self._sparse_lock = threading.Lock()
+
+    def _sparse_model(self):
+        """Lazy BM25 model. A load failure disables sparse only; dense embedding keeps working."""
+        if self._sparse is not None or self._sparse_failed:
+            return self._sparse
+        with self._sparse_lock:
+            if self._sparse is None and not self._sparse_failed:
+                try:
+                    from app.core.config import settings
+                    if SparseTextEmbedding is None:
+                        raise ImportError("fastembed sparse models are not available")
+                    self._sparse = SparseTextEmbedding(model_name=settings.sparse_embedding_model)
+                except Exception:
+                    self._sparse_failed = True
+                    logger.exception("sparse_embedder_init_failed — hybrid retrieval disabled for this process")
+        return self._sparse
+
+    @property
+    def has_sparse(self) -> bool:
+        return self._sparse_model() is not None
+
+    def embed_sparse_documents(self, texts: list[str]) -> list[SparseVec] | None:
+        """BM25 term-frequency vectors for chunks (length-normalised); IDF is applied by Qdrant. None if unavailable."""
+        model = self._sparse_model()
+        if model is None:
+            return None
+        return [SparseVec(e.indices.tolist(), e.values.tolist()) for e in model.embed(texts)]
+
+    def embed_sparse_query(self, text: str) -> SparseVec | None:
+        """BM25 query vector. None if the sparse model is unavailable."""
+        model = self._sparse_model()
+        if model is None:
+            return None
+        e = next(iter(model.query_embed(text)))
+        return SparseVec(e.indices.tolist(), [float(v) for v in e.values])
 
     def embed_query(self, text: str) -> np.ndarray:
         """Embed a single string. Returns float32 ndarray shape (dim,)."""
