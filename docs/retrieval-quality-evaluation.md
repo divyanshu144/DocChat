@@ -108,6 +108,65 @@ default only if it is at least as good at Recall@1/MRR and better at Recall@5.
 Tune `RETRIEVAL_BM25_MIN_SCORE` on negative-control queries at the same time, since
 BM25 returns something for almost any query and the default gate admits it.
 
+### Larger set (v2): hybrid is worse than the default, with confidence intervals
+
+The decision rule above was run on a larger set: 127 questions over 781 chunks from 14 sources
+(`eval/retrieval_golden_v2.json`, corpus snapshot `eval/retrieval_corpus_v2.json`; rebuild with
+`python -m eval.build_retrieval_set_v2 corpus --from-snapshot`). The 24 original questions are kept and
+sit among 764 new distractor chunks (12 Wikipedia pages: Okapi BM25, PostgreSQL, Kubernetes, TCP, Git,
+Apollo 11, Marie Curie, Mount Everest, Photosynthesis, Great Barrier Reef, Black Death, Euro). The other 103
+questions were written by an LLM from one sampled chunk each, alternating two strata: `exact_term` (hinges on a
+name, number or term in the passage) and `paraphrase` (different words than the passage). Each needs a
+verbatim evidence quote and must pass an answerable-from-the-chunk check; every chunk containing the quote is
+labelled relevant, and questions whose quote appears in more than 3 chunks are dropped (12 candidates rejected
+in total). Results come from `python -m eval.live_retrieval_ab` (the production `retriever_node`, both modes),
+`python -m eval.retrieval_eval --golden-set eval/retrieval_golden_v2.json` and `python -m eval.retrieval_stats`
+(paired bootstrap over questions, 10,000 resamples).
+
+Production retriever, all 127 questions (reports: `reports/live_retrieval_ab_v2*.json`):
+
+| Configuration | Recall@1 | Recall@3 | Recall@5 | MRR |
+|---|---:|---:|---:|---:|
+| Dense + overlap rerank (default) | 0.693 | 0.862 | 0.890 | 0.834 |
+| Hybrid BM25 + RRF | 0.583 | 0.823 | 0.850 | 0.761 |
+
+Hybrid minus default: MRR **-0.073** (95% CI -0.114 to -0.035), Recall@1 **-0.110** (-0.173 to -0.051),
+Recall@3 -0.039 (-0.087 to +0.004, not significant). Wins/losses/ties on MRR: 10/28/89. The loss shows in
+every stratum: exact-term MRR 0.991 vs 0.923 (0 wins, 7 losses), paraphrase 0.602 vs 0.497, and the original
+24 are within noise (0.958 vs 0.938, CI -0.104 to +0.062).
+
+Offline harness (own exact BM25), all 127 questions:
+
+| Arm | Recall@1 | Recall@3 | MRR |
+|---|---:|---:|---:|
+| Dense (cosine only) | 0.567 | 0.791 | 0.749 |
+| BM25 only | 0.630 | 0.803 | 0.761 |
+| Hybrid RRF | 0.594 | 0.862 | 0.781 |
+| Cross-encoder (ms-marco MiniLM) | 0.665 | 0.827 | 0.813 |
+| **Dense + overlap rerank (default)** | **0.693** | **0.870** | **0.835** |
+
+What this says, with the intervals:
+- **BM25 does help a plain dense search.** Hybrid RRF beats dense-only at Recall@3 (+0.071, CI +0.004 to +0.138)
+  and MRR is up 0.032 (CI -0.017 to +0.080, not significant).
+- **The default already captures most of that, and more.** `0.75 * cosine + 0.25 * query-term coverage` beats
+  dense-only by +0.126 Recall@1 (CI +0.051 to +0.205) and beats hybrid RRF by 0.098 at Recall@1 (CI -0.165 to
+  -0.035 for hybrid minus default). On exact-term questions the default has 0 losses to dense in 54 cases.
+- The overlap reranker also scores above the cross-encoder (MRR 0.835 vs 0.813; that gap was not tested for significance), so a heavier reranker is not an obvious next step.
+- The production and offline arms use different BM25 implementations and agree in direction and size.
+
+**Decision: `RETRIEVAL_MODE` stays `dense`.** Hybrid fails the rule (not at least as good at Recall@1 and MRR).
+Hybrid mode as built drops the overlap blend the default applies after retrieval. That is a plausible reason it
+loses, but I did not isolate it. A variant that keeps the blend and uses BM25 only to widen the candidate pool is
+untested and is the one hybrid design left worth an experiment.
+
+Limits of this evidence: 103 of the 127 questions are LLM-written (Groq, with some calls falling back to
+OpenAI) and not independently audited; I read a sample of 8 and they were sound, but some paraphrase questions
+are vague enough that another chunk could answer them, which depresses every arm's absolute score on that
+stratum (best MRR about 0.6). Exact-term questions share about 74% of their words with the gold chunk
+(`lexical_overlap` in the file), so they flatter lexical methods and still did not rescue hybrid. All sources are
+English Wikipedia plus the original two documents; no PDFs, code or non-English text. Corpus size (781 chunks) is
+still small next to a real deployment. `RETRIEVAL_BM25_MIN_SCORE` was not tuned.
+
 ## Held-out workload and blind review
 
 `data/heldout-quality-workload.json` is a source-grounded 40-case snapshot of

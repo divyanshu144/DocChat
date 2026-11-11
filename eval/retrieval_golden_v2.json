@@ -1,0 +1,2963 @@
+{
+ "description": "24 original hand-reviewed questions plus 103 LLM-written, validated questions over 781 chunks (14 sources).",
+ "annotation": "Original 24: single annotator. New questions: written by an LLM from one sampled chunk each (alternating exact_term / paraphrase), gated on a verbatim evidence quote and an answerable-from-chunk check; every chunk containing the quote is labelled relevant. Not independently audited; `lexical_overlap` records how many question words appear in the gold chunk.",
+ "rejected": {
+  "quote not verbatim in chunk": 6,
+  "not a question": 1,
+  "validator: not answerable from the chunk": 4,
+  "quote appears in too many chunks": 1
+ },
+ "cases": [
+  {
+   "id": "pdf-average",
+   "query": "According to the working-time declaration, what is the maximum average weekly working time for mobile drivers?",
+   "relevant_ids": [
+    "6c397273-c32a-5822-9c57-35ad21c82451"
+   ],
+   "evidence": [
+    {
+     "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+     "quote": "48 hours per week"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 0
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-weekly",
+   "query": "What maximum weekly working-time limit is stated in the declaration?",
+   "relevant_ids": [
+    "6c397273-c32a-5822-9c57-35ad21c82451"
+   ],
+   "evidence": [
+    {
+     "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+     "quote": "60 hours Working Time"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 0
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-night",
+   "query": "How many hours of night work are allowed in each 24-hour period according to the document?",
+   "relevant_ids": [
+    "6c397273-c32a-5822-9c57-35ad21c82451"
+   ],
+   "evidence": [
+    {
+     "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+     "quote": "10 hours night work"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 0
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-goods-night",
+   "query": "Which hours are defined as night time for goods vehicles in the declaration?",
+   "relevant_ids": [
+    "6c397273-c32a-5822-9c57-35ad21c82451"
+   ],
+   "evidence": [
+    {
+     "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+     "quote": "midnight to 0400 hours"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 0
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-passenger-night",
+   "query": "Which night-time hours does the declaration specify for passenger vehicles?",
+   "relevant_ids": [
+    "6c397273-c32a-5822-9c57-35ad21c82451"
+   ],
+   "evidence": [
+    {
+     "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+     "quote": "0100 and 0500 hours"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 0
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-breaks",
+   "query": "What breaks must mobile workers take after six hours and after more than nine hours of working time?",
+   "relevant_ids": [
+    "6c397273-c32a-5822-9c57-35ad21c82451"
+   ],
+   "evidence": [
+    {
+     "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+     "quote": "30 minutes after 6 hours"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 0
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-reference",
+   "query": "What default reference period applies to average working time, and how far can it be extended?",
+   "relevant_ids": [
+    "6c397273-c32a-5822-9c57-35ad21c82451"
+   ],
+   "evidence": [
+    {
+     "point_id": "6c397273-c32a-5822-9c57-35ad21c82451",
+     "quote": "default 17 week reference period"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 0
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-employer-reference",
+   "query": "What rolling reference period does First Call Contract Services operate?",
+   "relevant_ids": [
+    "4a325257-292d-55a8-9673-0780ec36f864"
+   ],
+   "evidence": [
+    {
+     "point_id": "4a325257-292d-55a8-9673-0780ec36f864",
+     "quote": "26 week rolling reference period"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 1
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-other-work",
+   "query": "Must working time for other employers include non-transport work?",
+   "relevant_ids": [
+    "7f02e868-34df-5c65-9015-c64be231fda4",
+    "5a312ea6-bc96-5d60-b6c8-99bab55be050"
+   ],
+   "evidence": [
+    {
+     "point_id": "7f02e868-34df-5c65-9015-c64be231fda4",
+     "quote": "Both transport and non-transport"
+    },
+    {
+     "point_id": "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+     "quote": "Both transport and non-transport"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 2
+    },
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 2,
+     "chunk_index": 3
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-voluntary",
+   "query": "Does the declaration require workers to disclose charitable, voluntary or emergency-service work?",
+   "relevant_ids": [
+    "5a312ea6-bc96-5d60-b6c8-99bab55be050"
+   ],
+   "evidence": [
+    {
+     "point_id": "5a312ea6-bc96-5d60-b6c8-99bab55be050",
+     "quote": "charitable or voluntary work"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 2,
+     "chunk_index": 3
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-record-duty",
+   "query": "Who is responsible for accurately recording working time during an assignment?",
+   "relevant_ids": [
+    "4a325257-292d-55a8-9673-0780ec36f864"
+   ],
+   "evidence": [
+    {
+     "point_id": "4a325257-292d-55a8-9673-0780ec36f864",
+     "quote": "accurately record your Working Time"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 1
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "pdf-false-record",
+   "query": "What does the document say happens if a worker knowingly makes a false record?",
+   "relevant_ids": [
+    "4a325257-292d-55a8-9673-0780ec36f864",
+    "7f02e868-34df-5c65-9015-c64be231fda4"
+   ],
+   "evidence": [
+    {
+     "point_id": "4a325257-292d-55a8-9673-0780ec36f864",
+     "quote": "knowingly makes a false record"
+    },
+    {
+     "point_id": "7f02e868-34df-5c65-9015-c64be231fda4",
+     "quote": "knowingly makes a false record"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 1
+    },
+    {
+     "source_id": "18ecad79-dc0d-5471-8c4e-cdb1ae230557",
+     "source_type": "pdf",
+     "page_number": 1,
+     "chunk_index": 2
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-definition",
+   "query": "What does retrieval-augmented generation add to a language model beyond its training data?",
+   "relevant_ids": [
+    "d033044f-b091-585b-ac83-829c4e843ff9",
+    "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+   ],
+   "evidence": [
+    {
+     "point_id": "d033044f-b091-585b-ac83-829c4e843ff9",
+     "quote": "external data sources"
+    },
+    {
+     "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+     "quote": "Process\n[edit]Retrieval-augmented generation (RAG) enhances large language model"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 0
+    },
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 3
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-history",
+   "query": "When was the term retrieval-augmented generation introduced?",
+   "relevant_ids": [
+    "d033044f-b091-585b-ac83-829c4e843ff9",
+    "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+   ],
+   "evidence": [
+    {
+     "point_id": "d033044f-b091-585b-ac83-829c4e843ff9",
+     "quote": "2020"
+    },
+    {
+     "point_id": "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+     "quote": "2020"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 0
+    },
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 1
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-updates",
+   "query": "How can a RAG system use new information without retraining the language model?",
+   "relevant_ids": [
+    "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+    "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+   ],
+   "evidence": [
+    {
+     "point_id": "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+     "quote": "retrain"
+    },
+    {
+     "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+     "quote": "retrain"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 1
+    },
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 3
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-transparency",
+   "query": "How do sources in RAG responses let users verify answers?",
+   "relevant_ids": [
+    "ada32a72-a8de-59bd-895b-aa186cc9fa45"
+   ],
+   "evidence": [
+    {
+     "point_id": "ada32a72-a8de-59bd-895b-aa186cc9fa45",
+     "quote": "cross-check retrieved content"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 1
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-embeddings",
+   "query": "Where are numerical document embeddings stored for retrieval?",
+   "relevant_ids": [
+    "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+   ],
+   "evidence": [
+    {
+     "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+     "quote": "vector database"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 3
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-data-types",
+   "query": "Can RAG use structured and semi-structured data as well as unstructured text?",
+   "relevant_ids": [
+    "6f1f0051-c113-5e44-a4a2-397dcc03fee5"
+   ],
+   "evidence": [
+    {
+     "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+     "quote": "semi-structured"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 3
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-stages",
+   "query": "How does the retriever select documents before the LLM generates an answer?",
+   "relevant_ids": [
+    "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+    "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d"
+   ],
+   "evidence": [
+    {
+     "point_id": "6f1f0051-c113-5e44-a4a2-397dcc03fee5",
+     "quote": "Retriev"
+    },
+    {
+     "point_id": "974297b5-ca2b-5ae0-a79b-feaa7fd28a8d",
+     "quote": "retriev"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 3
+    },
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 4
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-hallucinations",
+   "query": "Does RAG completely prevent a language model from hallucinating?",
+   "relevant_ids": [
+    "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+    "706ba932-f679-5462-961d-0c4a3ae1e3fe"
+   ],
+   "evidence": [
+    {
+     "point_id": "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+     "quote": "does not prevent hallucinations"
+    },
+    {
+     "point_id": "706ba932-f679-5462-961d-0c4a3ae1e3fe",
+     "quote": "does not prevent hallucinations"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 7
+    },
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 8
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-hybrid",
+   "query": "How does hybrid search compensate when semantic search misses key facts?",
+   "relevant_ids": [
+    "73bfa23a-88ad-592b-801a-f9c3021ee3d6"
+   ],
+   "evidence": [
+    {
+     "point_id": "73bfa23a-88ad-592b-801a-f9c3021ee3d6",
+     "quote": "traditional text search"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 7
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-encoding",
+   "query": "How do sparse vectors differ from dense vectors in encoding text?",
+   "relevant_ids": [
+    "b52ac8c7-c659-5819-81b8-1d0c14896510"
+   ],
+   "evidence": [
+    {
+     "point_id": "b52ac8c7-c659-5819-81b8-1d0c14896510",
+     "quote": "sparse vectors"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 5
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-ict",
+   "query": "What pre-training task teaches a retriever to predict masked text?",
+   "relevant_ids": [
+    "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+   ],
+   "evidence": [
+    {
+     "point_id": "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+     "quote": "Inverse Cloze Task"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 6
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "rag-retro",
+   "query": "What training-cost disadvantage does the Retro language model have?",
+   "relevant_ids": [
+    "a5399dd1-2975-5606-a6a2-914b6a4fa864"
+   ],
+   "evidence": [
+    {
+     "point_id": "a5399dd1-2975-5606-a6a2-914b6a4fa864",
+     "quote": "high cost of training runs"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "e8b93bac-6734-5eb0-9b0c-23f0b3640777",
+     "source_type": "web",
+     "page_number": null,
+     "chunk_index": 6
+    }
+   ],
+   "stratum": "original_24"
+  },
+  {
+   "id": "v2-001",
+   "stratum": "exact_term",
+   "query": "In the passage about companies adopting PostgreSQL, which Russian internet company switched its Yandex.Mail service from Oracle to Postgres?",
+   "relevant_ids": [
+    "64edca70-a94a-5a43-a0d7-95a733980e1e"
+   ],
+   "evidence": [
+    {
+     "point_id": "64edca70-a94a-5a43-a0d7-95a733980e1e",
+     "quote": "Yandex, a Russian internet company switched its Yandex.Mail service from Oracle to Postgres."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 28
+    }
+   ],
+   "lexical_overlap": 0.714
+  },
+  {
+   "id": "v2-002",
+   "stratum": "paraphrase",
+   "query": "Which relational database described can function as a durable publish/subscribe or task manager by merging its notification capability with an update operation that bypasses locked rows?",
+   "relevant_ids": [
+    "513098d2-5027-5e3d-8645-308c367c4f1c",
+    "5df49e23-0be8-546b-9bd1-6e6bfcbcef2a"
+   ],
+   "evidence": [
+    {
+     "point_id": "513098d2-5027-5e3d-8645-308c367c4f1c",
+     "quote": "PostgreSQL can act as an effective, persistent \"pub/sub\" server or job server by combining LISTEN with FOR UPDATE SKIP LOCKED."
+    },
+    {
+     "point_id": "5df49e23-0be8-546b-9bd1-6e6bfcbcef2a",
+     "quote": "PostgreSQL can act as an effective, persistent \"pub/sub\" server or job server by combining LISTEN with FOR UPDATE SKIP LOCKED."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 17
+    }
+   ],
+   "lexical_overlap": 0.167
+  },
+  {
+   "id": "v2-003",
+   "stratum": "exact_term",
+   "query": "In the PostgreSQL performance article, who demonstrated PostgreSQL 9.2's linear CPU scalability on a 64\u2011core server?",
+   "relevant_ids": [
+    "68ceaa94-567c-5477-be63-6ba324f89b88"
+   ],
+   "evidence": [
+    {
+     "point_id": "68ceaa94-567c-5477-be63-6ba324f89b88",
+     "quote": "Robert Haas of EnterpriseDB demonstrated PostgreSQL 9.2's linear CPU scalability using a server with 64 cores."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 22
+    }
+   ],
+   "lexical_overlap": 0.846
+  },
+  {
+   "id": "v2-004",
+   "stratum": "paraphrase",
+   "query": "In PostgreSQL, when several accessible namespaces are listed in order, where does the system place a freshly created entity?",
+   "relevant_ids": [
+    "eb1ccb25-9a5e-58b4-94a9-a0a40b1d0439"
+   ],
+   "evidence": [
+    {
+     "point_id": "eb1ccb25-9a5e-58b4-94a9-a0a40b1d0439",
+     "quote": "New objects are created in whichever valid schema (one that can be accessed) appears first in the search_path."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 10
+    }
+   ],
+   "lexical_overlap": 0.455
+  },
+  {
+   "id": "v2-005",
+   "stratum": "exact_term",
+   "query": "In the context of cloud database services, which provider announced the addition of PostgreSQL to their Relational Database Service in November 2013?",
+   "relevant_ids": [
+    "491dd1ae-0f1d-5940-8ed8-6ec6e71b3926",
+    "856be78c-5c3c-531f-be43-035fe3a2fa90"
+   ],
+   "evidence": [
+    {
+     "point_id": "491dd1ae-0f1d-5940-8ed8-6ec6e71b3926",
+     "quote": "In November 2013, Amazon Web Services announced the addition of PostgreSQL to their Relational Database Service offering."
+    },
+    {
+     "point_id": "856be78c-5c3c-531f-be43-035fe3a2fa90",
+     "quote": "In November 2013, Amazon Web Services announced the addition of PostgreSQL to their Relational Database Service offering."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 29
+    }
+   ],
+   "lexical_overlap": 0.929
+  },
+  {
+   "id": "v2-006",
+   "stratum": "paraphrase",
+   "query": "In the article about the database system, which configuration file controls which users may access which databases, from which network locations, using which authentication method, and whether encryption is required?",
+   "relevant_ids": [
+    "b90aa7dd-5b42-5ab1-aa3d-6d860874279d"
+   ],
+   "evidence": [
+    {
+     "point_id": "b90aa7dd-5b42-5ab1-aa3d-6d860874279d",
+     "quote": "host-based authentication configuration file (pg_hba.conf), which determines what connections are allowed."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 20
+    }
+   ],
+   "lexical_overlap": 0.368
+  },
+  {
+   "id": "v2-007",
+   "stratum": "paraphrase",
+   "query": "In the open-source relational database system's documentation, which iteration of the communication protocol is outlined and from which major release onward is it supported?",
+   "relevant_ids": [
+    "30211db0-63d6-5c1a-b6cb-cb8a91872ee8"
+   ],
+   "evidence": [
+    {
+     "point_id": "30211db0-63d6-5c1a-b6cb-cb8a91872ee8",
+     "quote": "This document describes version 3.0 of the protocol, implemented in PostgreSQL 7.4 and later."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 37
+    }
+   ],
+   "lexical_overlap": 0.286
+  },
+  {
+   "id": "v2-008",
+   "stratum": "exact_term",
+   "query": "According to the article on PostgreSQL replication, which project provides scalable synchronous multi\u2011master replication and is based on PostgreSQL?",
+   "relevant_ids": [
+    "9e260f51-46dc-5c2f-be05-31a8dfc7e1d3"
+   ],
+   "evidence": [
+    {
+     "point_id": "9e260f51-46dc-5c2f-be05-31a8dfc7e1d3",
+     "quote": "Postgres-XC which is based on PostgreSQL provides scalable synchronous multi-master replication."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 7
+    }
+   ],
+   "lexical_overlap": 0.917
+  },
+  {
+   "id": "v2-009",
+   "stratum": "paraphrase",
+   "query": "According to the article on database custom types, which symbols are used to denote that an interval's start or end is included versus excluded?",
+   "relevant_ids": [
+    "f6491ff5-1d84-5259-b03e-c88cfd9f74d0"
+   ],
+   "evidence": [
+    {
+     "point_id": "f6491ff5-1d84-5259-b03e-c88cfd9f74d0",
+     "quote": "Range types support inclusive and exclusive range boundaries using the [] and () characters respectively."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "1bc1071d-02dc-5c2e-bef0-66cec7d2b27b",
+     "source_type": "web",
+     "chunk_index": 11
+    }
+   ],
+   "lexical_overlap": 0.308
+  },
+  {
+   "id": "v2-010",
+   "stratum": "exact_term",
+   "query": "What is the ISBN of Jakob de Haan's 2000 book \"The History of the Bundesbank: Lessons for the European Central Bank\"?",
+   "relevant_ids": [
+    "8d0e138e-4529-558c-8483-fd9278432a10",
+    "0bb8f471-1b40-53f0-b3be-51248ac5fb24"
+   ],
+   "evidence": [
+    {
+     "point_id": "8d0e138e-4529-558c-8483-fd9278432a10",
+     "quote": "ISBN 978-0-415-21723-1."
+    },
+    {
+     "point_id": "0bb8f471-1b40-53f0-b3be-51248ac5fb24",
+     "quote": "ISBN 978-0-415-21723-1."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 48
+    }
+   ],
+   "lexical_overlap": 0.833
+  },
+  {
+   "id": "v2-011",
+   "stratum": "paraphrase",
+   "query": "Which artist designed the shared side that appears on every euro coin?",
+   "relevant_ids": [
+    "f8a17889-83d6-593a-ad2b-f2942ee52614"
+   ],
+   "evidence": [
+    {
+     "point_id": "f8a17889-83d6-593a-ad2b-f2942ee52614",
+     "quote": "All common sides were designed by Luc Luycx."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 4
+    }
+   ],
+   "lexical_overlap": 0.5
+  },
+  {
+   "id": "v2-012",
+   "stratum": "exact_term",
+   "query": "According to the article on EU euro adoption, how many EU member states are described as the \"five EU member states\" that have committed themselves in their Treaty of Accession to adopt the euro?",
+   "relevant_ids": [
+    "a04f1a1d-ef9c-597f-8fc7-caa109d1f3ef"
+   ],
+   "evidence": [
+    {
+     "point_id": "a04f1a1d-ef9c-597f-8fc7-caa109d1f3ef",
+     "quote": "The following five EU member states, representing almost 90 million people, committed themselves"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 2
+    }
+   ],
+   "lexical_overlap": 0.81
+  },
+  {
+   "id": "v2-013",
+   "stratum": "paraphrase",
+   "query": "According to the financial integration article, how did the adoption of the common European currency influence the cost for firms to obtain financing?",
+   "relevant_ids": [
+    "6562c0d3-b94c-5115-8bb1-dbe6377909a6"
+   ],
+   "evidence": [
+    {
+     "point_id": "6562c0d3-b94c-5115-8bb1-dbe6377909a6",
+     "quote": "Financial integration made it cheaper for European companies to borrow."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 30
+    }
+   ],
+   "lexical_overlap": 0.583
+  },
+  {
+   "id": "v2-014",
+   "stratum": "exact_term",
+   "query": "What is the DOI listed for the 2007 Review of International Economics article titled \"The Effect of EMU on Tourism\" by Gil\u2011Pareja, Llorca\u2011Vivero, and Mart\u00ednez\u2011Serrano?",
+   "relevant_ids": [
+    "414e2476-219f-5e93-b5f4-5080db2d2805"
+   ],
+   "evidence": [
+    {
+     "point_id": "414e2476-219f-5e93-b5f4-5080db2d2805",
+     "quote": "doi:10.1111/j.1467-9396.2006.00620.x. S2CID 154503069."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 52
+    }
+   ],
+   "lexical_overlap": 0.833
+  },
+  {
+   "id": "v2-015",
+   "stratum": "paraphrase",
+   "query": "What is the fixed exchange ratio for the Indian Ocean archipelago's monetary unit that is now anchored to the European common currency?",
+   "relevant_ids": [
+    "748440b9-b2f9-5b5b-8bc6-66791db9f185",
+    "493b7597-2dcc-5fda-b912-29f1fbfcc610"
+   ],
+   "evidence": [
+    {
+     "point_id": "748440b9-b2f9-5b5b-8bc6-66791db9f185",
+     "quote": "491.96775 Comorian francs = 1 euro"
+    },
+    {
+     "point_id": "493b7597-2dcc-5fda-b912-29f1fbfcc610",
+     "quote": "491.96775 Comorian francs = 1 euro"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 16
+    }
+   ],
+   "lexical_overlap": 0.308
+  },
+  {
+   "id": "v2-016",
+   "stratum": "exact_term",
+   "query": "According to the article about the naming of the euro, on what date was the name \"euro\" officially adopted in Madrid?",
+   "relevant_ids": [
+    "b4a0b924-1694-5438-9fed-81485dc98803"
+   ],
+   "evidence": [
+    {
+     "point_id": "b4a0b924-1694-5438-9fed-81485dc98803",
+     "quote": "The name \"euro\" was officially adopted in Madrid on 16 December 1995."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 9
+    }
+   ],
+   "lexical_overlap": 0.7
+  },
+  {
+   "id": "v2-017",
+   "stratum": "paraphrase",
+   "query": "In the list of nations whose money is tied to the European single currency, which North African state does so by using a basket of foreign monies?",
+   "relevant_ids": [
+    "f4a60f28-2d69-5597-8ee8-d914c15e2a68"
+   ],
+   "evidence": [
+    {
+     "point_id": "f4a60f28-2d69-5597-8ee8-d914c15e2a68",
+     "quote": "Morocco (Moroccan dirham, MAD) (through a basket of currencies)"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 18
+    }
+   ],
+   "lexical_overlap": 0.25
+  },
+  {
+   "id": "v2-018",
+   "stratum": "exact_term",
+   "query": "In the passage about price parity and macroeconomic stability, which central bank was the European Central Bank modelled on?",
+   "relevant_ids": [
+    "b606ab7a-c4ef-5dd1-b24c-0e30057ebba2"
+   ],
+   "evidence": [
+    {
+     "point_id": "b606ab7a-c4ef-5dd1-b24c-0e30057ebba2",
+     "quote": "One such bank was the Bundesbank in Germany; the European Central Bank was modelled on the Bundesbank."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 23
+    }
+   ],
+   "lexical_overlap": 0.833
+  },
+  {
+   "id": "v2-019",
+   "stratum": "paraphrase",
+   "query": "In the article about the single\u2011currency cash redesign, what share of the overall value is directly released by the main monetary authority?",
+   "relevant_ids": [
+    "2b5c6b9b-f17c-51aa-88bd-b9799e9c257f"
+   ],
+   "evidence": [
+    {
+     "point_id": "2b5c6b9b-f17c-51aa-88bd-b9799e9c257f",
+     "quote": "The ECB issues 8% of the total value of banknotes issued by the Eurosystem."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "2eaff66b-0457-5ddd-ba28-0621717a87c8",
+     "source_type": "web",
+     "chunk_index": 7
+    }
+   ],
+   "lexical_overlap": 0.286
+  },
+  {
+   "id": "v2-020",
+   "stratum": "exact_term",
+   "query": "What is the ISBN 978-0-201-88794-5 associated with Susan Quinn's 1996 book \"Marie Curie: A Life\" as mentioned in the passage?",
+   "relevant_ids": [
+    "17300ffd-50bf-5e09-be1d-21564ae515fe"
+   ],
+   "evidence": [
+    {
+     "point_id": "17300ffd-50bf-5e09-be1d-21564ae515fe",
+     "quote": "ISBN 978-0-201-88794-5. Archived from the original on 31 October 2015."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 43
+    }
+   ],
+   "lexical_overlap": 0.688
+  },
+  {
+   "id": "v2-021",
+   "stratum": "paraphrase",
+   "query": "Which online video\u2011sharing site hosts the 2013 documentary that celebrates the achievements of Marie Curie?",
+   "relevant_ids": [
+    "9ac8629e-a02c-5082-b40d-d5ddc57eb2f2"
+   ],
+   "evidence": [
+    {
+     "point_id": "9ac8629e-a02c-5082-b40d-d5ddc57eb2f2",
+     "quote": "\"The Genius of Marie Curie: The Woman Who Lit Up the World\" on YouTube (a 2013 BBC documentary)"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 39
+    }
+   ],
+   "lexical_overlap": 0.364
+  },
+  {
+   "id": "v2-022",
+   "stratum": "exact_term",
+   "query": "According to the biography of Marie Curie, in which month and year did she give birth to her second daughter, \u00c8ve?",
+   "relevant_ids": [
+    "218fa8c2-5128-5feb-9ed7-66e7918da597",
+    "a63c2acc-b553-51f9-9e12-460b27c92992"
+   ],
+   "evidence": [
+    {
+     "point_id": "218fa8c2-5128-5feb-9ed7-66e7918da597",
+     "quote": "In December 1904, Curie gave birth to their second daughter, \u00c8ve."
+    },
+    {
+     "point_id": "a63c2acc-b553-51f9-9e12-460b27c92992",
+     "quote": "In December 1904, Curie gave birth to their second daughter, \u00c8ve."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 17
+    }
+   ],
+   "lexical_overlap": 0.583
+  },
+  {
+   "id": "v2-023",
+   "stratum": "paraphrase",
+   "query": "According to the article on Marie Curie, which French financial institution released a high\u2011value paper currency in the mid\u20111990s that showed the renowned physicist and her husband?",
+   "relevant_ids": [
+    "5a6f2649-fa43-5353-9daf-735ac9c5e8d2"
+   ],
+   "evidence": [
+    {
+     "point_id": "5a6f2649-fa43-5353-9daf-735ac9c5e8d2",
+     "quote": "In 1994, the Bank of France issued a 500-franc banknote depicting Marie and Pierre Curie."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 35
+    }
+   ],
+   "lexical_overlap": 0.222
+  },
+  {
+   "id": "v2-024",
+   "stratum": "exact_term",
+   "query": "On what date was Marie Curie's paper presented to the Acad\u00e9mie des Sciences by Gabriel Lippmann?",
+   "relevant_ids": [
+    "905bbaa7-b64f-5c30-ac24-8a10f89ce161"
+   ],
+   "evidence": [
+    {
+     "point_id": "905bbaa7-b64f-5c30-ac24-8a10f89ce161",
+     "quote": "her paper, giving a brief and simple account of her work, was presented for her to the Acad\u00e9mie on 12 April 1898 by her former professor, Gabriel Lippmann."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 12
+    }
+   ],
+   "lexical_overlap": 0.727
+  },
+  {
+   "id": "v2-025",
+   "stratum": "paraphrase",
+   "query": "Why did the protagonist join an underground patriotic university for women rather than attend a regular college?",
+   "relevant_ids": [
+    "423a171e-5260-5486-ae1f-41c7568c9038"
+   ],
+   "evidence": [
+    {
+     "point_id": "423a171e-5260-5486-ae1f-41c7568c9038",
+     "quote": "Unable to enrol in a regular institution of higher education because she was a woman"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 4
+    }
+   ],
+   "lexical_overlap": 0.364
+  },
+  {
+   "id": "v2-026",
+   "stratum": "exact_term",
+   "query": "In the citation for Robert William Reid's 1974 biography of Marie Curie, what ISBN 978-0-00-211539-1 is listed?",
+   "relevant_ids": [
+    "3389e4f1-6d6f-5750-bc96-4726626d830c"
+   ],
+   "evidence": [
+    {
+     "point_id": "3389e4f1-6d6f-5750-bc96-4726626d830c",
+     "quote": "ISBN 978-0-00-211539-1. Archived from the original on 11 June 2016."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 40
+    }
+   ],
+   "lexical_overlap": 0.733
+  },
+  {
+   "id": "v2-027",
+   "stratum": "paraphrase",
+   "query": "Which renowned pioneering radiochemist is noted as being slated for inclusion on forthcoming French monetary pieces?",
+   "relevant_ids": [
+    "6c8020ce-652d-53b5-bd55-57de3db22eb3"
+   ],
+   "evidence": [
+    {
+     "point_id": "6c8020ce-652d-53b5-bd55-57de3db22eb3",
+     "quote": "\"Veil, Baker and Curie: acclaimed women to appear on new French coins\". RFI. 10 March 2024."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 53
+    }
+   ],
+   "lexical_overlap": 0.091
+  },
+  {
+   "id": "v2-028",
+   "stratum": "exact_term",
+   "query": "In the citation by Ann M. Lewicki (2002) about \"Marie Sklodowska Curie in America, 1921\", what is the PMID number listed?",
+   "relevant_ids": [
+    "056a5bd6-5010-5135-906d-ce68b61445bb"
+   ],
+   "evidence": [
+    {
+     "point_id": "056a5bd6-5010-5135-906d-ce68b61445bb",
+     "quote": "doi:10.1148/radiol.2232011319. PMID 11997527."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 46
+    }
+   ],
+   "lexical_overlap": 0.714
+  },
+  {
+   "id": "v2-029",
+   "stratum": "paraphrase",
+   "query": "In the biography of the renowned physicist, what pact did she reach with her sibling concerning monetary support for each other's education?",
+   "relevant_ids": [
+    "8d51fb2e-5f40-5241-a964-36ee7ea60610"
+   ],
+   "evidence": [
+    {
+     "point_id": "8d51fb2e-5f40-5241-a964-36ee7ea60610",
+     "quote": "Marie and Bronis\u0142awa made an agreement that Marie would provide financial assistance"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4cc7a5c8-b656-5fe7-9f9d-9b6ad2374ddc",
+     "source_type": "web",
+     "chunk_index": 5
+    }
+   ],
+   "lexical_overlap": 0.143
+  },
+  {
+   "id": "v2-030",
+   "stratum": "exact_term",
+   "query": "What is the name of the pigment, bacteriorhodopsin, that some archaea use which changes its configuration in response to sunlight and acts as a proton pump?",
+   "relevant_ids": [
+    "b052ed29-078f-5f8a-818f-e013f0eb3aa4"
+   ],
+   "evidence": [
+    {
+     "point_id": "b052ed29-078f-5f8a-818f-e013f0eb3aa4",
+     "quote": "bacteriorhodopsin changes its configuration in response to sunlight"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 6
+    }
+   ],
+   "lexical_overlap": 0.846
+  },
+  {
+   "id": "v2-031",
+   "stratum": "paraphrase",
+   "query": "Which investigation of light\u2011energy conversion mechanisms reported the identification of a second class of light\u2011harvesting protein complexes in an infrequently encountered bacterial lineage?",
+   "relevant_ids": [
+    "ed46c801-99a9-5665-a2e0-076472d214ea"
+   ],
+   "evidence": [
+    {
+     "point_id": "ed46c801-99a9-5665-a2e0-076472d214ea",
+     "quote": "Functional type 2 photosynthetic reaction centers found in the rare bacterial phylum Gemmatimonadetes"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 63
+    }
+   ],
+   "lexical_overlap": 0.059
+  },
+  {
+   "id": "v2-032",
+   "stratum": "exact_term",
+   "query": "According to the passage about Kranz anatomy, which botanist coined the term while studying leaf anatomy of sugarcane?",
+   "relevant_ids": [
+    "98cb648c-ccff-5a30-a4c7-749ed59c2ae2"
+   ],
+   "evidence": [
+    {
+     "point_id": "98cb648c-ccff-5a30-a4c7-749ed59c2ae2",
+     "quote": "by the botanist Gottlieb Haberlandt while studying leaf anatomy of sugarcane."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 43
+    }
+   ],
+   "lexical_overlap": 0.667
+  },
+  {
+   "id": "v2-033",
+   "stratum": "exact_term",
+   "query": "In the light-independent reactions of green plants, which enzyme captures CO2 from the atmosphere?",
+   "relevant_ids": [
+    "156046f9-9f34-5aad-a75b-9f1b4c743068"
+   ],
+   "evidence": [
+    {
+     "point_id": "156046f9-9f34-5aad-a75b-9f1b4c743068",
+     "quote": "the enzyme RuBisCO captures CO2 from the atmosphere"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 15
+    }
+   ],
+   "lexical_overlap": 1.0
+  },
+  {
+   "id": "v2-034",
+   "stratum": "paraphrase",
+   "query": "Which reference details an early\u2011century experiment on how a unicellular algae's internal mineral balance shifts with cycles of illumination and darkness?",
+   "relevant_ids": [
+    "f784949d-ae57-5897-8087-ffaef4c607eb"
+   ],
+   "evidence": [
+    {
+     "point_id": "f784949d-ae57-5897-8087-ffaef4c607eb",
+     "quote": "Phosphatspiegelschwankungen bei Chlorella pyrenoidosa als Folge des Licht-Dunkel-Wechsels"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 65
+    }
+   ],
+   "lexical_overlap": 0.0
+  },
+  {
+   "id": "v2-035",
+   "stratum": "exact_term",
+   "query": "In the article discussing gas exchange and chlorophyll fluorescence measurements, what is the symbol used to denote water vapor flux?",
+   "relevant_ids": [
+    "6388cfbe-6248-5bf5-a123-0080cb329dbd"
+   ],
+   "evidence": [
+    {
+     "point_id": "6388cfbe-6248-5bf5-a123-0080cb329dbd",
+     "quote": "\u0394H\n2O, leaf temperature, barometric pressure, leaf area, and photosynthetically active radiation (PAR)"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 24
+    }
+   ],
+   "lexical_overlap": 0.462
+  },
+  {
+   "id": "v2-036",
+   "stratum": "paraphrase",
+   "query": "In the article about symbiosis and the origin of green organelles, what transfer of plant-derived genetic material to the marine gastropod enables the appropriated photosynthetic structures to receive the proteins they require?",
+   "relevant_ids": [
+    "9a2c597e-c566-5f68-8204-ad2aee64472d"
+   ],
+   "evidence": [
+    {
+     "point_id": "9a2c597e-c566-5f68-8204-ad2aee64472d",
+     "quote": "Some of the genes from the plant cell nucleus have even been transferred to the slugs"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 28
+    }
+   ],
+   "lexical_overlap": 0.333
+  },
+  {
+   "id": "v2-037",
+   "stratum": "exact_term",
+   "query": "What is the DOI of the 2024 Nature article titled \"Oldest thylakoids in fossil cells directly evidence oxygenic photosynthesis\"?",
+   "relevant_ids": [
+    "238820a6-c238-5842-8d9e-509b9023b1ca"
+   ],
+   "evidence": [
+    {
+     "point_id": "238820a6-c238-5842-8d9e-509b9023b1ca",
+     "quote": "doi:10.1038/s41586-023-06896-7. hdl:2268/312062."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 60
+    }
+   ],
+   "lexical_overlap": 0.846
+  },
+  {
+   "id": "v2-038",
+   "stratum": "paraphrase",
+   "query": "In the reference list, which mid\u20111960s study examined the assimilation of atmospheric carbon in the foliage of a tropical grass?",
+   "relevant_ids": [
+    "e9b36588-735d-54a9-b6da-cf0d9993a663"
+   ],
+   "evidence": [
+    {
+     "point_id": "e9b36588-735d-54a9-b6da-cf0d9993a663",
+     "quote": "Carbon dioxide fixation in sugarcane leaves"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "4f7e03a7-8e4e-57a0-9a42-26ead2e0d7bd",
+     "source_type": "web",
+     "chunk_index": 68
+    }
+   ],
+   "lexical_overlap": 0.083
+  },
+  {
+   "id": "v2-039",
+   "stratum": "exact_term",
+   "query": "According to the Lho\u202fLa tragedy article, who led the 1989 Polish\u2011backed international expedition to Mount Everest via the highly technical west ridge?",
+   "relevant_ids": [
+    "dea62674-af82-5864-b5e4-f08b55af3ed0"
+   ],
+   "evidence": [
+    {
+     "point_id": "dea62674-af82-5864-b5e4-f08b55af3ed0",
+     "quote": "In 1989, Eugeniusz Chrobak led a Polish-backed international expedition to Mount Everest via the highly technical west ridge."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 30
+    }
+   ],
+   "lexical_overlap": 0.941
+  },
+  {
+   "id": "v2-040",
+   "stratum": "paraphrase",
+   "query": "In the Everest climbing incidents, which local firm gave only basic assistance at the initial camp for the climber who attempted the summit alone?",
+   "relevant_ids": [
+    "ce475796-7dd0-5cce-96ab-ca0637e66cfb"
+   ],
+   "evidence": [
+    {
+     "point_id": "ce475796-7dd0-5cce-96ab-ca0637e66cfb",
+     "quote": "Asian Trekking, a Kathmandu-based company that provided basic services to base camp"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 32
+    }
+   ],
+   "lexical_overlap": 0.467
+  },
+  {
+   "id": "v2-041",
+   "stratum": "exact_term",
+   "query": "According to the 2015 avalanche and earthquake article, what was the magnitude (Mw) of the earthquake on 25\u202fApril\u202f2015 that triggered the avalanche at Everest Base Camp?",
+   "relevant_ids": [
+    "32190805-bd8e-53b1-849c-168228aa55e3"
+   ],
+   "evidence": [
+    {
+     "point_id": "32190805-bd8e-53b1-849c-168228aa55e3",
+     "quote": "on 25 April 2015, an earthquake measuring 7.8 Mw triggered an avalanche"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 38
+    }
+   ],
+   "lexical_overlap": 0.867
+  },
+  {
+   "id": "v2-042",
+   "stratum": "paraphrase",
+   "query": "According to the article about the Himalayan kingdom, what is the estimated proportion of the labor force that is jobless?",
+   "relevant_ids": [
+    "7a8671f2-7b6a-5607-9336-79bd719d9c15",
+    "d209b5ae-51bc-55f1-8cc4-30a7f0024505"
+   ],
+   "evidence": [
+    {
+     "point_id": "7a8671f2-7b6a-5607-9336-79bd719d9c15",
+     "quote": "\"Nepal's unemployment rate estimated at 11.4 percent\""
+    },
+    {
+     "point_id": "d209b5ae-51bc-55f1-8cc4-30a7f0024505",
+     "quote": "\"Nepal's unemployment rate estimated at 11.4 percent\""
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 110
+    }
+   ],
+   "lexical_overlap": 0.111
+  },
+  {
+   "id": "v2-043",
+   "stratum": "exact_term",
+   "query": "In the New Scientist article titled \"The day the sky fell on Everest\", what volume number and page number are listed for the 29 May 2004 issue?",
+   "relevant_ids": [
+    "a05f7080-4c02-569d-8301-0e055c9087f9",
+    "67e07357-620d-5cd1-9cdf-d8391ea783a2"
+   ],
+   "evidence": [
+    {
+     "point_id": "a05f7080-4c02-569d-8301-0e055c9087f9",
+     "quote": "\"The day the sky fell on Everest\". New Scientist (2449): 15. 29 May 2004."
+    },
+    {
+     "point_id": "67e07357-620d-5cd1-9cdf-d8391ea783a2",
+     "quote": "\"The day the sky fell on Everest\". New Scientist (2449): 15. 29 May 2004."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 96
+    }
+   ],
+   "lexical_overlap": 0.529
+  },
+  {
+   "id": "v2-044",
+   "stratum": "paraphrase",
+   "query": "In the discussion of Everest climbing, which pioneering mountaineer is credited with being the first to abandon the use of pressurized air during an ascent?",
+   "relevant_ids": [
+    "a210ef6c-979c-5ddb-b2ad-ac5718014c08"
+   ],
+   "evidence": [
+    {
+     "point_id": "a210ef6c-979c-5ddb-b2ad-ac5718014c08",
+     "quote": "Reinhold Messner was the first climber to break the bottled oxygen tradition"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 62
+    }
+   ],
+   "lexical_overlap": 0.286
+  },
+  {
+   "id": "v2-045",
+   "stratum": "exact_term",
+   "query": "According to the passage on Mortality on Mount Everest, how many bodies were reported to remain on Mount Everest as of 2015?",
+   "relevant_ids": [
+    "ef954f3e-8a7a-5532-a8c0-a0eae7d37b6e"
+   ],
+   "evidence": [
+    {
+     "point_id": "ef954f3e-8a7a-5532-a8c0-a0eae7d37b6e",
+     "quote": "As of 2015, over 200 bodies remain on the mountain."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 59
+    }
+   ],
+   "lexical_overlap": 0.727
+  },
+  {
+   "id": "v2-046",
+   "stratum": "paraphrase",
+   "query": "In the cited sources about the Himalayan summit, what record\u2011setting climatic monitoring unit was installed at the highest point?",
+   "relevant_ids": [
+    "c22e52ab-c86b-5b01-8660-e25f9513f2f0"
+   ],
+   "evidence": [
+    {
+     "point_id": "c22e52ab-c86b-5b01-8660-e25f9513f2f0",
+     "quote": "\"Highest Weather Station Installed on Mount Everest\". nationalgeographic.com. 13 June 2019."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 91
+    }
+   ],
+   "lexical_overlap": 0.154
+  },
+  {
+   "id": "v2-047",
+   "stratum": "paraphrase",
+   "query": "In the latest reference concerning the Himalayas, which summit's recent elevation increase is linked to the capture of river systems?",
+   "relevant_ids": [
+    "1bb71dc8-3e1b-5b88-ad9b-f82ccd5a6a57"
+   ],
+   "evidence": [
+    {
+     "point_id": "1bb71dc8-3e1b-5b88-ad9b-f82ccd5a6a57",
+     "quote": "\"Recent uplift of Chomolungma enhanced by river drainage piracy.\""
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a21ec13c-f075-57cd-8504-517e7d3fa0d1",
+     "source_type": "web",
+     "chunk_index": 87
+    }
+   ],
+   "lexical_overlap": 0.25
+  },
+  {
+   "id": "v2-048",
+   "stratum": "exact_term",
+   "query": "In the TCP article, what specific type of port must the client allocate before sending the first SYN to the server?",
+   "relevant_ids": [
+    "543b1ff2-34d1-5f37-bc92-ee9cceab0887"
+   ],
+   "evidence": [
+    {
+     "point_id": "543b1ff2-34d1-5f37-bc92-ee9cceab0887",
+     "quote": "the client must allocate an ephemeral port before sending the first SYN to the server"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 16
+    }
+   ],
+   "lexical_overlap": 0.769
+  },
+  {
+   "id": "v2-049",
+   "stratum": "paraphrase",
+   "query": "In the discussion of selective acknowledgments, what drawback does the original transport method have when it can only confirm receipt up to the first missing block, causing the sender to retransmit a large portion of the transmission?",
+   "relevant_ids": [
+    "60ac97c1-5558-55f5-9222-d42f855cad21"
+   ],
+   "evidence": [
+    {
+     "point_id": "60ac97c1-5558-55f5-9222-d42f855cad21",
+     "quote": "the receiver can only send a cumulative ACK value of 2,000 (the sequence number immediately following the last sequence number of the received data)"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 25
+    }
+   ],
+   "lexical_overlap": 0.364
+  },
+  {
+   "id": "v2-050",
+   "stratum": "exact_term",
+   "query": "According to the TCP error detection article, what is the size of the TCP checksum that catches most errors?",
+   "relevant_ids": [
+    "80ccd1c7-73de-50f3-a6d0-5c3df739c671"
+   ],
+   "evidence": [
+    {
+     "point_id": "80ccd1c7-73de-50f3-a6d0-5c3df739c671",
+     "quote": "the 16-bit TCP checksum catches most of these.[63]"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 21
+    }
+   ],
+   "lexical_overlap": 0.8
+  },
+  {
+   "id": "v2-051",
+   "stratum": "paraphrase",
+   "query": "Which article released in the early 2020s contrasts a widely deployed encrypted session protocol with an emerging multiplexed transport solution?",
+   "relevant_ids": [
+    "08bee4e6-e06a-55c3-aed4-cd1be5e7d8fd"
+   ],
+   "evidence": [
+    {
+     "point_id": "08bee4e6-e06a-55c3-aed4-cd1be5e7d8fd",
+     "quote": "Secure Communication Channel Establishment: TLS 1.3 (Over TCP Fast Open) versus QUIC"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 66
+    }
+   ],
+   "lexical_overlap": 0.214
+  },
+  {
+   "id": "v2-052",
+   "stratum": "exact_term",
+   "query": "In the passage about Transmission Control Protocol (TCP), which RFC is referenced for the \"Key TCP Concepts\" section?",
+   "relevant_ids": [
+    "61865586-3299-5f84-962b-824e0f9101fa"
+   ],
+   "evidence": [
+    {
+     "point_id": "61865586-3299-5f84-962b-824e0f9101fa",
+     "quote": "RFC 9293, 2.2. Key TCP Concepts."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 53
+    }
+   ],
+   "lexical_overlap": 0.667
+  },
+  {
+   "id": "v2-053",
+   "stratum": "paraphrase",
+   "query": "According to the article on TCP acceleration, what happens to the communication link if the traffic\u2011optimizing device is removed from the routing path?",
+   "relevant_ids": [
+    "37ad4201-ffba-5b28-aef0-d4d3f5b8bd82"
+   ],
+   "evidence": [
+    {
+     "point_id": "37ad4201-ffba-5b28-aef0-d4d3f5b8bd82",
+     "quote": "the accelerator is no longer in the path, the connection will be broken."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 45
+    }
+   ],
+   "lexical_overlap": 0.462
+  },
+  {
+   "id": "v2-054",
+   "stratum": "exact_term",
+   "query": "In the TCP options description, what Option-Kind byte value is used to indicate the Maximum Segment Size option?",
+   "relevant_ids": [
+    "e8518fc8-6493-56bc-bfd1-ee3ced0ef877"
+   ],
+   "evidence": [
+    {
+     "point_id": "e8518fc8-6493-56bc-bfd1-ee3ced0ef877",
+     "quote": "An Option-Kind byte of 2 is used to indicate Maximum Segment Size option"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 11
+    }
+   ],
+   "lexical_overlap": 0.923
+  },
+  {
+   "id": "v2-055",
+   "stratum": "paraphrase",
+   "query": "In the article about TCP urgent data handling, what does the flag that marks data as urgent change on the remote side, and what part of the transmission does it not accelerate?",
+   "relevant_ids": [
+    "0951b7ff-91e9-5291-a915-221b7c430b62"
+   ],
+   "evidence": [
+    {
+     "point_id": "0951b7ff-91e9-5291-a915-221b7c430b62",
+     "quote": "The urgent pointer only alters the processing on the remote host and doesn't expedite any processing on the network itself."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 30
+    }
+   ],
+   "lexical_overlap": 0.529
+  },
+  {
+   "id": "v2-056",
+   "stratum": "exact_term",
+   "query": "In the article about forcing data delivery, what is the default amount of time TCP waits for a full packet before sending?",
+   "relevant_ids": [
+    "3bdedcbe-d883-57b6-847a-841c464ef428"
+   ],
+   "evidence": [
+    {
+     "point_id": "3bdedcbe-d883-57b6-847a-841c464ef428",
+     "quote": "TCP waits for 200 ms for a full packet of data to send"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 31
+    }
+   ],
+   "lexical_overlap": 0.643
+  },
+  {
+   "id": "v2-057",
+   "stratum": "paraphrase",
+   "query": "In the passage\u2019s transport-protocol discussion, why might monitoring software incorrectly flag the integrity value of outgoing traffic before it reaches the hardware interface?",
+   "relevant_ids": [
+    "4ddf0bbc-a272-5f05-a364-a1b8f9c4f061"
+   ],
+   "evidence": [
+    {
+     "point_id": "4ddf0bbc-a272-5f05-a364-a1b8f9c4f061",
+     "quote": "report invalid checksums in outbound packets that have not yet reached the network adapter."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "a5d80cec-8891-5a8b-aa5f-a71780ae5f43",
+     "source_type": "web",
+     "chunk_index": 50
+    }
+   ],
+   "lexical_overlap": 0.412
+  },
+  {
+   "id": "v2-058",
+   "stratum": "paraphrase",
+   "query": "Which nascent company listed in the citations was established to improve the usability of the container orchestration system?",
+   "relevant_ids": [
+    "a5197c0a-1fe1-5264-b706-847b21d549f6"
+   ],
+   "evidence": [
+    {
+     "point_id": "a5197c0a-1fe1-5264-b706-847b21d549f6",
+     "quote": "Early Stage Startup Heptio Aims to Make Kubernetes Friendly"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ba900400-f007-520d-9b1a-f32ac9847331",
+     "source_type": "web",
+     "chunk_index": 26
+    }
+   ],
+   "lexical_overlap": 0.2
+  },
+  {
+   "id": "v2-059",
+   "stratum": "exact_term",
+   "query": "In which Kubernetes version was the initial Alpha release of the Container Storage Interface (CSI) introduced?",
+   "relevant_ids": [
+    "76863747-590d-5484-9df9-32f8f040a5f2"
+   ],
+   "evidence": [
+    {
+     "point_id": "76863747-590d-5484-9df9-32f8f040a5f2",
+     "quote": "In Kubernetes version 1.9, the initial Alpha release of Container Storage Interface (CSI) was introduced."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ba900400-f007-520d-9b1a-f32ac9847331",
+     "source_type": "web",
+     "chunk_index": 18
+    }
+   ],
+   "lexical_overlap": 1.0
+  },
+  {
+   "id": "v2-060",
+   "stratum": "exact_term",
+   "query": "According to the Kubernetes article, which CRI\u2011compliant container runtimes are listed as widely used as of 2026?",
+   "relevant_ids": [
+    "46f42814-1547-53a1-81d9-b9ae5837d2d1",
+    "c56585b6-5548-5e97-a487-9aca3b648e02"
+   ],
+   "evidence": [
+    {
+     "point_id": "46f42814-1547-53a1-81d9-b9ae5837d2d1",
+     "quote": "As of 2026, widely used CRI-compliant container runtimes include containerd and CRI-O."
+    },
+    {
+     "point_id": "c56585b6-5548-5e97-a487-9aca3b648e02",
+     "quote": "As of 2026, widely used CRI-compliant container runtimes include containerd and CRI-O."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ba900400-f007-520d-9b1a-f32ac9847331",
+     "source_type": "web",
+     "chunk_index": 8
+    }
+   ],
+   "lexical_overlap": 0.8
+  },
+  {
+   "id": "v2-061",
+   "stratum": "exact_term",
+   "query": "In the Bitnami article titled \"Configure Kubernetes Autoscaling With Custom Metrics\", what is the publication date?",
+   "relevant_ids": [
+    "4fa484b1-7250-56e9-9058-c7eb92f1395d",
+    "76bbec95-2a66-5f08-b144-5eef9180133b"
+   ],
+   "evidence": [
+    {
+     "point_id": "4fa484b1-7250-56e9-9058-c7eb92f1395d",
+     "quote": "\"Configure Kubernetes Autoscaling With Custom Metrics\". Bitnami. BitRock. 15 November 2018."
+    },
+    {
+     "point_id": "76bbec95-2a66-5f08-b144-5eef9180133b",
+     "quote": "\"Configure Kubernetes Autoscaling With Custom Metrics\". Bitnami. BitRock. 15 November 2018."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ba900400-f007-520d-9b1a-f32ac9847331",
+     "source_type": "web",
+     "chunk_index": 28
+    }
+   ],
+   "lexical_overlap": 0.6
+  },
+  {
+   "id": "v2-062",
+   "stratum": "paraphrase",
+   "query": "What playful codename was assigned to the version that arrived in the latter part of summer 2023 for the open\u2011source container orchestration platform?",
+   "relevant_ids": [
+    "9a60ea94-962e-5b11-a132-2c3ecb1a177c"
+   ],
+   "evidence": [
+    {
+     "point_id": "9a60ea94-962e-5b11-a132-2c3ecb1a177c",
+     "quote": "Kubernetes v1.28: Planternetes"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ba900400-f007-520d-9b1a-f32ac9847331",
+     "source_type": "web",
+     "chunk_index": 37
+    }
+   ],
+   "lexical_overlap": 0.071
+  },
+  {
+   "id": "v2-063",
+   "stratum": "exact_term",
+   "query": "In the article about the API server, which component uses etcd's watch API to monitor the cluster?",
+   "relevant_ids": [
+    "7cbfa10b-7821-52f4-8329-994edaad487f"
+   ],
+   "evidence": [
+    {
+     "point_id": "7cbfa10b-7821-52f4-8329-994edaad487f",
+     "quote": "The API server uses etcd's watch API to monitor the cluster, roll out critical configuration changes, or restore any divergences"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ba900400-f007-520d-9b1a-f32ac9847331",
+     "source_type": "web",
+     "chunk_index": 4
+    }
+   ],
+   "lexical_overlap": 0.727
+  },
+  {
+   "id": "v2-064",
+   "stratum": "exact_term",
+   "query": "According to the Black Death passage, how many Jews were murdered in the Strasbourg massacre of February 1349?",
+   "relevant_ids": [
+    "70a06da4-1bac-5bf9-96c9-f8ba79c85775"
+   ],
+   "evidence": [
+    {
+     "point_id": "70a06da4-1bac-5bf9-96c9-f8ba79c85775",
+     "quote": "In the Strasbourg massacre of February 1349, about 2,000 Jews were murdered."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "eadd8c2b-c1cc-5b32-a296-080f9fb61f85",
+     "source_type": "web",
+     "chunk_index": 34
+    }
+   ],
+   "lexical_overlap": 0.9
+  },
+  {
+   "id": "v2-065",
+   "stratum": "exact_term",
+   "query": "In the Associated Press article referenced, what is the specific age given for the Siberian teeth that rewrite the plague's timeline?",
+   "relevant_ids": [
+    "a6276767-5431-5a9e-b71f-e4df44e009d4",
+    "39db8eda-cc58-526a-a5f1-7b10217fd929"
+   ],
+   "evidence": [
+    {
+     "point_id": "a6276767-5431-5a9e-b71f-e4df44e009d4",
+     "quote": "\"Ancient teeth from Siberia rewrite the plague's timeline, dating back to over 5,500 years ago\""
+    },
+    {
+     "point_id": "39db8eda-cc58-526a-a5f1-7b10217fd929",
+     "quote": "\"Ancient teeth from Siberia rewrite the plague's timeline, dating back to over 5,500 years ago\""
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "eadd8c2b-c1cc-5b32-a296-080f9fb61f85",
+     "source_type": "web",
+     "chunk_index": 50
+    }
+   ],
+   "lexical_overlap": 0.5
+  },
+  {
+   "id": "v2-066",
+   "stratum": "paraphrase",
+   "query": "Concerning research on the medieval pandemic, what objection did a subsequent scholar voice about the late\u20111990s assertion of finding the plague bacterium in ancient human teeth?",
+   "relevant_ids": [
+    "8528c771-2167-5b90-a251-6ff19aea0b6d"
+   ],
+   "evidence": [
+    {
+     "point_id": "8528c771-2167-5b90-a251-6ff19aea0b6d",
+     "quote": "does not allow us to confirm the identification of Y. pestis as the aetiological agent of the Black Death"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "eadd8c2b-c1cc-5b32-a296-080f9fb61f85",
+     "source_type": "web",
+     "chunk_index": 42
+    }
+   ],
+   "lexical_overlap": 0.278
+  },
+  {
+   "id": "v2-067",
+   "stratum": "exact_term",
+   "query": "In the Black Death bibliography, what DOI is listed for Green MH's 29 December 2020 article \"The Four Black Deaths\"?",
+   "relevant_ids": [
+    "73836dbb-d51b-541e-8244-ed4ab3b6c8d1",
+    "2f993cf1-f0fd-526c-88a7-a66bdbb2c8d7"
+   ],
+   "evidence": [
+    {
+     "point_id": "73836dbb-d51b-541e-8244-ed4ab3b6c8d1",
+     "quote": "doi:10.1093/ahr/rhaa511."
+    },
+    {
+     "point_id": "2f993cf1-f0fd-526c-88a7-a66bdbb2c8d7",
+     "quote": "doi:10.1093/ahr/rhaa511."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "eadd8c2b-c1cc-5b32-a296-080f9fb61f85",
+     "source_type": "web",
+     "chunk_index": 69
+    }
+   ],
+   "lexical_overlap": 0.714
+  },
+  {
+   "id": "v2-068",
+   "stratum": "paraphrase",
+   "query": "Concerning the 14th\u2011century pandemic's impact on the continent, which scholar proposes that about half of the inhabitants perished over roughly four years?",
+   "relevant_ids": [
+    "7dba38f6-da8d-5201-8b93-f938f9f8cc92",
+    "f0921706-637a-590d-a07b-c507e772a74f"
+   ],
+   "evidence": [
+    {
+     "point_id": "7dba38f6-da8d-5201-8b93-f938f9f8cc92",
+     "quote": "According to medieval historian Philip Daileader, it is likely that over four years, 45\u201350% of the European population died of plague."
+    },
+    {
+     "point_id": "f0921706-637a-590d-a07b-c507e772a74f",
+     "quote": "According to medieval historian Philip Daileader, it is likely that over four years, 45\u201350% of the European population died of plague."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "eadd8c2b-c1cc-5b32-a296-080f9fb61f85",
+     "source_type": "web",
+     "chunk_index": 27
+    }
+   ],
+   "lexical_overlap": 0.438
+  },
+  {
+   "id": "v2-069",
+   "stratum": "exact_term",
+   "query": "In the citation for Sehdev PS's November 2002 article \"The origin of quarantine\", what is the PMID number listed?",
+   "relevant_ids": [
+    "b9c366c8-5b9e-5938-b86e-65b753e8bbe9"
+   ],
+   "evidence": [
+    {
+     "point_id": "b9c366c8-5b9e-5938-b86e-65b753e8bbe9",
+     "quote": "doi:10.1086/344062. PMID 12398064."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "eadd8c2b-c1cc-5b32-a296-080f9fb61f85",
+     "source_type": "web",
+     "chunk_index": 63
+    }
+   ],
+   "lexical_overlap": 0.545
+  },
+  {
+   "id": "v2-070",
+   "stratum": "paraphrase",
+   "query": "According to the article on the historic epidemic, what was the usual length of time between the onset of illness and death?",
+   "relevant_ids": [
+    "15c1922c-b643-54f1-b93c-a2b86c46ce17"
+   ],
+   "evidence": [
+    {
+     "point_id": "15c1922c-b643-54f1-b93c-a2b86c46ce17",
+     "quote": "Most people died two to seven days after initial infection."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "eadd8c2b-c1cc-5b32-a296-080f9fb61f85",
+     "source_type": "web",
+     "chunk_index": 24
+    }
+   ],
+   "lexical_overlap": 0.1
+  },
+  {
+   "id": "v2-071",
+   "stratum": "exact_term",
+   "query": "In the citation for the Git User's Manual, on what exact date was the \"Trust\" entry published?",
+   "relevant_ids": [
+    "157f877b-650d-535d-ac9c-06659a91c48d",
+    "b3d393e0-83ba-55c9-98bf-f81b88006667"
+   ],
+   "evidence": [
+    {
+     "point_id": "157f877b-650d-535d-ac9c-06659a91c48d",
+     "quote": "\"Trust\". Git Concepts. Git User's Manual. 18 October 2006."
+    },
+    {
+     "point_id": "b3d393e0-83ba-55c9-98bf-f81b88006667",
+     "quote": "\"Trust\". Git Concepts. Git User's Manual. 18 October 2006."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 29
+    }
+   ],
+   "lexical_overlap": 0.444
+  },
+  {
+   "id": "v2-072",
+   "stratum": "exact_term",
+   "query": "According to the passage about Git implementations, on what date was the \"msysGit\" archive retrieved?",
+   "relevant_ids": [
+    "b5949c0a-b015-599d-87a1-5b5a86f80ea8",
+    "1988c658-5a89-5811-9ad8-a0cfc79bdecd"
+   ],
+   "evidence": [
+    {
+     "point_id": "b5949c0a-b015-599d-87a1-5b5a86f80ea8",
+     "quote": "\"msysGit\". GitHub. Archived from the original on 10 October 2016. Retrieved 20 September 2016."
+    },
+    {
+     "point_id": "1988c658-5a89-5811-9ad8-a0cfc79bdecd",
+     "quote": "\"msysGit\". GitHub. Archived from the original on 10 October 2016. Retrieved 20 September 2016."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 32
+    }
+   ],
+   "lexical_overlap": 0.375
+  },
+  {
+   "id": "v2-073",
+   "stratum": "paraphrase",
+   "query": "In the article about the version\u2011control tool, what explanation did its founder give for selecting a name that, in his native slang, means a despicable person?",
+   "relevant_ids": [
+    "4fba2db1-38c5-5ad3-a8d1-04cd9e8b3297"
+   ],
+   "evidence": [
+    {
+     "point_id": "4fba2db1-38c5-5ad3-a8d1-04cd9e8b3297",
+     "quote": "I'm an egotistical bastard, so I name all my projects after myself. First Linux, now git."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 27
+    }
+   ],
+   "lexical_overlap": 0.25
+  },
+  {
+   "id": "v2-074",
+   "stratum": "exact_term",
+   "query": "In the Stack Overflow annual developer survey, what was the reported usage percentage of Git among developers in 2022?",
+   "relevant_ids": [
+    "785f449b-dbfb-5ddc-b04c-a4d1aec84f93"
+   ],
+   "evidence": [
+    {
+     "point_id": "785f449b-dbfb-5ddc-b04c-a4d1aec84f93",
+     "quote": "reporting as high as 93.9% in 2022."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 19
+    }
+   ],
+   "lexical_overlap": 0.667
+  },
+  {
+   "id": "v2-075",
+   "stratum": "paraphrase",
+   "query": "Which library, written in a pure object\u2011oriented language that runs on a virtual machine, is described as being embed\u2011dable in any application using that language, according to the article about version\u2011control system implementations?",
+   "relevant_ids": [
+    "50244d7a-6dd3-5c4a-8aff-8c577d6dc162"
+   ],
+   "evidence": [
+    {
+     "point_id": "50244d7a-6dd3-5c4a-8aff-8c577d6dc162",
+     "quote": "The JGit implementation of Git is a pure Java software library, designed to be embedded in any Java application."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 15
+    }
+   ],
+   "lexical_overlap": 0.304
+  },
+  {
+   "id": "v2-076",
+   "stratum": "exact_term",
+   "query": "In what month and year did Linus Torvalds start developing Git, according to the article about Git's history?",
+   "relevant_ids": [
+    "7305de60-a22d-5232-8a4d-d4e3fce3a592"
+   ],
+   "evidence": [
+    {
+     "point_id": "7305de60-a22d-5232-8a4d-d4e3fce3a592",
+     "quote": "Torvalds started developing Git in April 2005 after the free license for BitKeeper"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 1
+    }
+   ],
+   "lexical_overlap": 0.364
+  },
+  {
+   "id": "v2-077",
+   "stratum": "paraphrase",
+   "query": "In the article about Git, what is the default network port that its server component uses for connections?",
+   "relevant_ids": [
+    "6cdc12f9-5273-5330-8b54-ba8e76325b3e"
+   ],
+   "evidence": [
+    {
+     "point_id": "6cdc12f9-5273-5330-8b54-ba8e76325b3e",
+     "quote": "Git servers typically listen on TCP port 9418."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 16
+    }
+   ],
+   "lexical_overlap": 0.3
+  },
+  {
+   "id": "v2-078",
+   "stratum": "exact_term",
+   "query": "In the Git article references, what is the archive date listed for the entry titled CVE-2015-7545?",
+   "relevant_ids": [
+    "ac21da3a-858c-5c8c-a44c-e0d08108ba9c"
+   ],
+   "evidence": [
+    {
+     "point_id": "ac21da3a-858c-5c8c-a44c-e0d08108ba9c",
+     "quote": "\"CVE-2015-7545\". 15 December 2015. Archived from the original on 26 December 2015."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 39
+    }
+   ],
+   "lexical_overlap": 0.364
+  },
+  {
+   "id": "v2-079",
+   "stratum": "paraphrase",
+   "query": "In the article about the distributed source\u2011code management tool, what kind of online offering is described as being provided by several well\u2011known platforms?",
+   "relevant_ids": [
+    "18b17642-98dc-549e-b10b-ca96f731eea0",
+    "a96f8334-69af-5845-b933-61989b0f4f2d"
+   ],
+   "evidence": [
+    {
+     "point_id": "18b17642-98dc-549e-b10b-ca96f731eea0",
+     "quote": "There are many offerings of Git repositories as a service. The most popular are GitHub, SourceForge, Bitbucket and GitLab."
+    },
+    {
+     "point_id": "a96f8334-69af-5845-b933-61989b0f4f2d",
+     "quote": "There are many offerings of Git repositories as a service. The most popular are GitHub, SourceForge, Bitbucket and GitLab."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ed03b745-9570-50e6-b8d6-e357356222af",
+     "source_type": "web",
+     "chunk_index": 18
+    }
+   ],
+   "lexical_overlap": 0.294
+  },
+  {
+   "id": "v2-080",
+   "stratum": "exact_term",
+   "query": "What is the ISBN of the paper titled \"Simple BM25 extension to multiple weighted fields\" presented at CIKM '04?",
+   "relevant_ids": [
+    "cdfe40ed-fb83-537f-8f31-edba41dfb175"
+   ],
+   "evidence": [
+    {
+     "point_id": "cdfe40ed-fb83-537f-8f31-edba41dfb175",
+     "quote": "ISBN 978-1-58113-874-0. S2CID 16628332."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ee1b977e-d29e-5aab-bef2-6d32bd719f2a",
+     "source_type": "web",
+     "chunk_index": 3
+    }
+   ],
+   "lexical_overlap": 0.75
+  },
+  {
+   "id": "v2-081",
+   "stratum": "paraphrase",
+   "query": "Regarding the baseline probabilistic ranking formula, which extended version adds a single free parameter to fix the problem where long documents might receive relevance scores comparable to short documents that lack the query term?",
+   "relevant_ids": [
+    "56f4079e-f8db-509f-a218-32e0d1d4216d"
+   ],
+   "evidence": [
+    {
+     "point_id": "56f4079e-f8db-509f-a218-32e0d1d4216d",
+     "quote": "BM25+ was developed to address one deficiency of the standard BM25"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ee1b977e-d29e-5aab-bef2-6d32bd719f2a",
+     "source_type": "web",
+     "chunk_index": 2
+    }
+   ],
+   "lexical_overlap": 0.4
+  },
+  {
+   "id": "v2-082",
+   "stratum": "exact_term",
+   "query": "According to the Okapi BM25 article, which university implemented the original Okapi information retrieval system in the 1980s and 1990s?",
+   "relevant_ids": [
+    "667c1f0a-8a9f-5cb1-849c-52f980c44b68"
+   ],
+   "evidence": [
+    {
+     "point_id": "667c1f0a-8a9f-5cb1-849c-52f980c44b68",
+     "quote": "the Okapi information retrieval system, implemented at London's City University[1] in the 1980s and 1990s."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ee1b977e-d29e-5aab-bef2-6d32bd719f2a",
+     "source_type": "web",
+     "chunk_index": 0
+    }
+   ],
+   "lexical_overlap": 0.833
+  },
+  {
+   "id": "v2-083",
+   "stratum": "paraphrase",
+   "query": "What is the title of the earliest article listed that reports on a system evaluated at a major text retrieval meeting in Maryland?",
+   "relevant_ids": [
+    "9d14914c-29aa-5efc-9572-283456dd3396"
+   ],
+   "evidence": [
+    {
+     "point_id": "9d14914c-29aa-5efc-9572-283456dd3396",
+     "quote": "Okapi at TREC-7. Proceedings of the Seventh Text REtrieval Conference."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ee1b977e-d29e-5aab-bef2-6d32bd719f2a",
+     "source_type": "web",
+     "chunk_index": 4
+    }
+   ],
+   "lexical_overlap": 0.167
+  },
+  {
+   "id": "v2-084",
+   "stratum": "exact_term",
+   "query": "In the BM25 scoring article, the IDF component is said to be derived from which model, specifically the Binary Independence Model?",
+   "relevant_ids": [
+    "54f83baa-1e7b-5454-8aea-8ee37faa7d95"
+   ],
+   "evidence": [
+    {
+     "point_id": "54f83baa-1e7b-5454-8aea-8ee37faa7d95",
+     "quote": "In the original BM25 derivation, the IDF component is derived from the Binary Independence Model."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "ee1b977e-d29e-5aab-bef2-6d32bd719f2a",
+     "source_type": "web",
+     "chunk_index": 1
+    }
+   ],
+   "lexical_overlap": 0.667
+  },
+  {
+   "id": "v2-085",
+   "stratum": "paraphrase",
+   "query": "Which global heritage body urged immediate action to improve water quality for the nation down under's extensive coral formation?",
+   "relevant_ids": [
+    "3536085e-ff5c-5a11-9e0e-4a9a4114278c",
+    "f66fa3fa-f73f-54cf-8680-b242a142f09d"
+   ],
+   "evidence": [
+    {
+     "point_id": "3536085e-ff5c-5a11-9e0e-4a9a4114278c",
+     "quote": "Australia must act urgently on water quality, says Unesco"
+    },
+    {
+     "point_id": "f66fa3fa-f73f-54cf-8680-b242a142f09d",
+     "quote": "Australia must act urgently on water quality, says Unesco"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 51
+    }
+   ],
+   "lexical_overlap": 0.133
+  },
+  {
+   "id": "v2-086",
+   "stratum": "exact_term",
+   "query": "What amount was granted to the Great Barrier Reef Foundation in 2018 as part of the Reef 2050 plan?",
+   "relevant_ids": [
+    "c06e939d-281f-5f84-8a05-81e9e9ce9977"
+   ],
+   "evidence": [
+    {
+     "point_id": "c06e939d-281f-5f84-8a05-81e9e9ce9977",
+     "quote": "an AUD$443 million grant was given to the Great Barrier Reef Foundation in 2018."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 22
+    }
+   ],
+   "lexical_overlap": 0.818
+  },
+  {
+   "id": "v2-087",
+   "stratum": "paraphrase",
+   "query": "Which organization released the mid\u20112000s environmental assessment concerning underwater vegetation in the reef region?",
+   "relevant_ids": [
+    "d1b4e001-4fb9-5d61-9e3d-735c0d268a42"
+   ],
+   "evidence": [
+    {
+     "point_id": "d1b4e001-4fb9-5d61-9e3d-735c0d268a42",
+     "quote": "Great Barrier Reef Marine Park Authority (2005). \"Environmental Status: Seagrasses\""
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 48
+    }
+   ],
+   "lexical_overlap": 0.182
+  },
+  {
+   "id": "v2-088",
+   "stratum": "exact_term",
+   "query": "According to the Department of the Environment and Heritage's 2006 review, what is the approximate size of the Great Barrier Reef Marine Park in square kilometres?",
+   "relevant_ids": [
+    "f8d87132-9497-5d55-84e2-930868273a54"
+   ],
+   "evidence": [
+    {
+     "point_id": "f8d87132-9497-5d55-84e2-930868273a54",
+     "quote": "covering around 344 400 square kilometres, an area roughly the size of Japan."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 40
+    }
+   ],
+   "lexical_overlap": 0.857
+  },
+  {
+   "id": "v2-089",
+   "stratum": "paraphrase",
+   "query": "In the marine reserve, by how much did the share of the most strictly safeguarded sections expand after the new zoning was implemented?",
+   "relevant_ids": [
+    "3f4d5c31-5d92-5305-bca7-454803383f5e"
+   ],
+   "evidence": [
+    {
+     "point_id": "3f4d5c31-5d92-5305-bca7-454803383f5e",
+     "quote": "the highly protected zones increased from 4.5% to over 33.3%"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 32
+    }
+   ],
+   "lexical_overlap": 0.231
+  },
+  {
+   "id": "v2-090",
+   "stratum": "exact_term",
+   "query": "According to the Deloitte report published by the Great Barrier Reef Marine Park Authority in March 2013, what is the annual tourism value attributed to the Reef's 2,000 kilometres of coastline?",
+   "relevant_ids": [
+    "a470cd64-a9f5-55a5-bc3b-6cb53ade10bc"
+   ],
+   "evidence": [
+    {
+     "point_id": "a470cd64-a9f5-55a5-bc3b-6cb53ade10bc",
+     "quote": "the Reef's 2,000 kilometres of coastline attracts tourism worth A$6.4 billion annually"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 37
+    }
+   ],
+   "lexical_overlap": 0.85
+  },
+  {
+   "id": "v2-092",
+   "stratum": "exact_term",
+   "query": "According to the passage, which organization published the 2006 PDF titled \"A 'big picture' view of the Great Barrier Reef\"?",
+   "relevant_ids": [
+    "166a09bd-9631-537c-b66d-af7f5317836c"
+   ],
+   "evidence": [
+    {
+     "point_id": "166a09bd-9631-537c-b66d-af7f5317836c",
+     "quote": "Great Barrier Reef Marine Park Authority (2006). \"A 'big picture' view of the Great Barrier Reef\" (PDF)."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 45
+    }
+   ],
+   "lexical_overlap": 0.667
+  },
+  {
+   "id": "v2-093",
+   "stratum": "paraphrase",
+   "query": "In the reef degradation report, which predatory echinoderm was linked to a massive decline in living coral cover during a study at the start of the 21st century?",
+   "relevant_ids": [
+    "1cea9acc-96dc-5fd6-8ab2-22d2f19cd553"
+   ],
+   "evidence": [
+    {
+     "point_id": "1cea9acc-96dc-5fd6-8ab2-22d2f19cd553",
+     "quote": "In 2000, an outbreak contributed to a loss of 66% of live coral cover on sampled reefs"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 19
+    }
+   ],
+   "lexical_overlap": 0.25
+  },
+  {
+   "id": "v2-094",
+   "stratum": "exact_term",
+   "query": "According to the Reef Research Centre, how far back do the coral 'skeleton' deposits date in the Great Barrier Reef?",
+   "relevant_ids": [
+    "c0ae5d88-83bf-5d41-b7d8-2516cc57fb9c"
+   ],
+   "evidence": [
+    {
+     "point_id": "c0ae5d88-83bf-5d41-b7d8-2516cc57fb9c",
+     "quote": "coral 'skeleton' deposits that date back half a million years."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f4de12a8-89e1-56ff-8fe9-8468e01557bb",
+     "source_type": "web",
+     "chunk_index": 7
+    }
+   ],
+   "lexical_overlap": 0.917
+  },
+  {
+   "id": "v2-095",
+   "stratum": "paraphrase",
+   "query": "During the historic lunar landing mission's recovery effort, which model of naval helicopter, flown by a squadron dedicated to spacecraft retrieval, was embarked on the main recovery vessel?",
+   "relevant_ids": [
+    "17cf6896-91d3-53c2-963b-0ecea5a814e9"
+   ],
+   "evidence": [
+    {
+     "point_id": "17cf6896-91d3-53c2-963b-0ecea5a814e9",
+     "quote": "Sikorsky SH-3 Sea King helicopters of HS-4, a unit which specialized in recovery of Apollo spacecraft"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 49
+    }
+   ],
+   "lexical_overlap": 0.211
+  },
+  {
+   "id": "v2-096",
+   "stratum": "exact_term",
+   "query": "What is the title of the July 2019 PBS three\u2011night documentary that examined the events leading up to the Apollo 11 mission?",
+   "relevant_ids": [
+    "f79702f5-220a-53ff-96b9-d912e027d14a"
+   ],
+   "evidence": [
+    {
+     "point_id": "f79702f5-220a-53ff-96b9-d912e027d14a",
+     "quote": "Chasing the Moon, a July 2019 PBS three-night six-hour documentary"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 71
+    }
+   ],
+   "lexical_overlap": 0.929
+  },
+  {
+   "id": "v2-097",
+   "stratum": "paraphrase",
+   "query": "What type of specialized video format, unsuitable for regular household receivers, was used for the first lunar walk, and how did the way it was shown impact the image clarity?",
+   "relevant_ids": [
+    "e72ea6c2-90be-5411-841e-477028cf7235"
+   ],
+   "evidence": [
+    {
+     "point_id": "e72ea6c2-90be-5411-841e-477028cf7235",
+     "quote": "incompatible with broadcast TV, so it was displayed on a special monitor and a conventional TV camera viewed this monitor"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 33
+    }
+   ],
+   "lexical_overlap": 0.294
+  },
+  {
+   "id": "v2-098",
+   "stratum": "exact_term",
+   "query": "In the Apollo 11 account, what did President Nixon call his telephone-radio transmission to Armstrong and Aldrin?",
+   "relevant_ids": [
+    "985f8dca-51f7-5aec-9214-185c88ba38d8"
+   ],
+   "evidence": [
+    {
+     "point_id": "985f8dca-51f7-5aec-9214-185c88ba38d8",
+     "quote": "which Nixon called \"the most historic phone call ever made from the White House.\""
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 37
+    }
+   ],
+   "lexical_overlap": 0.917
+  },
+  {
+   "id": "v2-099",
+   "stratum": "paraphrase",
+   "query": "For the historic Moon-flight capsule, what institution hosted the added exhibition stop, and when was its opening ceremony?",
+   "relevant_ids": [
+    "9fe722e6-4f14-59dc-9cfc-d30f6dd2f1fe"
+   ],
+   "evidence": [
+    {
+     "point_id": "9fe722e6-4f14-59dc-9cfc-d30f6dd2f1fe",
+     "quote": "it was moved to the Cincinnati Museum Center. The ribbon cutting ceremony was on September 29, 2019."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 64
+    }
+   ],
+   "lexical_overlap": 0.455
+  },
+  {
+   "id": "v2-100",
+   "stratum": "exact_term",
+   "query": "During the lunar sample recovery operation, how many Apollo Lunar Sample Return Containers (ALSRC) were placed into plastic bags?",
+   "relevant_ids": [
+    "be04334a-5eca-5d2c-8683-e0a79796b046"
+   ],
+   "evidence": [
+    {
+     "point_id": "be04334a-5eca-5d2c-8683-e0a79796b046",
+     "quote": "the two Apollo Lunar Sample Return Containers (ALSRC) containing lunar samples"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 55
+    }
+   ],
+   "lexical_overlap": 0.75
+  },
+  {
+   "id": "v2-101",
+   "stratum": "paraphrase",
+   "query": "What progression of orbital trials did the American human mission to the natural satellite complete before its final descent?",
+   "relevant_ids": [
+    "375eb5ad-f3eb-5d0f-b208-9acea4984bba"
+   ],
+   "evidence": [
+    {
+     "point_id": "375eb5ad-f3eb-5d0f-b208-9acea4984bba",
+     "quote": "In October 1968, Apollo 7 evaluated the command module in Earth orbit,[41] and in December Apollo 8 tested it in lunar orbit."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 8
+    }
+   ],
+   "lexical_overlap": 0.25
+  },
+  {
+   "id": "v2-102",
+   "stratum": "exact_term",
+   "query": "What exact phrase did Aldrin and Collins use to characterize the Apollo 11 prime crew?",
+   "relevant_ids": [
+    "d258597a-ba3f-52c2-8e87-30b1a8d67be6"
+   ],
+   "evidence": [
+    {
+     "point_id": "d258597a-ba3f-52c2-8e87-30b1a8d67be6",
+     "quote": "Aldrin and Collins described the crew as \"amiable strangers\"."
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 10
+    }
+   ],
+   "lexical_overlap": 0.6
+  },
+  {
+   "id": "v2-103",
+   "stratum": "paraphrase",
+   "query": "In the bibliography about the first crewed lunar landing, which cited item is labeled as a section about events following touchdown?",
+   "relevant_ids": [
+    "eaf0ed6d-af75-5ff2-a074-ed400d53d863"
+   ],
+   "evidence": [
+    {
+     "point_id": "eaf0ed6d-af75-5ff2-a074-ed400d53d863",
+     "quote": "\"Post-landing Activities\". Apollo 11 Lunar Surface Journal"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 81
+    }
+   ],
+   "lexical_overlap": 0.357
+  },
+  {
+   "id": "v2-104",
+   "stratum": "exact_term",
+   "query": "In the Apollo 11 call signs passage, what name was given to the command module (CM)?",
+   "relevant_ids": [
+    "e2b599a2-fc4a-5a57-8eb2-b46f254173db"
+   ],
+   "evidence": [
+    {
+     "point_id": "e2b599a2-fc4a-5a57-8eb2-b46f254173db",
+     "quote": "the CM was named Columbia after Columbiad"
+    }
+   ],
+   "expected_sources": [
+    {
+     "source_id": "f6a50d2e-1f2d-5833-8d4c-6060c328d0aa",
+     "source_type": "web",
+     "chunk_index": 13
+    }
+   ],
+   "lexical_overlap": 0.6
+  }
+ ]
+}

@@ -1,6 +1,18 @@
 # DocChat session handoff
 
-## Latest: first real AWS deploy DONE, verified end to end, and TORN DOWN (2026-11-11); all MERGED to master
+## Latest: larger retrieval eval built; hybrid is WORSE than the default, stays opt-in (2026-11-11, branch `feat/larger-retrieval-eval`)
+
+**Result:** 127 questions over 781 chunks (14 sources; 24 originals plus 103 LLM-written, two strata). Production `retriever_node`: default (dense + overlap rerank) Recall@1 0.693 / MRR 0.834 vs hybrid 0.583 / 0.761; hybrid minus default Recall@1 -0.110 (95% CI -0.173 to -0.051), MRR -0.073 (-0.114 to -0.035), losing in every stratum. The offline harness (own BM25) agrees. BM25 does beat plain dense (Recall@3 +0.071), but the overlap blend already captures that. `RETRIEVAL_MODE` stays `dense`. Full table, limits and the untested variant (keep the overlap blend, use BM25 only to widen the candidate pool): `docs/retrieval-quality-evaluation.md`, "Larger set (v2)".
+
+**What was added:** `eval/build_retrieval_set_v2.py` (corpus + label builder; rebuild offline with `corpus --from-snapshot`), `eval/retrieval_golden_v2.json`, `eval/retrieval_corpus_v2.json` (1.3 MB text snapshot), `eval/live_retrieval_ab.py` (scores the production node in both modes), `eval/retrieval_stats.py` (paired bootstrap, win/loss/tie, per-stratum and overlap-third breakdown), reports under `reports/*_v2*`. The harness now accepts any golden set of 20 or more questions and reads hybrid-collection vectors. 20 new tests.
+
+**Incident I caused (fixed):** my e2e test ingested the Wikipedia RAG page and deleted it as cleanup, but its source id is `uuid5(url)` so it removed the 13 existing chunks from local `source_chunks`. Restored from `source_chunks_hybrid` (same ids and vectors) and verified: the harness reproduced the earlier numbers exactly. Local `source_chunks` is back to 17 points. The eval corpus lives in its own collection `eval_corpus_v2` (781 points); `source_chunks_hybrid` (17) is also still there.
+
+**Local app:** the `docchat-app` container was rebuilt from merged master but is DOWN: the new code refuses the default `JWT_SECRET_KEY` and `.env` has none. Add `JWT_SECRET_KEY=<64 hex>` to `.env` and run `docker compose up -d app` (needs the owner; the agent was denied writing `.env`). Existing local logins will need a fresh sign-in.
+
+**Not done:** no AWS redeploy (owner said not yet); the label set is not independently audited; `RETRIEVAL_BM25_MIN_SCORE` untuned.
+
+## Previously: first real AWS deploy DONE, verified end to end, and TORN DOWN (2026-11-11); all MERGED to master
 
 **State:** everything is merged to `master` (PR #25 the two deploy fixes, then PR #26 hybrid retrieval, AWS docs and README; both passed all 6 CI checks and merged clean; `origin/master` was `ab46ad9`). Both branches are deleted. Locally `ruff` was clean and the merged tree gave **1024 passed, 11 skipped**; the live check of the merged code against a local Qdrant also passed.
 
