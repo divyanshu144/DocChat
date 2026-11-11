@@ -101,12 +101,13 @@ missed, no score calibration) matter when the corpus is large enough that the
 relevant chunk is not already in the dense top candidates, which this set cannot
 show.
 
-Decision rule before changing the default: build a larger held-out retrieval set
-with harder negatives and exact-identifier queries (document-split, labelled
-independently), run it with `python -m eval.retrieval_eval`, and make hybrid the
-default only if it is at least as good at Recall@1/MRR and better at Recall@5.
-Tune `RETRIEVAL_BM25_MIN_SCORE` on negative-control queries at the same time, since
-BM25 returns something for almost any query and the default gate admits it.
+Decision rule before changing the default: make hybrid the default only if it is
+at least as good at Recall@1/MRR and better at Recall@5 on a larger held-out set.
+That set has since been built (see "Larger set (v2)" below) and hybrid failed the
+rule, so the default stays dense. The labels there are LLM-written and not
+independently audited, and `RETRIEVAL_BM25_MIN_SCORE` is still untuned on
+negative-control queries (BM25 returns something for almost any query and the
+default gate admits it).
 
 ### Larger set (v2): hybrid is worse than the default, with confidence intervals
 

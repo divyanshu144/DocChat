@@ -169,7 +169,7 @@ By default the retriever takes the dense (cosine) candidates from Qdrant and re-
 
 `infra/terraform` builds the platform: an ALB, the API on ECS Fargate, a worker that scales on queue depth (on Fargate Spot, from zero, in the `demo` profile), RDS PostgreSQL, Qdrant on a small EC2 instance (image mirrored into your own ECR and pulled by digest), SQS and S3 for ingestion, alarms and a dashboard. Start with [docs/aws/deployment.md](docs/aws/deployment.md); [docs/aws/teardown.md](docs/aws/teardown.md) removes it again.
 
-**What has actually been run.** The `dev` environment (the cheap `demo` profile) was applied once to a new AWS account on 2026-11-11 and verified end to end: health checks, signup, a web page ingested through SQS and the worker, and a grounded answer streamed back. It was then torn down (134 resources) and a check found no NAT gateway, load balancer, instance, database, volume or cluster left. The first run found real bugs that offline checks could not:
+**What has actually been run.** The `dev` environment (the cheap `demo` profile) was applied to a new AWS account on 2026-11-11 and verified end to end: health checks, signup, a web page ingested through SQS and the worker, and a grounded answer streamed back. It was torn down, then applied a second time from merged `master` (127 resources) and verified the same way, which confirmed the fixes below hold (the queued ingest took about 5 minutes, mostly the Spot worker starting from zero). The second stack was torn down too (134 resources) and a check found no NAT gateway, load balancer, instance or database left. The first run found real bugs that offline checks could not:
 
 - Fargate mounts the `/tmp` volume as `root:root`, so the non-root app had no writable temp directory and the worker exited on every start. A one-shot init container now fixes the mode.
 - `qdrant-client` switches to HTTPS whenever an API key is set, but Qdrant serves plain HTTP, so every client call failed. The client now passes `https=False`.
@@ -182,6 +182,8 @@ By default the retriever takes the dense (cosine) candidates from Qdrant and re-
 `eval/` holds a harness for measuring serving performance under load (TTFT, decode throughput, p95/p99, queueing, KV-cache use, GPU utilization, cost), plus held-out serving and answer-quality evaluations. Realistic DocChat-shaped prompts, cache-busting by default and a positive control keep the numbers honest.
 
 The most recent live run is [reports/gpu-live-2026-10-06.md](reports/gpu-live-2026-10-06.md): Qwen2.5-7B-Instruct on vLLM 0.30.0, one L40S, one run per configuration, about $1.37 estimated. It covers a concurrency sweep with GPU utilization, SIGSTOP and hard-kill failure-behaviour tests, prefix caching on versus off, and serial versus concurrent. These are single-run, single-GPU numbers, and the report lists what they do not support.
+
+**Quantization comparison** ([reports/heldout-serving-evaluation-2026-10-05.md](reports/heldout-serving-evaluation-2026-10-05.md)). The same Qwen2.5-7B-Instruct served as FP16, AWQ and GPTQ on one L40S under a 40-prompt DocChat-shaped workload (1,920 measured requests, all succeeded). Both quantized formats roughly doubled single-stream throughput (about 85 output tokens/s against 40) and reached about 3.0 requests/s at saturation against 2.1 for FP16, so at a 20-second p95 target the capacity tool estimates 3 GPUs for 5 requests/s with either quantized format against 4 for FP16 (a linear extrapolation, not a multi-GPU measurement). On answer quality, an LLM-assisted and not human-verified review of 120 blinded answers found no difference between formats: on the 16 held-out cases correctness was 88% for FP16 and GPTQ and 75% for AWQ, with wide intervals and almost every case tied ([reports/answer-quality-final-report-v1-v2-2026-10-06.md](reports/answer-quality-final-report-v1-v2-2026-10-06.md)). The corpus is two documents and the second judging pass was not finished, so this is a planning signal, not a quality ranking.
 
 Earlier findings (hosted-API concurrency limits, KV-cache saturation, the harness catching its own measurement mistakes) are in [docs/inference-writeup.md](docs/inference-writeup.md) and [eval/BENCHMARK_RESULTS.md](eval/BENCHMARK_RESULTS.md).
 
@@ -197,7 +199,7 @@ The first run is written up in [reports/finetune-vs-base-2026-11-03.md](reports/
 
 ```bash
 ruff check .                      # clean
-pytest -m "not eval" -q           # 1044 passed, 11 skipped, 8 deselected
+pytest -m "not eval" -q           # 1045 passed, 11 skipped, 8 deselected
 cd frontend && npm test -- --run  # frontend tests
 python eval/benchmark.py          # critic benchmark; calls the live LLM, opt-in
 ```
