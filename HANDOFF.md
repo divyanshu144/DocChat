@@ -1,8 +1,8 @@
 # DocChat session handoff
 
-## Latest: first real AWS deploy DONE, verified end to end, and TORN DOWN (2026-11-11); nothing pushed
+## Latest: first real AWS deploy DONE, verified end to end, and TORN DOWN (2026-11-11); all MERGED to master
 
-**State:** all work is committed locally and NOTHING is pushed (the owner said not to). Branch `feat/hybrid-bm25-rrf-retrieval` now contains everything: the hybrid retrieval commit, the AWS docs commit, the README MCP section, a merge of `fix/aws-first-deploy`, and this README/notes update. `fix/aws-first-deploy` (3 commits off `master`) is the same two bug fixes on their own, for a separate PR. Every pairwise merge into `master` is clean (`git merge-tree`), and the merged tree passes `ruff` and **1024 passed, 11 skipped**. The live check of the merged code against a local Qdrant also passed.
+**State:** everything is merged to `master` (PR #25 the two deploy fixes, then PR #26 hybrid retrieval, AWS docs and README; both passed all 6 CI checks and merged clean; `origin/master` was `ab46ad9`). Both branches are deleted. Locally `ruff` was clean and the merged tree gave **1024 passed, 11 skipped**; the live check of the merged code against a local Qdrant also passed.
 
 **What happened on AWS** (account `eu-north-1`, profile `my-aws`, `dev` with `demo = true`): the full stack applied (127 resources after a first RDS failure), the API and worker ran, and a fresh signup, a web page ingested through SQS and the worker, and a grounded answer all worked. Then `terraform destroy` removed all 134 resources. A check afterwards found no NAT gateway, load balancer, instance, database, volume, endpoint, cluster or non-default VPC.
 
@@ -25,7 +25,7 @@
 - The ALB was restricted to the owner's IP with `alb_ingress_cidrs` (plain HTTP in dev). ECR images were deleted by hand before destroy (index images first, then their children). Secret values were generated with `openssl rand` and never printed.
 - ECR basic scans attach to the per-platform image, not the index digest. The Qdrant and app images showed no fixable high or critical findings (all Debian base packages, no fix yet).
 
-**Next:** push the branches and open the PRs when the owner allows (fix branch first, then the retrieval branch). The older `feat/aws-platform` branch has one README commit (`5b014e9`, an AWS section) that will conflict with the new README section if it is ever merged; drop it or take the new text. Retrieval default: build the larger labelled set before changing `RETRIEVAL_MODE`.
+**Next:** The older `feat/aws-platform` branch has one README commit (`5b014e9`, an AWS section) that will conflict with the new README section if it is ever merged; drop it or take the new text. Retrieval default: build the larger labelled set before changing `RETRIEVAL_MODE`.
 
 ## Previously: hybrid BM25 + RRF retrieval BUILT, opt-in (2026-11-04, branch `feat/hybrid-bm25-rrf-retrieval`, committed in 34c19bf, not merged)
 
