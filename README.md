@@ -87,6 +87,8 @@ npm run build
 - **Citations:** inline `[PDF — name]`, `[YouTube — title]`, `[Web — url]` tags rendered as chips.
 - **Folders and history:** folders with drag-and-drop, persisted conversations, token streaming over SSE.
 - **MCP server:** query, ingest and list documents from any MCP client over stdio (see [MCP server](#mcp-server)).
+- **Hybrid retrieval (opt-in):** dense + BM25 fused with reciprocal rank fusion; off by default because it was not better on the one labelled set (see [Hybrid retrieval](#hybrid-retrieval-opt-in)).
+- **AWS deployment:** Terraform for ECS Fargate, RDS, Qdrant on EC2 and SQS; deployed once to a real account, verified end to end and torn down (see [AWS deployment](#aws-deployment)).
 - **Observability:** LangSmith tracing (when configured), request-ID logging, an optional protected Prometheus endpoint.
 
 ## Tech stack
@@ -153,6 +155,28 @@ Notes:
 - Ingestion runs inside the tool call, so a large PDF keeps the call open until it finishes.
 - I checked the stdio handshake, the three tool schemas and `list_documents` against a live Qdrant. I did not call `query_documents` or `ingest_document` over stdio while writing this section.
 
+## Hybrid retrieval (opt-in)
+
+By default the retriever takes the dense (cosine) candidates from Qdrant and re-ranks them with a term-overlap score. `RETRIEVAL_MODE=hybrid` instead asks Qdrant for two rankings in one request, dense and BM25 (a sparse `bm25` vector, IDF applied by Qdrant), and fuses them with reciprocal rank fusion (`RETRIEVAL_RRF_K`, default 60). The cosine floor still applies to dense candidates.
+
+**It is off by default on purpose.** On the 24-question golden set (17 chunks, two sources) it was not better: MRR 0.903 against 0.958 for the default, with Recall@3 at 1.000 against 0.979. The corpus is tiny and its cosine scores are compressed, which suits the default's score blend and not rank-only fusion; the set cannot show whether hybrid wins on a larger corpus. The default changes only if a larger labelled set shows it at least as good at Recall@1 and MRR, as written in [docs/retrieval-quality-evaluation.md](docs/retrieval-quality-evaluation.md).
+
+- **Falls back by itself** to the default path when the collection has no BM25 field, the BM25 model fails to load, or the query has no indexable terms. The fallback gave identical results on the golden set.
+- **Needs a new collection.** Qdrant 1.18 cannot add a sparse field to an existing collection, so `python -m scripts.migrate_to_hybrid_collection` copies the points into a new one (no re-embedding, safe to re-run, never touches the original). Then set `QDRANT_SOURCE_COLLECTION` and `RETRIEVAL_MODE=hybrid`; unsetting them is the rollback. New installs need no migration.
+- Ingestion writes BM25 vectors whenever the collection has the field and indexes dense-only into an older one.
+
+## AWS deployment
+
+`infra/terraform` builds the platform: an ALB, the API on ECS Fargate, a worker that scales on queue depth (on Fargate Spot, from zero, in the `demo` profile), RDS PostgreSQL, Qdrant on a small EC2 instance (image mirrored into your own ECR and pulled by digest), SQS and S3 for ingestion, alarms and a dashboard. Start with [docs/aws/deployment.md](docs/aws/deployment.md); [docs/aws/teardown.md](docs/aws/teardown.md) removes it again.
+
+**What has actually been run.** The `dev` environment (the cheap `demo` profile) was applied once to a new AWS account on 2026-11-11 and verified end to end: health checks, signup, a web page ingested through SQS and the worker, and a grounded answer streamed back. It was then torn down (134 resources) and a check found no NAT gateway, load balancer, instance, database, volume or cluster left. The first run found real bugs that offline checks could not:
+
+- Fargate mounts the `/tmp` volume as `root:root`, so the non-root app had no writable temp directory and the worker exited on every start. A one-shot init container now fixes the mode.
+- `qdrant-client` switches to HTTPS whenever an API key is set, but Qdrant serves plain HTTP, so every client call failed. The client now passes `https=False`.
+- A free-plan AWS account rejects RDS backup retention above one day, so the dev profile sets one day. Images must be built for `linux/amd64` on Apple-silicon Macs.
+
+**Limits.** The demo costs roughly $4 to $5 a day at list prices recalled from memory; I have not seen a real bill. Dev serves plain HTTP and was restricted to one IP. Not exercised: HTTPS with a certificate, the `prod` profile (Multi-AZ, deletion protection), the GitHub deploy workflow, RDS password rotation, task scale-in protection, Spot reclaim during a job, and anything that ran for more than about an hour. The deployed image used the default dense retrieval, not hybrid. See [docs/aws/limitations.md](docs/aws/limitations.md).
+
 ## Inference benchmarking
 
 `eval/` holds a harness for measuring serving performance under load (TTFT, decode throughput, p95/p99, queueing, KV-cache use, GPU utilization, cost), plus held-out serving and answer-quality evaluations. Realistic DocChat-shaped prompts, cache-busting by default and a positive control keep the numbers honest.
@@ -173,12 +197,12 @@ The first run is written up in [reports/finetune-vs-base-2026-11-03.md](reports/
 
 ```bash
 ruff check .                      # clean
-pytest -m "not eval" -q           # 974 passed, 11 skipped, 8 deselected
+pytest -m "not eval" -q           # 1024 passed, 11 skipped, 8 deselected
 cd frontend && npm test -- --run  # frontend tests
 python eval/benchmark.py          # critic benchmark; calls the live LLM, opt-in
 ```
 
-Of the 11 skipped tests, 7 need a real PostgreSQL and 4 need the optional LiteLLM package. With `TEST_DATABASE_URL` pointing at a throwaway database whose name contains "test", the same command gives 981 passed (see `tests/test_pg_concurrency.py`). No test needs AWS credentials or network access.
+Of the 11 skipped tests, 7 need a real PostgreSQL and 4 need the optional LiteLLM package. With `TEST_DATABASE_URL` pointing at a throwaway database whose name contains "test", those 7 tests run as well (see `tests/test_pg_concurrency.py`). No test needs AWS credentials or network access.
 
 The frontend tests were last recorded at 3 files / 6 tests on 2026-10-01 and were not re-run for this change. Live LLM evals are opt-in because they cost money.
 
@@ -194,3 +218,4 @@ The frontend tests were last recorded at 3 files / 6 tests on 2026-10-01 and wer
 | [docs/vllm_setup.md](docs/vllm_setup.md) | Self-hosting vLLM |
 | [docs/retrieval-quality-evaluation.md](docs/retrieval-quality-evaluation.md) | Retrieval evaluation |
 | [docs/grafana-plan.md](docs/grafana-plan.md) | Prometheus and proposed Grafana panels |
+| [docs/aws/deployment.md](docs/aws/deployment.md) | AWS deployment steps; see also `teardown`, `cost`, `limitations` and `security` in the same folder |

@@ -1,18 +1,31 @@
 # DocChat session handoff
 
-## Latest: FIRST REAL AWS apply in progress (2026-11-10): phase one applied, images/secrets/full apply NOT done
+## Latest: first real AWS deploy DONE, verified end to end, and TORN DOWN (2026-11-11); nothing pushed
 
-New AWS account, region `eu-north-1`, CLI profile `my-aws` (an `aws login` session; the old `default` profile was removed). `AWS_PROFILE` and `AWS_REGION` are exported in `~/.zshrc`.
+**State:** all work is committed locally and NOTHING is pushed (the owner said not to). Branch `feat/hybrid-bm25-rrf-retrieval` now contains everything: the hybrid retrieval commit, the AWS docs commit, the README MCP section, a merge of `fix/aws-first-deploy`, and this README/notes update. `fix/aws-first-deploy` (3 commits off `master`) is the same two bug fixes on their own, for a separate PR. Every pairwise merge into `master` is clean (`git merge-tree`), and the merged tree passes `ruff` and **1024 passed, 11 skipped**. The live check of the merged code against a local Qdrant also passed.
 
-**Done (each read back from AWS):** account-level budget `docchat-account-monthly` ($25/month, alerts to the owner at 50% and 80% of actual and 100% of forecast; made with the CLI and deliberately NOT in Terraform, so tearing the stack down keeps it); state bucket `docchat-tfstate-<account-id>-eu-north-1` (versioned, encrypted, public access blocked, TLS only); `terraform init`; **phase one applied, 7 resources** (3 ECR repos `docchat/dev/{api,worker,qdrant-mirror}` and 4 EMPTY Secrets Manager secrets); Qdrant `v1.20.0` mirrored into ECR, digest verified equal to upstream and recorded in `dev.tfvars`.
+**What happened on AWS** (account `eu-north-1`, profile `my-aws`, `dev` with `demo = true`): the full stack applied (127 resources after a first RDS failure), the API and worker ran, and a fresh signup, a web page ingested through SQS and the worker, and a grounded answer all worked. Then `terraform destroy` removed all 134 resources. A check afterwards found no NAT gateway, load balancer, instance, database, volume, endpoint, cluster or non-default VPC.
 
-**Not done:** build and push the `api` and `worker` images (must be `--platform linux/amd64`; the docs are fixed), set the four secret values (the Groq key is the owner's), full plan and apply (billing starts here, about $4-5/day with `demo = true`), verify, tear down.
+**Bugs the first real run found (both fixed, tested, committed)**
+1. Fargate mounts the `/tmp` volume as `root:root` 0755, so the non-root app had no temp directory (`FileNotFoundError`, embedder failed, worker exit 3). Fixed with a one-shot root init container `tmp-perms` in `ecs.tf`.
+2. `qdrant-client` turns HTTPS on when `api_key` is set and `https` is not, so every client call failed with `SSL WRONG_VERSION_NUMBER`. Fixed with `https=False` in `app/core/qdrant.py`. The retriever and health probe use raw http:// calls, which is why `/health` and chat search looked fine.
+3. A free-plan AWS account rejects RDS backup retention above 1 day (`FreeTierRestrictionError`): `db_backup_retention_days = 1` in `dev.tfvars` (git-ignored). Image builds must be `linux/amd64` on Apple silicon (docs fixed).
 
-**Gotchas found**
-- `infra/terraform/backend.tf` (git-ignored) has NO bucket line: the bucket name contains the account id, which `tests/test_infra_hygiene.py` forbids in any `*.tf`. Initialise with `terraform init -reconfigure -backend-config="bucket=<state-bucket>"`. The local file also adds one parametrised test case, so a local run shows 1022 passed while a clean checkout shows 1021.
-- The AWS provider is pinned `>= 5.70, < 6.0` (5.100.0) and cannot read `aws login` sessions; the S3 backend can. Until a refreshing profile exists, export short-lived credentials per command: `eval "$(aws configure export-credentials --profile my-aws --format env)"; unset AWS_PROFILE` (about 15 minutes of validity, too short for the full apply). Fix: a `[profile my-aws-tf]` with `credential_process = aws configure export-credentials --profile my-aws --format process`. Adding it to `~/.aws/config` was denied by the permission classifier, so the owner must add it.
-- ECR scan of the mirrored Qdrant amd64 image: 0 critical, 5 high, all Debian base packages (apt, zlib, glibc) with no fixed versions yet; reachability not verified; judged low risk for dev.
-- Do not merge Dependabot PR #24 (AWS provider 6.x) before the first deploy works.
+**Left in the AWS account on purpose or by lag**
+- Kept: the state bucket `docchat-tfstate-<account-id>-eu-north-1`, the account budget `docchat-account-monthly` ($25/month, alerts by email), the CLI profiles `my-aws` and `my-aws-tf`.
+- 4 Secrets Manager secrets are in a 7-day deletion window (the Groq one holds the key that was pasted into a chat: revoke it at Groq). The names stay reserved for 7 days, so re-applying phase one in that window needs them restored or force-deleted first.
+- 1 RDS automated snapshot `rds:docchat-dev-2026-11-11-07-43` still existed after destroy (tiny cost; check it and `delete-db-instance-automated-backup` if it lingers).
+- The tag-search API still listed terminated resources right after destroy; it lags.
+- Check Cost Explorer for two days to see the real bill (no real figure has been seen; $4-5/day is an estimate from list prices recalled from memory).
+
+**Gotchas for the next deploy**
+- `infra/terraform/backend.tf` (git-ignored) has NO bucket line; the name contains the account id, which `tests/test_infra_hygiene.py` forbids. Use `terraform init -reconfigure -backend-config="bucket=<state-bucket>"`. A local run shows one extra parametrised test, so a local count is one higher than a clean checkout.
+- The AWS provider is pinned `< 6.0` (5.100.0) and cannot read `aws login` sessions; the profile `my-aws-tf` (a `credential_process` that wraps `aws configure export-credentials`) fixes that and worked for the whole apply. Do not merge Dependabot PR #24 (provider 6.x) before the next deploy is proven.
+- The image tag is passed on the command line (`-var api_image_tag=... -var worker_image_tag=...`); put it in `dev.tfvars` or a re-plan will want to change the task definitions. Terraform ignores task-definition drift, so after an apply run `aws ecs update-service --task-definition <family>:<revision>` for the API first, then the worker.
+- The ALB was restricted to the owner's IP with `alb_ingress_cidrs` (plain HTTP in dev). ECR images were deleted by hand before destroy (index images first, then their children). Secret values were generated with `openssl rand` and never printed.
+- ECR basic scans attach to the per-platform image, not the index digest. The Qdrant and app images showed no fixable high or critical findings (all Debian base packages, no fix yet).
+
+**Next:** push the branches and open the PRs when the owner allows (fix branch first, then the retrieval branch). The older `feat/aws-platform` branch has one README commit (`5b014e9`, an AWS section) that will conflict with the new README section if it is ever merged; drop it or take the new text. Retrieval default: build the larger labelled set before changing `RETRIEVAL_MODE`.
 
 ## Previously: hybrid BM25 + RRF retrieval BUILT, opt-in (2026-11-04, branch `feat/hybrid-bm25-rrf-retrieval`, committed in 34c19bf, not merged)
 
