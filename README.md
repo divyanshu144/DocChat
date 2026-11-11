@@ -87,7 +87,7 @@ npm run build
 - **Citations:** inline `[PDF — name]`, `[YouTube — title]`, `[Web — url]` tags rendered as chips.
 - **Folders and history:** folders with drag-and-drop, persisted conversations, token streaming over SSE.
 - **MCP server:** query, ingest and list documents from any MCP client over stdio (see [MCP server](#mcp-server)).
-- **Hybrid retrieval (opt-in):** dense + BM25 fused with reciprocal rank fusion; off by default because it was not better on the one labelled set (see [Hybrid retrieval](#hybrid-retrieval-opt-in)).
+- **Hybrid retrieval (opt-in):** dense + BM25 fused with reciprocal rank fusion; off by default because it was measurably worse than the default on a 127-question set (see [Hybrid retrieval](#hybrid-retrieval-opt-in)).
 - **AWS deployment:** Terraform for ECS Fargate, RDS, Qdrant on EC2 and SQS; deployed once to a real account, verified end to end and torn down (see [AWS deployment](#aws-deployment)).
 - **Observability:** LangSmith tracing (when configured), request-ID logging, an optional protected Prometheus endpoint.
 
@@ -159,7 +159,7 @@ Notes:
 
 By default the retriever takes the dense (cosine) candidates from Qdrant and re-ranks them with a term-overlap score. `RETRIEVAL_MODE=hybrid` instead asks Qdrant for two rankings in one request, dense and BM25 (a sparse `bm25` vector, IDF applied by Qdrant), and fuses them with reciprocal rank fusion (`RETRIEVAL_RRF_K`, default 60). The cosine floor still applies to dense candidates.
 
-**It is off by default on purpose.** On the 24-question golden set (17 chunks, two sources) it was not better: MRR 0.903 against 0.958 for the default, with Recall@3 at 1.000 against 0.979. The corpus is tiny and its cosine scores are compressed, which suits the default's score blend and not rank-only fusion; the set cannot show whether hybrid wins on a larger corpus. The default changes only if a larger labelled set shows it at least as good at Recall@1 and MRR, as written in [docs/retrieval-quality-evaluation.md](docs/retrieval-quality-evaluation.md).
+**It is off by default on purpose.** On the first 24-question set (17 chunks) it was not better, and that set was too small to settle it, so I built a larger one: 127 questions over 781 chunks from 14 sources, two question styles (exact-term and paraphrase), scored on the production retriever with paired bootstrap intervals. Hybrid was worse: Recall@1 0.583 against 0.693 for the default (95% CI for the difference -0.173 to -0.051) and MRR 0.761 against 0.834. BM25 does beat plain dense search, but the default's `0.75 * cosine + 0.25 * term coverage` blend already captures most of it. The labels are mostly LLM-written and not independently audited, and the corpus is English Wikipedia, so treat this as strong evidence for this retriever on this kind of text, not a general claim. Details, limits and the one untested hybrid variant are in [docs/retrieval-quality-evaluation.md](docs/retrieval-quality-evaluation.md).
 
 - **Falls back by itself** to the default path when the collection has no BM25 field, the BM25 model fails to load, or the query has no indexable terms. The fallback gave identical results on the golden set.
 - **Needs a new collection.** Qdrant 1.18 cannot add a sparse field to an existing collection, so `python -m scripts.migrate_to_hybrid_collection` copies the points into a new one (no re-embedding, safe to re-run, never touches the original). Then set `QDRANT_SOURCE_COLLECTION` and `RETRIEVAL_MODE=hybrid`; unsetting them is the rollback. New installs need no migration.
@@ -197,7 +197,7 @@ The first run is written up in [reports/finetune-vs-base-2026-11-03.md](reports/
 
 ```bash
 ruff check .                      # clean
-pytest -m "not eval" -q           # 1024 passed, 11 skipped, 8 deselected
+pytest -m "not eval" -q           # 1044 passed, 11 skipped, 8 deselected
 cd frontend && npm test -- --run  # frontend tests
 python eval/benchmark.py          # critic benchmark; calls the live LLM, opt-in
 ```
