@@ -37,3 +37,10 @@ def test_hybrid_rrf_arm_fuses_dense_and_bm25_with_the_production_policy():
     fused = hybrid_rrf(candidates, bm25_order, bm25_values, corpus, candidate_limit=24)
     assert [row["id"] for row in fused] == ["p1", "p0", "p2"]
     assert fused[0]["score"] > fused[1]["score"] > fused[2]["score"]
+
+
+def test_dense_vector_reads_plain_and_hybrid_point_vectors():
+    from eval.retrieval_eval import dense_vector
+
+    assert dense_vector([0.1, 0.2]) == [0.1, 0.2]
+    assert dense_vector({"": [0.1, 0.2], "bm25": {"indices": [1], "values": [1.0]}}) == [0.1, 0.2]

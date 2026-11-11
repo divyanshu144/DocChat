@@ -76,8 +76,8 @@ def bm25_scores(query: str, documents: list[str], *, k1: float = 1.5, b: float =
 
 def load_cases(path: Path, corpus: list[dict]) -> list[dict]:
     cases = json.loads(path.read_text())["cases"]
-    if not 20 <= len(cases) <= 30:
-        raise ValueError("Golden set must have 20–30 questions")
+    if len(cases) < 20:
+        raise ValueError("Golden set must have at least 20 questions")
     points = {str(point["id"]): point["payload"] for point in corpus}
     for case in cases:
         if not case["relevant_ids"]:
@@ -110,10 +110,15 @@ def hybrid_rrf(candidates: list[dict], bm25_order: list[int], bm25_values: list[
             for point_id, score in fused[:12]]
 
 
+def dense_vector(vector) -> list[float]:
+    """Dense part of a point vector: a plain list, or the unnamed entry of a hybrid collection's named vectors."""
+    return vector[""] if isinstance(vector, dict) else vector
+
+
 def evaluate(corpus: list[dict], cases: list[dict], embedder, cross_encoder, *, candidate_limit: int = 24) -> dict:
     import numpy as np
 
-    vectors = np.asarray([point["vector"] for point in corpus], dtype=np.float32)
+    vectors = np.asarray([dense_vector(point["vector"]) for point in corpus], dtype=np.float32)
     norms = np.linalg.norm(vectors, axis=1)
     if np.any(norms == 0):
         raise ValueError("Corpus includes zero vectors")
@@ -155,6 +160,7 @@ def evaluate(corpus: list[dict], cases: list[dict], embedder, cross_encoder, *, 
         rankings = {"dense": candidates[:12], "bm25": bm25, "dense_overlap_rerank": dense_overlap,
                     "hybrid_rrf": hybrid, "cross_encoder": cross}
         row = {"id": case["id"], "query": case["query"], "relevant_ids": case["relevant_ids"],
+               "stratum": case.get("stratum"), "lexical_overlap": case.get("lexical_overlap"),
                "candidate_count": len(candidates), "bm25_corpus_count": len(corpus), "timing_ms": {
                    "dense": dense_ms, "bm25": bm25_ms, "dense_overlap_rerank": lexical_ms,
                    "hybrid_rrf": hybrid_ms, "cross_encoder": cross_ms}, "rankings": {}}
