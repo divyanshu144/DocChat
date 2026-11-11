@@ -1,5 +1,15 @@
 # DocChat session handoff
 
+## Latest: everything merged, AWS redeployed once more and torn down again, README refreshed (2026-11-11)
+
+**State:** `master` has PR #28 (larger retrieval eval; hybrid stays opt-in) and ten Dependabot PRs (#10-#13, #16 Actions; #14, #15, #17, #18, #19 Python). Master CI passed on `321c084`. Locally `ruff` clean and `pytest -m "not eval"` gives **1045 passed, 11 skipped**. PR #24 (AWS provider 5.100 to 6.x) is deliberately OPEN: the deploy is only proven on 5.x and `versions.tf` pins `<6.0`; test it with a throwaway apply or close it and ignore 6.x.
+
+**AWS:** redeployed from merged master (127 resources, default dense retrieval), verified end to end (signup, queued web ingest about 5 min, grounded answer), then destroyed (134 resources) at the owner's request. ECR repos were emptied first (delete the manifest index, then the children). Check afterwards: no instance, load balancer, RDS or NAT gateway. The 4 secrets are again in a 7-day deletion window; the state bucket and budget stay. `RETRIEVAL_MODE=hybrid` was NOT tried on AWS: there is no Terraform variable for it.
+
+**Still open:** local `docchat-app` container is down until `JWT_SECRET_KEY` is added to `.env` and `docker compose up -d app`; local `eval_corpus_v2` (781 pts) and `source_chunks_hybrid` (17) collections remain; old branches with local-only commits (`feat/live-gpu-session-2026-10-06` 9 ahead, `feat/chat-folders` 2 ahead, `feat/serving-platform-and-quality-review` no remote); untracked `reports/gpu-live-2026-10-06/*`, `reports/heldout-serving-*/events.jsonl`, `docs/project-walkthrough.md`, `Claude outputs/`.
+
+## Earlier: larger retrieval eval built (this section was written before the merge; its "not done: no AWS redeploy" is superseded above)
+
 ## Latest: larger retrieval eval built; hybrid is WORSE than the default, stays opt-in (2026-11-11, branch `feat/larger-retrieval-eval`)
 
 **Result:** 127 questions over 781 chunks (14 sources; 24 originals plus 103 LLM-written, two strata). Production `retriever_node`: default (dense + overlap rerank) Recall@1 0.693 / MRR 0.834 vs hybrid 0.583 / 0.761; hybrid minus default Recall@1 -0.110 (95% CI -0.173 to -0.051), MRR -0.073 (-0.114 to -0.035), losing in every stratum. The offline harness (own BM25) agrees. BM25 does beat plain dense (Recall@3 +0.071), but the overlap blend already captures that. `RETRIEVAL_MODE` stays `dense`. Full table, limits and the untested variant (keep the overlap blend, use BM25 only to widen the candidate pool): `docs/retrieval-quality-evaluation.md`, "Larger set (v2)".
