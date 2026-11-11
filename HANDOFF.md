@@ -13,7 +13,7 @@
 
 **Left in the AWS account on purpose or by lag**
 - Kept: the state bucket `docchat-tfstate-<account-id>-eu-north-1`, the account budget `docchat-account-monthly` ($25/month, alerts by email), the CLI profiles `my-aws` and `my-aws-tf`.
-- 4 Secrets Manager secrets are in a 7-day deletion window (the Groq one holds the key that was pasted into a chat: revoke it at Groq). The names stay reserved for 7 days, so re-applying phase one in that window needs them restored or force-deleted first.
+- 4 Secrets Manager secrets are in a 7-day deletion window (the Groq one holds the key that was pasted into a chat; the owner has since rotated it, so the stored copy is dead). The names stay reserved for 7 days, so re-applying phase one in that window needs them restored or force-deleted first.
 - 1 RDS automated snapshot `rds:docchat-dev-2026-11-11-07-43` still existed after destroy (tiny cost; check it and `delete-db-instance-automated-backup` if it lingers).
 - The tag-search API still listed terminated resources right after destroy; it lags.
 - Check Cost Explorer for two days to see the real bill (no real figure has been seen; $4-5/day is an estimate from list prices recalled from memory).
