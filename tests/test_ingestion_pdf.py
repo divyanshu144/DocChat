@@ -15,6 +15,7 @@ class FakeSegment:
 async def test_ingest_pdf_stores_chunks_in_qdrant():
     mock_client = MagicMock()
     mock_embedder = MagicMock()
+    mock_embedder.embed_sparse_documents.return_value = None  # dense-only; hybrid writes are tested in test_hybrid_ingestion.py
     mock_embedder.embed_independently.return_value = [np.array([0.1] * 384, dtype="float32")]
 
     fake_segments = [FakeSegment(text="Sample text", page_number=1, section_heading="Intro")]
@@ -50,6 +51,7 @@ async def test_ingest_pdf_stores_chunks_in_qdrant():
 async def test_ingest_pdf_reupload_uses_same_source_and_point_ids():
     mock_client = MagicMock()
     mock_embedder = MagicMock()
+    mock_embedder.embed_sparse_documents.return_value = None  # dense-only; hybrid writes are tested in test_hybrid_ingestion.py
     fake_segments = [FakeSegment(text="Sample text", page_number=1, section_heading="Intro")]
     fake_chunks = [{"text": "Sample text", "page_number": 1, "section_heading": "Intro",
                     "seg_idx": 0, "char_start": 0}]
@@ -78,6 +80,7 @@ async def test_ingest_pdf_reupload_uses_same_source_and_point_ids():
 async def test_ingest_pdf_reports_progress_phases():
     mock_client = MagicMock()
     mock_embedder = MagicMock()
+    mock_embedder.embed_sparse_documents.return_value = None  # dense-only; hybrid writes are tested in test_hybrid_ingestion.py
     fake_segments = [FakeSegment(text="Sample text", page_number=1, section_heading="Intro")]
     fake_chunks = [{"text": "Sample text", "page_number": 1, "section_heading": "Intro",
                     "seg_idx": 0, "char_start": 0}]

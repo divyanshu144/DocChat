@@ -1,5 +1,46 @@
 # DocChat session handoff
 
+## Latest: first real AWS deploy DONE, verified end to end, and TORN DOWN (2026-11-11); nothing pushed
+
+**State:** all work is committed locally and NOTHING is pushed (the owner said not to). Branch `feat/hybrid-bm25-rrf-retrieval` now contains everything: the hybrid retrieval commit, the AWS docs commit, the README MCP section, a merge of `fix/aws-first-deploy`, and this README/notes update. `fix/aws-first-deploy` (3 commits off `master`) is the same two bug fixes on their own, for a separate PR. Every pairwise merge into `master` is clean (`git merge-tree`), and the merged tree passes `ruff` and **1024 passed, 11 skipped**. The live check of the merged code against a local Qdrant also passed.
+
+**What happened on AWS** (account `eu-north-1`, profile `my-aws`, `dev` with `demo = true`): the full stack applied (127 resources after a first RDS failure), the API and worker ran, and a fresh signup, a web page ingested through SQS and the worker, and a grounded answer all worked. Then `terraform destroy` removed all 134 resources. A check afterwards found no NAT gateway, load balancer, instance, database, volume, endpoint, cluster or non-default VPC.
+
+**Bugs the first real run found (both fixed, tested, committed)**
+1. Fargate mounts the `/tmp` volume as `root:root` 0755, so the non-root app had no temp directory (`FileNotFoundError`, embedder failed, worker exit 3). Fixed with a one-shot root init container `tmp-perms` in `ecs.tf`.
+2. `qdrant-client` turns HTTPS on when `api_key` is set and `https` is not, so every client call failed with `SSL WRONG_VERSION_NUMBER`. Fixed with `https=False` in `app/core/qdrant.py`. The retriever and health probe use raw http:// calls, which is why `/health` and chat search looked fine.
+3. A free-plan AWS account rejects RDS backup retention above 1 day (`FreeTierRestrictionError`): `db_backup_retention_days = 1` in `dev.tfvars` (git-ignored). Image builds must be `linux/amd64` on Apple silicon (docs fixed).
+
+**Left in the AWS account on purpose or by lag**
+- Kept: the state bucket `docchat-tfstate-<account-id>-eu-north-1`, the account budget `docchat-account-monthly` ($25/month, alerts by email), the CLI profiles `my-aws` and `my-aws-tf`.
+- 4 Secrets Manager secrets are in a 7-day deletion window (the Groq one holds the key that was pasted into a chat; the owner has since rotated it, so the stored copy is dead). The names stay reserved for 7 days, so re-applying phase one in that window needs them restored or force-deleted first.
+- 1 RDS automated snapshot `rds:docchat-dev-2026-11-11-07-43` still existed after destroy (tiny cost; check it and `delete-db-instance-automated-backup` if it lingers).
+- The tag-search API still listed terminated resources right after destroy; it lags.
+- Check Cost Explorer for two days to see the real bill (no real figure has been seen; $4-5/day is an estimate from list prices recalled from memory).
+
+**Gotchas for the next deploy**
+- `infra/terraform/backend.tf` (git-ignored) has NO bucket line; the name contains the account id, which `tests/test_infra_hygiene.py` forbids. Use `terraform init -reconfigure -backend-config="bucket=<state-bucket>"`. A local run shows one extra parametrised test, so a local count is one higher than a clean checkout.
+- The AWS provider is pinned `< 6.0` (5.100.0) and cannot read `aws login` sessions; the profile `my-aws-tf` (a `credential_process` that wraps `aws configure export-credentials`) fixes that and worked for the whole apply. Do not merge Dependabot PR #24 (provider 6.x) before the next deploy is proven.
+- The image tag is passed on the command line (`-var api_image_tag=... -var worker_image_tag=...`); put it in `dev.tfvars` or a re-plan will want to change the task definitions. Terraform ignores task-definition drift, so after an apply run `aws ecs update-service --task-definition <family>:<revision>` for the API first, then the worker.
+- The ALB was restricted to the owner's IP with `alb_ingress_cidrs` (plain HTTP in dev). ECR images were deleted by hand before destroy (index images first, then their children). Secret values were generated with `openssl rand` and never printed.
+- ECR basic scans attach to the per-platform image, not the index digest. The Qdrant and app images showed no fixable high or critical findings (all Debian base packages, no fix yet).
+
+**Next:** push the branches and open the PRs when the owner allows (fix branch first, then the retrieval branch). The older `feat/aws-platform` branch has one README commit (`5b014e9`, an AWS section) that will conflict with the new README section if it is ever merged; drop it or take the new text. Retrieval default: build the larger labelled set before changing `RETRIEVAL_MODE`.
+
+## Previously: hybrid BM25 + RRF retrieval BUILT, opt-in (2026-11-04, branch `feat/hybrid-bm25-rrf-retrieval`, committed in 34c19bf, not merged)
+
+**State:** implemented, tested (`ruff` clean, 1021 passed / 11 skipped), measured live, committed on the branch (not pushed, no PR). The README "MCP server" section is a separate change.
+
+**What exists**
+- `app/services/hybrid.py` (pure RRF), `fuse_hybrid` / `admit_hybrid_candidates` / `_hybrid_search` in `app/agent/nodes/retriever.py`, sparse (`Qdrant/bm25`, lazy) methods on the embedder, sparse vectors written by all three ingesters through `app/services/ingestion/storage.py` (stripped when the collection predates the field), `get_qdrant_collection(name, sparse=True)`.
+- Migration: `app/services/hybrid_migration.py` + `python -m scripts.migrate_to_hybrid_collection` (copy, idempotent, verifies ids, never touches the source). Qdrant cannot add a sparse field to an existing collection.
+- Config: `QDRANT_SOURCE_COLLECTION`, `RETRIEVAL_MODE` (default `dense`), `RETRIEVAL_RRF_K`, `RETRIEVAL_CANDIDATES`, `RETRIEVAL_BM25_MIN_SCORE`. Eval harness has a `hybrid_rrf` arm.
+- Local Qdrant now also holds `source_chunks_hybrid` (17 points, migrated and verified). `.env` is unchanged, so the app still uses `source_chunks` in dense mode.
+
+**Result (honest):** on the 24-question golden set hybrid was NOT better: MRR 0.903 vs 0.958 for dense + overlap (Recall@3 1.000 vs 0.979). Fallback to dense on a dense-only collection is lossless. See `docs/retrieval-quality-evaluation.md`, "Hybrid retrieval".
+
+**Next action:** build a larger held-out retrieval set (harder negatives, exact-identifier queries, document-split), run `python -m eval.retrieval_eval`, flip the default only on the rule in that doc; tune `RETRIEVAL_BM25_MIN_SCORE` against negative controls then. Open the PR when the user asks.
+
 ## Latest: LiteLLM + LoRA work MERGED to master (2026-11-03, PR #22, merge commit `b896a0e`)
 
 Everything below this section is merged: PR #9 (AWS platform) went in first, then #22 (this work), rebased onto it. CI was green on all six

@@ -2,8 +2,10 @@
 
 Phase 3 adds offline retrieval comparisons, answer capture, and an
 annotation-driven answer scorer. These tools do not change DocChat's production
-retriever. Answer capture calls the configured OpenAI-compatible local inference
-endpoint; the retrieval and scoring tools run offline.
+retriever; [hybrid retrieval](#hybrid-retrieval-bm25--rrf) is an opt-in production
+mode that the retrieval comparison can now measure. Answer capture calls the
+configured OpenAI-compatible local inference endpoint; the retrieval and scoring
+tools run offline.
 
 ## Retrieval comparisons
 
@@ -35,6 +37,76 @@ The command can also connect to configured Qdrant when `--corpus-file` is
 omitted. That operation reads the live collection; prefer a frozen corpus
 export for reproducible comparisons. Cross-encoder evaluation may download its
 CPU model on first use. A GPU is not required.
+
+## Hybrid retrieval (BM25 + RRF)
+
+Opt-in production mode, off by default (`RETRIEVAL_MODE=dense`). With
+`RETRIEVAL_MODE=hybrid` the retriever asks Qdrant for two rankings in one
+`/points/query/batch` round trip, a dense cosine search and a BM25 search over a
+sparse `bm25` vector (fastembed `Qdrant/bm25`; IDF is applied by Qdrant over the
+whole collection, so ingesting more sources never needs re-weighting), and fuses
+them with reciprocal rank fusion (`app/services/hybrid.py`, `RETRIEVAL_RRF_K`,
+default 60). The cosine floor (`RETRIEVAL_MIN_SCORE`) still applies to dense
+candidates. A BM25-only candidate must score at least `RETRIEVAL_BM25_MIN_SCORE`
+(default 0, i.e. any positive match) unless the dense ranking also passed it.
+Fusion is done in the application rather than with Qdrant's server-side fusion so
+`k` is configurable and the result does not depend on the Qdrant server version.
+
+Degradation is automatic and lossless. A collection without the sparse field,
+a BM25 model that fails to load, or a query with no indexable terms uses the
+previous dense + overlap path (verified identical on the golden set). A Qdrant
+error is not treated as "unsupported": it returns no chunks, as before.
+
+### Enabling it on an existing index
+
+Qdrant cannot add a sparse vector field to an existing collection, so enabling
+hybrid retrieval copies the points into a new collection. Dense vectors and
+payloads are copied as stored (no re-embedding); only the BM25 vectors are
+computed. The source collection is never modified, so rollback is unsetting a
+variable.
+
+```sh
+venv/bin/python -m scripts.migrate_to_hybrid_collection --dry-run
+venv/bin/python -m scripts.migrate_to_hybrid_collection      # idempotent; re-run after quiescing ingestion
+# then set, and restart the API and any MCP server:
+#   QDRANT_SOURCE_COLLECTION=source_chunks_hybrid  RETRIEVAL_MODE=hybrid
+```
+
+New installs need no migration: ingestion creates the collection with the
+sparse field. Ingestion into an old dense-only collection keeps working and
+indexes dense-only, with a logged warning.
+
+### What the measurements show
+
+Production `retriever_node` against live Qdrant 1.18.1, the 24-question golden set
+(17 chunks, two sources), first relevant chunk per question:
+
+| Configuration | Recall@1 | Recall@3 | Recall@5 | MRR |
+|---|---:|---:|---:|---:|
+| Dense + overlap rerank (default) | 0.792 | 0.979 | 1.000 | 0.958 |
+| Hybrid BM25 + RRF | 0.708 | 1.000 | 1.000 | 0.903 |
+| `hybrid` mode on a dense-only collection (fallback) | 0.792 | 0.979 | 1.000 | 0.958 |
+
+The offline harness (`hybrid_rrf` arm, its own exact BM25) gives MRR 0.931 against
+0.958 for the overlap reranker and 0.967 for BM25 alone; its other arms reproduce
+the earlier report exactly. Six questions differ between the live arms, four worse
+and two better, which is not evidence in either direction at this size.
+
+Why RRF does not win here: the corpus is small and cosine scores are compressed
+(roughly 0.69 to 0.74), so the overlap rerank's `0.75 * cosine + 0.25 * coverage`
+lets strong keyword coverage override a small cosine gap, while RRF sees only
+ranks. A chunk ranked first by BM25 and fifth by dense lands around third. RRF's
+advantages (a candidate pool that includes exact-term matches the embedding
+missed, no score calibration) matter when the corpus is large enough that the
+relevant chunk is not already in the dense top candidates, which this set cannot
+show.
+
+Decision rule before changing the default: build a larger held-out retrieval set
+with harder negatives and exact-identifier queries (document-split, labelled
+independently), run it with `python -m eval.retrieval_eval`, and make hybrid the
+default only if it is at least as good at Recall@1/MRR and better at Recall@5.
+Tune `RETRIEVAL_BM25_MIN_SCORE` on negative-control queries at the same time, since
+BM25 returns something for almost any query and the default gate admits it.
 
 ## Held-out workload and blind review
 

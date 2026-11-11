@@ -100,7 +100,7 @@ async def ingest_youtube(url: str) -> str:
          "title": meta["title"], "channel": meta["channel"],
          "ingested_at": datetime.now(timezone.utc).isoformat()},
     )
-    await asyncio.to_thread(get_qdrant_collection, COLLECTION)
+    await asyncio.to_thread(get_qdrant_collection, COLLECTION, sparse=True)
     client = await asyncio.to_thread(get_qdrant_client)
     await asyncio.to_thread(replace_source_points, client, COLLECTION, source_id, points)
     return source_id

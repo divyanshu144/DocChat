@@ -11,7 +11,7 @@ from app.core.sources import source_collection
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
 from qdrant_client.models import PointStruct
 from app.services.embedder import get_embedder
-from app.services.ingestion.storage import embed_chunks, replace_source_points
+from app.services.ingestion.storage import embed_chunks, embed_sparse, point_vector, replace_source_points
 
 COLLECTION = source_collection()
 CHUNK_SIZE = 1500
@@ -191,18 +191,19 @@ async def ingest_pdf(
     if not raw_chunks:
         raise ValueError("Source contains no readable chunks")
     await _report_progress(progress, "indexing", "Indexing chunks")
-    await asyncio.to_thread(get_qdrant_collection, COLLECTION)
+    await asyncio.to_thread(get_qdrant_collection, COLLECTION, sparse=True)
     client = await asyncio.to_thread(get_qdrant_client)
     points: list[PointStruct] = []
     now = datetime.now(timezone.utc).isoformat()
 
-    for i, (chunk, emb) in enumerate(zip(raw_chunks, embeddings, strict=True)):
+    sparse_vectors = await asyncio.to_thread(embed_sparse, embedder, [chunk["text"] for chunk in raw_chunks])
+    for i, (chunk, emb, sparse_vec) in enumerate(zip(raw_chunks, embeddings, sparse_vectors, strict=True)):
         if emb is None:
             continue
         point_id = str(_uuid.uuid5(_uuid.NAMESPACE_DNS, f"{source_id}_{i}"))
         points.append(PointStruct(
             id=point_id,
-            vector=emb.tolist(),
+            vector=point_vector(emb, sparse_vec),
             payload={
                 "text": chunk["text"],
                 "source_id": source_id,

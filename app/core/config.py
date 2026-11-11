@@ -74,8 +74,23 @@ class Settings(BaseSettings):
     # Optional. Blank (the local default) sends no key. In AWS the key is injected from Secrets Manager.
     qdrant_api_key: str = ""
 
+    # Physical collection holding every source's chunks. Changing it points the whole app (ingest, retrieval,
+    # MCP, eval) at another collection, which is how the hybrid migration is switched on and rolled back.
+    qdrant_source_collection: str = Field(default="source_chunks", min_length=1)
+
     # Retrieval quality gate — chunks below this cosine similarity score are dropped
     retrieval_min_score: float = 0.3
+    # "dense" (default): dense search + term-overlap rerank. "hybrid": dense and BM25 rankings fused with reciprocal
+    # rank fusion; it falls back to "dense" by itself when the collection has no sparse vector field. Hybrid is
+    # opt-in until a larger labelled set shows it beating dense: on the 24-question golden set it was not better
+    # (docs/retrieval-quality-evaluation.md).
+    retrieval_mode: Literal["hybrid", "dense"] = "dense"
+    retrieval_rrf_k: int = Field(default=60, ge=1)
+    # Candidates fetched per ranking before fusion; the fused list is cut to MAX_RERANKED_CHUNKS.
+    retrieval_candidates: int = Field(default=24, ge=1)
+    # BM25-only candidates (below the dense floor) must score at least this to enter the fused list.
+    retrieval_bm25_min_score: float = Field(default=0.0, ge=0)
+    sparse_embedding_model: str = "Qdrant/bm25"
     context_max_chars: int = 12000
     ingest_batch_size: int = Field(default=64, ge=1)
     upload_max_bytes: int = Field(default=50 * 1024 * 1024, ge=1)

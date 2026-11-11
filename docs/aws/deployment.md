@@ -33,10 +33,16 @@ SHA=$(git rev-parse HEAD)
 for svc in api worker; do
   uri=$(aws ecr describe-repositories --repository-names docchat/dev/$svc --query 'repositories[0].repositoryUri' --output text)
   aws ecr get-login-password | docker login --username AWS --password-stdin "${uri%%/*}"
-  docker build --file docker/Dockerfile --target $svc --tag "$uri:$SHA" .
-  docker image push "$uri:$SHA"
+  docker buildx build --platform linux/amd64 --file docker/Dockerfile --target $svc --tag "$uri:$SHA" --push .
 done
 ```
+
+**Build for `linux/amd64`.** The tasks and the Qdrant host run on `X86_64` (the `cpu_architecture` default; CI also builds on x86
+runners). On an Apple-silicon Mac a plain `docker build` produces an arm64 image, which Fargate cannot run (`exec format error`),
+and the failure only shows up after the full apply, when the tasks try to start. Building under emulation is slow (the image is
+about 1.4 GB; allow 10 to 25 minutes per image). If you would rather run on Graviton, set `cpu_architecture = "ARM64"` *and* an
+arm `qdrant_instance_type` (for example `t4g.small`) and build `--platform linux/arm64` here, but then CI's x86 images would no
+longer match, so keep the two consistent.
 
 3. **Set secret values out of band** (the containers exist from phase one). Values never enter Terraform state or CI logs;
    tasks cannot start until each has one.
