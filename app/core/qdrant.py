@@ -16,8 +16,11 @@ def get_qdrant_client() -> QdrantClient:
         # The key travels over plain HTTP inside private subnets by design (docs/aws/security.md); the
         # client's per-process "insecure connection" warning would only add noise.
         warnings.filterwarnings("ignore", message="Api key is used with an insecure connection")
+        # https=False is explicit on purpose: qdrant-client otherwise turns HTTPS on whenever an api_key is
+        # given, and the server only speaks plain HTTP, so every call failed with [SSL: WRONG_VERSION_NUMBER]
+        # (ingestion on the first real AWS deploy). The raw-HTTP callers (retriever, health) already use http://.
         return QdrantClient(host=settings.qdrant_host, port=settings.qdrant_port,
-                            api_key=settings.qdrant_api_key or None)
+                            api_key=settings.qdrant_api_key or None, https=False)
 
 
 # Name of the sparse (BM25) vector next to the unnamed dense vector. Existing collections keep their unnamed

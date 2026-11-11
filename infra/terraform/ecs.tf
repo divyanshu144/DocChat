@@ -96,42 +96,72 @@ resource "aws_ecs_task_definition" "service" {
     name = "tmp" # the only writable path; the root filesystem is read-only
   }
 
-  container_definitions = jsonencode([{
-    name      = each.key
-    image     = "${aws_ecr_repository.service[each.key].repository_url}:${each.key == "api" ? var.api_image_tag : var.worker_image_tag}"
-    essential = true
+  container_definitions = jsonencode([
+    {
+      # Fargate mounts an empty task volume as root:root, mode 0755, whatever the image says, so the app
+      # (non-root, read-only root filesystem) found no writable temp directory: tempfile raised
+      # FileNotFoundError, the embedding model never loaded and the worker exited with code 3. This
+      # one-shot root step opens /tmp up (sticky, like a normal /tmp) before the app container starts.
+      # The app container itself stays non-root with a read-only root filesystem.
+      name       = "tmp-perms"
+      image      = "${aws_ecr_repository.service[each.key].repository_url}:${each.key == "api" ? var.api_image_tag : var.worker_image_tag}"
+      essential  = false
+      user       = "0"
+      entryPoint = ["/bin/chmod"]
+      command    = ["1777", "/tmp"]
 
-    portMappings = [{ containerPort = each.key == "api" ? 8000 : 8080, protocol = "tcp" }]
+      readonlyRootFilesystem = true
+      mountPoints            = [{ sourceVolume = "tmp", containerPath = "/tmp", readOnly = false }]
+      linuxParameters        = { capabilities = { drop = ["ALL"] } }
 
-    environment = each.key == "api" ? local.api_env : local.worker_env
-    secrets     = each.key == "api" ? local.api_secrets : local.worker_secrets
-
-    readonlyRootFilesystem = true
-    mountPoints            = [{ sourceVolume = "tmp", containerPath = "/tmp", readOnly = false }]
-    linuxParameters = {
-      initProcessEnabled = true # reaps zombies and forwards SIGTERM
-      capabilities       = { drop = ["ALL"] }
-    }
-    # Grace period before SIGKILL. API: uvicorn drains for 30 s. Worker: 90 s drain + 15 s cancel + a 20 s poll.
-    stopTimeout = each.key == "api" ? 60 : 120
-
-    healthCheck = {
-      command     = ["CMD", "python", "-c", local.probe[each.key]]
-      interval    = 15
-      timeout     = 5
-      retries     = 3
-      startPeriod = each.key == "api" ? 60 : 90 # ONNX model load
-    }
-
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        "awslogs-group"         = aws_cloudwatch_log_group.service[each.key].name
-        "awslogs-region"        = var.aws_region
-        "awslogs-stream-prefix" = each.key
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.service[each.key].name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "tmp-perms"
+        }
       }
-    }
-  }])
+    },
+    {
+      name      = each.key
+      image     = "${aws_ecr_repository.service[each.key].repository_url}:${each.key == "api" ? var.api_image_tag : var.worker_image_tag}"
+      essential = true
+
+      dependsOn = [{ containerName = "tmp-perms", condition = "SUCCESS" }]
+
+      portMappings = [{ containerPort = each.key == "api" ? 8000 : 8080, protocol = "tcp" }]
+
+      environment = each.key == "api" ? local.api_env : local.worker_env
+      secrets     = each.key == "api" ? local.api_secrets : local.worker_secrets
+
+      readonlyRootFilesystem = true
+      mountPoints            = [{ sourceVolume = "tmp", containerPath = "/tmp", readOnly = false }]
+      linuxParameters = {
+        initProcessEnabled = true # reaps zombies and forwards SIGTERM
+        capabilities       = { drop = ["ALL"] }
+      }
+      # Grace period before SIGKILL. API: uvicorn drains for 30 s. Worker: 90 s drain + 15 s cancel + a 20 s poll.
+      stopTimeout = each.key == "api" ? 60 : 120
+
+      healthCheck = {
+        command     = ["CMD", "python", "-c", local.probe[each.key]]
+        interval    = 15
+        timeout     = 5
+        retries     = 3
+        startPeriod = each.key == "api" ? 60 : 90 # ONNX model load
+      }
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.service[each.key].name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = each.key
+        }
+      }
+    },
+  ])
 }
 
 resource "aws_ecs_service" "api" {
