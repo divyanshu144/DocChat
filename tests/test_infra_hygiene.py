@@ -89,6 +89,21 @@ def test_task_definitions_are_hardened():
     assert 'default     = false' in block(read(TF / "variables.tf"), 'variable "langsmith_tracing"')
 
 
+def test_tmp_volume_is_made_writable_for_the_non_root_app_before_it_starts():
+    """Fargate mounts an empty task volume as root:root 0755, so with a read-only root filesystem and a
+    non-root user the app has no writable temp dir (found on the first real apply: tempfile raised
+    FileNotFoundError, the embedder failed and the worker exited 3). A one-shot root step fixes the mode."""
+    squeezed = read(TF / "ecs.tf").replace(" ", "")
+    assert 'name="tmp-perms"' in squeezed
+    assert 'user="0"' in squeezed and 'entryPoint=["/bin/chmod"]' in squeezed
+    assert 'command=["1777","/tmp"]' in squeezed
+    assert "essential=false" in squeezed
+    # the app container waits for the step to succeed, and stays non-root with a read-only root filesystem
+    assert 'dependsOn=[{containerName="tmp-perms",condition="SUCCESS"}]' in squeezed
+    assert squeezed.count("readonlyRootFilesystem=true") == 2
+    assert squeezed.count('user="0"') == 1  # only the init step runs as root
+
+
 def test_services_roll_back_on_failure_and_are_independent():
     ecs = read(TF / "ecs.tf")
     for svc in ('resource "aws_ecs_service" "api"', 'resource "aws_ecs_service" "worker"'):

@@ -34,6 +34,30 @@ def test_client_gets_the_key_or_none(monkeypatch):
         assert client.call_args.kwargs["api_key"] == "k-123"
 
 
+def test_client_always_speaks_plain_http_even_with_an_api_key(monkeypatch):
+    """qdrant-client switches to HTTPS whenever api_key is set unless https is given explicitly; the server
+    is plain HTTP, so that broke every client call on AWS with SSL WRONG_VERSION_NUMBER."""
+    with patch.object(qdrant_mod, "QdrantClient") as client:
+        monkeypatch.setattr(settings, "qdrant_api_key", "k-123")
+        qdrant_mod.get_qdrant_client()
+        assert client.call_args.kwargs["https"] is False
+
+
+def test_the_real_client_class_builds_an_http_url_when_a_key_is_set(monkeypatch):
+    """Unlike the mocked test above, this uses the real QdrantClient, whose default is what caused the bug."""
+    monkeypatch.setattr(settings, "qdrant_host", "127.0.0.1")
+    monkeypatch.setattr(settings, "qdrant_port", 1)  # refused at once; nothing is listening
+    monkeypatch.setattr(settings, "qdrant_api_key", "k-123")
+    qdrant_mod.get_qdrant_client.cache_clear()
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            client = qdrant_mod.get_qdrant_client()
+        assert client._client.rest_uri.startswith("http://")
+    finally:
+        qdrant_mod.get_qdrant_client.cache_clear()
+
+
 def test_the_insecure_connection_warning_is_suppressed_for_our_client(monkeypatch):
     """A stand-in client emits the warning the real one would; no connection is made."""
     def noisy_client(**kwargs):
