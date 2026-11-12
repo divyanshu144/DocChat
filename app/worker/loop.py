@@ -15,6 +15,9 @@ from app.worker.protection import RENEW_EVERY_S, TaskProtection
 logger = logging.getLogger("worker")
 
 
+MAX_POLL_ERRORS = 5
+
+
 class Worker:
     def __init__(self, queue: JobQueue, blobs: BlobStore, *, concurrency: int | None = None,
                  wait_seconds: int | None = None, shutdown_timeout: float | None = None,
@@ -37,8 +40,20 @@ class Worker:
         return time.monotonic() - self._tick < 30
 
     @property
+    def state(self) -> str:
+        """The worker's lifecycle as one value instead of three flags read together.
+        stopping (draining, terminal) > cold (model not warm yet) > degraded (queue unreachable) > ready."""
+        if self.stopping.is_set():
+            return "stopping"
+        if not self.warm:
+            return "cold"
+        if self.poll_errors >= MAX_POLL_ERRORS:
+            return "degraded"
+        return "ready"
+
+    @property
     def ready(self) -> bool:
-        return self.warm and not self.stopping.is_set() and self.poll_errors < 5
+        return self.state == "ready"
 
     def stop(self) -> None:
         self.stopping.set()

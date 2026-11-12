@@ -1,7 +1,7 @@
 import os
 from langgraph.graph import StateGraph, END
 
-from app.agent.state import AgentState
+from app.agent.state import AgentState, budget_spent
 from app.agent.nodes.planner import planner_node
 from app.agent.nodes.retriever import retriever_node
 from app.agent.nodes.synthesizer import synthesizer_node
@@ -12,7 +12,7 @@ from app.core.telemetry import traced_node
 
 
 def _route_critic(state: AgentState) -> str:
-    if state.get("needs_replan") and state.get("iteration", 0) < 2:
+    if state.get("needs_replan") and not budget_spent(state.get("iteration", 0)):
         return "planner"
     return END
 

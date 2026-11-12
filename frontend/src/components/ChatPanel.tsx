@@ -102,10 +102,26 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // Prevents useEffect from loading history when we just created this conversation mid-stream
   const skipNextLoad = useRef(false);
+  // The in-flight answer stream, if any. A stream belongs to the conversation it was started in: switching
+  // conversations (or leaving the page) cancels it, otherwise its tokens and final message would be appended
+  // to whichever transcript is on screen when it finishes.
+  const streamAbort = useRef<AbortController | null>(null);
+
+  function cancelStream() {
+    streamAbort.current?.abort();
+    streamAbort.current = null;
+    setStreaming(false);
+    setStreamText('');
+    setStreamStatus('');
+  }
+
+  useEffect(() => () => { streamAbort.current?.abort(); }, []);
 
   useEffect(() => {
-    if (!conversationId) { setMessages([]); return; }
+    // Creating a conversation mid-stream changes this prop too, but that stream must keep running.
     if (skipNextLoad.current) { skipNextLoad.current = false; return; }
+    cancelStream();
+    if (!conversationId) { setMessages([]); return; }
     loadHistory(conversationId);
   }, [conversationId]);
 
@@ -153,6 +169,8 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
     setStreaming(true);
     setStreamText('');
     setStreamStatus('Starting');
+    const controller = new AbortController();
+    streamAbort.current = controller;
 
     try {
       const { conversationId: newConvId, stream } = await ssePost('/chat', {
@@ -160,7 +178,7 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
         conversation_id: conversationId,
         sources: Array.from(activeFilters),
         source_ids: selectedSourceIds.size > 0 ? Array.from(selectedSourceIds) : undefined,
-      });
+      }, controller.signal);
 
       if (newConvId && !conversationId) {
         // Mark that the upcoming conversationId change should NOT trigger loadHistory —
@@ -179,7 +197,7 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
         }
       }
 
-      if (fullText.trim()) {
+      if (fullText.trim() && !controller.signal.aborted) {
         setMessages(prev => [...prev, {
           id: crypto.randomUUID(),
           role: 'assistant',
@@ -189,16 +207,22 @@ export default function ChatPanel({ conversationId, onConvCreated, selectedSourc
       }
 
     } catch (err) {
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
-        created_at: new Date().toISOString(),
-      }]);
+      if (!controller.signal.aborted) {  // a cancelled stream is not an error the user should see
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+          created_at: new Date().toISOString(),
+        }]);
+      }
     } finally {
-      setStreaming(false);
-      setStreamText('');
-      setStreamStatus('');
+      // Only the stream that is still current may reset the shared state; a cancelled one already did.
+      if (streamAbort.current === controller) {
+        streamAbort.current = null;
+        setStreaming(false);
+        setStreamText('');
+        setStreamStatus('');
+      }
     }
   }
 

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from app.agent.state import AgentState
+from app.agent.state import AgentState, budget_spent
 from app.core.config import settings
 from app.services.llm import chat_complete
 from app.core.telemetry import annotate
@@ -104,7 +104,7 @@ def _write_pair(state: AgentState, accepted_verdict: str) -> None:
 async def critic_node(state: AgentState) -> dict:
     iteration = state.get("iteration", 0) + 1
 
-    if iteration >= 2:
+    if budget_spent(iteration):
         # Retry budget spent. Whatever this pass produced is what the user gets, which
         # makes it the accepted half — recorded as accepted by exhaustion, not by
         # approval, because no second verdict was ever taken.

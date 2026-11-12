@@ -10,11 +10,16 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from typing import NamedTuple
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
+# After a failed BM25 model load, wait this long before trying again (a transient failure must not
+# disable hybrid retrieval until the process restarts).
+SPARSE_RETRY_S = 300.0
 
 try:
     from fastembed import SparseTextEmbedding, TextEmbedding
@@ -54,23 +59,29 @@ class _Embedder:
         self._fe = TextEmbedding(model_name=model_name)
         list(self._fe.embed(["warmup"]))
         self._sparse = None
-        self._sparse_failed = False
+        self._sparse_failed_at: float | None = None
         self._sparse_lock = threading.Lock()
 
+    def _in_cooldown(self) -> bool:
+        return self._sparse_failed_at is not None and time.monotonic() - self._sparse_failed_at < SPARSE_RETRY_S
+
     def _sparse_model(self):
-        """Lazy BM25 model. A load failure disables sparse only; dense embedding keeps working."""
-        if self._sparse is not None or self._sparse_failed:
+        """Lazy BM25 model. A load failure disables sparse only, for SPARSE_RETRY_S, then loading is tried again;
+        dense embedding keeps working throughout."""
+        if self._sparse is not None or self._in_cooldown():
             return self._sparse
         with self._sparse_lock:
-            if self._sparse is None and not self._sparse_failed:
+            if self._sparse is None and not self._in_cooldown():
                 try:
                     from app.core.config import settings
                     if SparseTextEmbedding is None:
                         raise ImportError("fastembed sparse models are not available")
                     self._sparse = SparseTextEmbedding(model_name=settings.sparse_embedding_model)
+                    self._sparse_failed_at = None
                 except Exception:
-                    self._sparse_failed = True
-                    logger.exception("sparse_embedder_init_failed — hybrid retrieval disabled for this process")
+                    self._sparse_failed_at = time.monotonic()
+                    logger.exception("sparse_embedder_init_failed — hybrid retrieval degraded to dense; "
+                                     "retrying after %ss", SPARSE_RETRY_S)
         return self._sparse
 
     @property
