@@ -36,6 +36,12 @@ export default function App() {
   }, []);
 
   function handleAuth(userEmail: string) {
+    // A different account must not inherit the previous one's open conversation (a session that expired and
+    // was replaced keeps the stored conversation id otherwise).
+    if (localStorage.getItem(LS_EMAIL) !== userEmail) {
+      localStorage.removeItem(LS_CONV);
+      setConvId(null);
+    }
     localStorage.setItem(LS_EMAIL, userEmail);
     setEmail(userEmail);
     setAuthed(true);
@@ -49,6 +55,8 @@ export default function App() {
     setEmail('');
     setConvId(null);
     setPendingFolderId(null);
+    setSelectedSourceIds(new Set());  // another user's source ids would filter their chats to nothing
+    setDrawerOpen(false);
   }
 
   function selectConv(id: string) {

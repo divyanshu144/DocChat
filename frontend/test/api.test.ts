@@ -130,4 +130,55 @@ describe('api client', () => {
 
     expect(events).toEqual([{ type: 'token', data: 'ok' }]);
   });
+
+  it('reads tokens from storage so a rotation made by another tab is not replayed', async () => {
+    localStorage.setItem('docchat_token', 'access-1');
+    localStorage.setItem('docchat_refresh', 'refresh-1');
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url === '/api/v1/auth/refresh') {
+        const sent = JSON.parse(String(init?.body)).refresh_token;
+        // The server only accepts the current token; refresh-1 was already rotated by "the other tab".
+        return sent === 'refresh-2'
+          ? jsonResponse({ access_token: 'access-3', refresh_token: 'refresh-3', token_type: 'bearer' })
+          : new Response('revoked', { status: 401 });
+      }
+      const auth = (init?.headers as Record<string, string>).Authorization;
+      return auth === 'Bearer access-3' ? jsonResponse([]) : new Response('no', { status: 401 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { apiFetch } = await import('../src/api');  // module loaded while storage still held refresh-1
+
+    // Another tab rotates: storage now holds refresh-2 / access-2, this tab's memory is stale.
+    localStorage.setItem('docchat_token', 'access-2');
+    localStorage.setItem('docchat_refresh', 'refresh-2');
+
+    const res = await apiFetch('/folders');
+    expect(res.status).toBe(200);
+    const refreshBodies = fetchMock.mock.calls
+      .filter(c => c[0] === '/api/v1/auth/refresh')
+      .map(c => JSON.parse(String((c[1] as RequestInit).body)).refresh_token);
+    expect(refreshBodies).toEqual(['refresh-2']);  // never the stale refresh-1
+  });
+
+  it('treats a failed refresh as success when storage already holds a newer refresh token', async () => {
+    localStorage.setItem('docchat_token', 'access-1');
+    localStorage.setItem('docchat_refresh', 'refresh-1');
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === '/api/v1/auth/refresh') {
+        // While our request is in flight, the other tab finishes its own rotation.
+        localStorage.setItem('docchat_token', 'access-2');
+        localStorage.setItem('docchat_refresh', 'refresh-2');
+        return new Response('revoked', { status: 401 });
+      }
+      const auth = (init?.headers as Record<string, string>).Authorization;
+      return auth === 'Bearer access-2' ? jsonResponse([]) : new Response('no', { status: 401 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { apiFetch } = await import('../src/api');
+
+    const res = await apiFetch('/folders');
+    expect(res.status).toBe(200);
+    expect(localStorage.getItem('docchat_refresh')).toBe('refresh-2');  // session kept, not cleared
+  });
 });

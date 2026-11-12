@@ -1,21 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '../api';
 import type { Source } from '../types';
+import { pollIngestJob, type IngestJob } from '../ingestJobs';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
-}
-
-interface IngestJob {
-  job_id: string;
-  status: 'queued' | 'running' | 'done' | 'error';
-  phase: string;
-  message: string;
-  source_id?: string | null;
-  error?: string | null;
 }
 
 function formatWhen(s: Source): string {
@@ -52,6 +44,15 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
   const [webFeedback, setWebFeedback] = useState<{ msg: string; cls: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Aborted on unmount so a running ingest poll stops instead of setting state on a dead component.
+  // Created inside the effect (not at render) so React StrictMode's mount/unmount/mount cycle in dev does not
+  // leave a permanently aborted controller behind.
+  const pollAbort = useRef<AbortController>(new AbortController());
+  useEffect(() => {
+    const controller = new AbortController();
+    pollAbort.current = controller;
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => { loadSources(); }, []);
 
@@ -84,27 +85,35 @@ export default function SourcesDrawer({ open, onClose, selectedIds, onSelectionC
         return;
       }
 
-      let done = false;
-      while (!done) {
-        await new Promise(resolve => setTimeout(resolve, 700));
+      const outcome = await pollIngestJob(async () => {
         const statusRes = await apiFetch(`/ingest/jobs/${d.job_id}`);
         const job = await statusRes.json() as IngestJob & { detail?: string };
-        if (!statusRes.ok) {
-          setPdfFeedback({ msg: job.detail ?? 'Could not read ingest status', cls: 'err' });
-          return;
-        }
-
-        if (job.status === 'done') {
-          setPdfFeedback({ msg: job.message || 'Ingested successfully', cls: 'ok' });
-          done = true;
-          loadSources();
-        } else if (job.status === 'error') {
-          setPdfFeedback({ msg: job.error || job.message || 'Ingest failed', cls: 'err' });
-          done = true;
-        } else {
+        if (!statusRes.ok) throw new Error(job.detail ?? 'Could not read ingest status');
+        return job;
+      }, {
+        signal: pollAbort.current.signal,
+        onProgress: job => {
           const phase = job.phase ? `${job.phase}: ` : '';
           setPdfFeedback({ msg: `${phase}${job.message}`, cls: 'busy' });
-        }
+        },
+      });
+
+      switch (outcome.state) {
+        case 'done':
+          setPdfFeedback({ msg: outcome.job.message || 'Ingested successfully', cls: 'ok' });
+          loadSources();
+          break;
+        case 'error':
+          setPdfFeedback({ msg: outcome.job.error || outcome.job.message || 'Ingest failed', cls: 'err' });
+          break;
+        case 'unreachable':
+          setPdfFeedback({ msg: `Lost contact with the ingest job (${outcome.detail}). It may still finish; refresh to check.`, cls: 'err' });
+          break;
+        case 'timeout':
+          setPdfFeedback({ msg: 'Still ingesting after 10 minutes. It may still finish; refresh to check.', cls: 'err' });
+          break;
+        case 'cancelled':
+          break;
       }
     } catch {
       setPdfFeedback({ msg: 'Network error', cls: 'err' });

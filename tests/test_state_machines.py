@@ -89,3 +89,69 @@ def test_a_cancelled_span_has_no_error_type():
         with span("t") as record:
             raise asyncio.CancelledError()
     assert record["outcome"] == "cancelled" and "error_type" not in record
+
+
+# --- the local (BackgroundTasks) ingest path: _set_job -----------------------------------------------------------
+
+@pytest.fixture
+async def local_jobs(monkeypatch):
+    from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+
+    import app.models.conversation
+    import app.models.refresh_token
+    import app.models.user  # noqa: F401  (mapper registry)
+    from app.api import ingest
+    from app.core.database import Base
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:", poolclass=StaticPool)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    monkeypatch.setattr(ingest, "AsyncSessionLocal", factory)
+    yield factory
+    await engine.dispose()
+
+
+async def _row(factory, job_id="L1"):
+    from app.models.ingest_job import IngestJob
+
+    async with factory() as session:
+        return await session.get(IngestJob, job_id)
+
+
+@pytest.mark.asyncio
+async def test_local_set_job_walks_the_legal_path_and_creates_the_row_on_first_write(local_jobs):
+    from app.api.ingest import _set_job
+    from app.models.ingest_job import IngestJobStatusValue as S
+
+    await _set_job("L1", source_type="web", status="running", phase="fetching", message="Fetching")
+    assert (await _row(local_jobs)).status == S.running
+    await _set_job("L1", status="done", phase="done", message="Ingested", source_id="s1")
+    row = await _row(local_jobs)
+    assert (row.status, row.source_id) == (S.done, "s1")
+
+
+@pytest.mark.asyncio
+async def test_local_set_job_never_reopens_a_finished_job(local_jobs):
+    from app.api.ingest import _set_job
+    from app.models.ingest_job import IngestJobStatusValue as S
+
+    await _set_job("L1", source_type="web", status="done", phase="done", message="Ingested", source_id="s1")
+    # A straggling progress callback, or the error handler of a duplicate run, arrives afterwards.
+    await _set_job("L1", status="running", phase="embedding", message="late progress")
+    await _set_job("L1", status="error", phase="error", message="Ingest failed", error="boom")
+
+    row = await _row(local_jobs)
+    assert (row.status, row.phase, row.message, row.source_id, row.error) == (S.done, "done", "Ingested", "s1", None)
+
+
+@pytest.mark.asyncio
+async def test_local_set_job_still_lets_an_errored_job_be_retried(local_jobs):
+    from app.api.ingest import _set_job
+    from app.models.ingest_job import IngestJobStatusValue as S
+
+    await _set_job("L1", source_type="web", status="error", phase="error", message="Ingest failed", error="boom")
+    await _set_job("L1", status="running", phase="fetching", message="Fetching")
+    assert (await _row(local_jobs)).status == S.running

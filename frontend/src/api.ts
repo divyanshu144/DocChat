@@ -3,39 +3,53 @@ import type { TokenResponse } from './types';
 const LS_TOKEN = 'docchat_token';
 const LS_REFRESH = 'docchat_refresh';
 
-let _accessToken: string | null = localStorage.getItem(LS_TOKEN);
-let _refreshToken: string | null = localStorage.getItem(LS_REFRESH);
+// localStorage is the source of truth: several tabs share one session, and a refresh token is single-use on
+// the server (replaying a rotated one revokes every session). A per-tab in-memory copy would go stale as soon
+// as another tab rotated, so reads always go to storage and `_memory` is only the fallback when storage is
+// unavailable (private mode, quota).
+const _memory: { access: string | null; refresh: string | null } = {
+  access: localStorage.getItem(LS_TOKEN),
+  refresh: localStorage.getItem(LS_REFRESH),
+};
 let refreshPromise: Promise<boolean> | null = null;
 
+function readAccess(): string | null {
+  return localStorage.getItem(LS_TOKEN) ?? _memory.access;
+}
+
+function readRefresh(): string | null {
+  return localStorage.getItem(LS_REFRESH) ?? _memory.refresh;
+}
+
 export function setTokens(access: string, refresh?: string) {
-  _accessToken = access;
+  _memory.access = access;
   localStorage.setItem(LS_TOKEN, access);
   if (refresh) {
-    _refreshToken = refresh;
+    _memory.refresh = refresh;
     localStorage.setItem(LS_REFRESH, refresh);
   }
 }
 
 export function clearTokens() {
-  _accessToken = null;
-  _refreshToken = null;
+  _memory.access = null;
+  _memory.refresh = null;
   localStorage.removeItem(LS_TOKEN);
   localStorage.removeItem(LS_REFRESH);
 }
 
 export function hasToken(): boolean {
-  return !!(_accessToken || localStorage.getItem(LS_TOKEN));
+  return !!readAccess();
 }
 
 function authHeaders(): Record<string, string> {
-  const token = _accessToken || localStorage.getItem(LS_TOKEN);
+  const token = readAccess();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 async function tryRefresh(): Promise<boolean> {
   if (refreshPromise) return refreshPromise;
 
-  const rt = _refreshToken || localStorage.getItem(LS_REFRESH);
+  const rt = readRefresh();
   if (!rt) return false;
 
   refreshPromise = (async () => {
@@ -45,7 +59,12 @@ async function tryRefresh(): Promise<boolean> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: rt }),
       });
-      if (!r.ok) return false;
+      if (!r.ok) {
+        // Another tab may have rotated the token a moment before us; if storage now holds a different
+        // refresh token, the session is alive and the caller should simply retry with it.
+        const current = readRefresh();
+        return current !== null && current !== rt;
+      }
       const d: TokenResponse = await r.json();
       setTokens(d.access_token, d.refresh_token);
       return true;
@@ -94,9 +113,10 @@ export type SseEvent =
   | { type: 'status'; data: string }
   | { type: 'token'; data: string };
 
-export async function ssePost(path: string, body: unknown): Promise<SseResult> {
+export async function ssePost(path: string, body: unknown, signal?: AbortSignal): Promise<SseResult> {
   const res = await apiFetch(path, {
     method: 'POST',
+    signal,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
