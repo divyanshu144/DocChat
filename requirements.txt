@@ -35,7 +35,7 @@ pytest-asyncio>=1.4.0
 aiosqlite>=0.19.0
 # app/mcp_server.py targets the 1.x API (mcp.server.fastmcp.FastMCP), which was
 # removed in mcp 2.0. Lift this cap only alongside a rewrite of that module.
-mcp>=1.27.0,<2.0.0
+mcp>=2.3.0,<3.0.0
 ruff>=0.16.0
 
 # Prometheus exposition and label-preserving benchmark metric parsing.
