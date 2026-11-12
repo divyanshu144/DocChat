@@ -4,7 +4,7 @@
 # These are ranges chosen before the first run. The exact versions that were installed and used are recorded in
 # the run's run.json (and in the report), because that, not this file, is what reproduces a result.
 torch>=2.4
-transformers>=4.46,<5
+transformers>=5.22.2,<6
 peft>=0.13,<1
 bitsandbytes>=0.44
 accelerate>=1.0,<2
