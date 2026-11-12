@@ -74,6 +74,14 @@ def record_usage(usage, finish_reason=None, backend_request_id=None) -> None:
     annotate(**fields)
 
 
+# A trace or span ends in exactly one of these. Cancellation (client went away, shutdown) is not a failure.
+OUTCOMES = ("ok", "error", "cancelled")
+
+
+def outcome_for(exc: BaseException) -> str:
+    return "cancelled" if isinstance(exc, (asyncio.CancelledError, GeneratorExit)) else "error"
+
+
 @contextmanager
 def request_trace(identifier: str | None = None, **fields):
     trace = Trace(identifier or str(uuid.uuid4()))
@@ -82,11 +90,8 @@ def request_trace(identifier: str | None = None, **fields):
     emit({"event": "request_started", "request_id": trace.request_id, **fields})
     try:
         yield trace
-    except (asyncio.CancelledError, GeneratorExit):
-        trace.outcome = "cancelled"
-        raise
-    except BaseException:
-        trace.outcome = "error"
+    except BaseException as exc:
+        trace.outcome = outcome_for(exc)
         raise
     finally:
         emit({"event": "request", "request_id": trace.request_id,
@@ -111,11 +116,10 @@ def span(name: str, **fields):
     started = time.perf_counter()
     try:
         yield record
-    except (asyncio.CancelledError, GeneratorExit):
-        record["outcome"] = "cancelled"
-        raise
     except BaseException as exc:
-        record.update(outcome="error", error_type=type(exc).__name__)
+        record["outcome"] = outcome_for(exc)
+        if record["outcome"] == "error":
+            record["error_type"] = type(exc).__name__
         raise
     finally:
         record["duration_s"] = time.perf_counter() - started

@@ -201,7 +201,7 @@ The first run is written up in [reports/finetune-vs-base-2026-11-03.md](reports/
 
 ```bash
 ruff check .                      # clean
-pytest -m "not eval" -q           # 1045 passed, 11 skipped, 8 deselected
+pytest -m "not eval" -q           # 1056 passed, 11 skipped, 8 deselected
 cd frontend && npm test -- --run  # frontend tests
 python eval/benchmark.py          # critic benchmark; calls the live LLM, opt-in
 ```

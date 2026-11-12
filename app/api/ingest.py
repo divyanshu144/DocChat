@@ -14,7 +14,7 @@ from app.core.config import settings
 from app.core.sources import LEGACY_SOURCE_COLLECTIONS, source_collection, source_metadata
 from app.core.qdrant import get_qdrant_client, get_qdrant_collection
 from app.services.ingestion.storage import delete_source_points, source_filter
-from app.models.ingest_job import IngestJob, IngestJobStatusValue
+from app.models.ingest_job import IngestJob, IngestJobStatusValue, can_transition
 from app.models.user import User
 from app.services.ingestion.pdf import ingest_pdf, SUPPORTED_TYPES
 from app.services.ingestion.youtube import ingest_youtube
@@ -110,9 +110,12 @@ async def _set_job(
             )
             session.add(job)
         else:
+            new_status = IngestJobStatusValue(status)
+            if not can_transition(job.status, new_status):
+                return  # e.g. a finished job is never reopened (see LEGAL_TRANSITIONS)
             if source_type is not None:
                 job.source_type = source_type
-            job.status = IngestJobStatusValue(status)
+            job.status = new_status
             job.phase = phase
             job.message = message
             job.source_id = source_id

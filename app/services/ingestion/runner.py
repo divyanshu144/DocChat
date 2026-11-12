@@ -8,6 +8,7 @@ Delivery is at-least-once, so every step must be safe to repeat:
 Nothing here logs URLs, filenames, document text or exception messages.
 """
 import asyncio
+import logging
 import re
 import tempfile
 import time
@@ -20,12 +21,14 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal, engine
 from app.core.telemetry import emit, request_trace
-from app.models.ingest_job import IngestJob, IngestJobStatusValue
+from app.models.ingest_job import TERMINAL, IngestJob, IngestJobStatusValue, can_transition
 from app.services.blobs import BlobError, BlobStore
 from app.services.ingestion.pdf import _file_sha256, _source_id_from_content_hash, ingest_pdf
 from app.services.ingestion.web import _source_id_for_url, ingest_web
 from app.services.ingestion.youtube import _extract_video_id, _source_id_for_video, ingest_youtube
 from app.services.queueing import IngestMessage, JobQueue, ReceivedMessage, backoff_seconds
+
+logger = logging.getLogger(__name__)
 
 CLAIMED, DONE, BUSY = "claimed", "done", "busy"
 _ID = re.compile(r"[A-Za-z0-9_.-]{1,128}")
@@ -97,12 +100,24 @@ async def claim_job(message: IngestMessage, source_key: str | None) -> str:
     return CLAIMED
 
 
-async def update_job(job_id: str, **values) -> None:
+async def update_job(job_id: str, **values) -> bool:
+    """Apply `values` to the job. Returns False (and writes nothing) if the job is missing, is already
+    finished, or the requested status move is not in LEGAL_TRANSITIONS."""
     async with AsyncSessionLocal() as session, session.begin():
         job = await session.get(IngestJob, job_id)
-        if job is not None:
-            for key, value in values.items():
-                setattr(job, key, value)
+        if job is None:
+            return False
+        if job.status in TERMINAL:
+            logger.warning("ingest_job_write_ignored", extra={"reason": "terminal", "job_id": job_id})
+            return False
+        new_status = values.get("status")
+        if new_status is not None and not can_transition(job.status, new_status):
+            logger.warning("ingest_job_illegal_transition",
+                           extra={"from": job.status.value, "to": new_status.value, "job_id": job_id})
+            return False
+        for key, value in values.items():
+            setattr(job, key, value)
+        return True
 
 
 @asynccontextmanager

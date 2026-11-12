@@ -123,6 +123,14 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    """Rotate a refresh token. Each stored token is in one of three states and only one move is legal:
+
+        active --(used once, atomic conditional UPDATE)--> revoked, and a new active token is issued
+        active --(expires_at passes)--> expired   (rejected; nothing else changes)
+        revoked --(presented again)--> the user's WHOLE token family is revoked (replay is treated as theft)
+
+    Logout is active -> revoked for the one token given. Covered by tests/test_refresh_replay.py.
+    """
     credentials_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired refresh token.",

@@ -1,5 +1,11 @@
 # DocChat session handoff
 
+## Latest: the implicit state machines were made explicit (2026-11-12, branch `fix/implicit-state-machines`)
+
+Seven were found by reading `app/`. Changes: (1) ingest jobs: `LEGAL_TRANSITIONS`/`TERMINAL`/`can_transition` in `app/models/ingest_job.py`; `update_job` (queue path) and `_set_job` (local path) refuse illegal moves and never write to a `done` job (this also stops a late heartbeat re-setting a lease). `update_job` now returns bool. (2) refresh tokens: rule written into the `refresh` docstring (already covered by `tests/test_refresh_replay.py`). (3) replan budget: `MAX_PASSES`/`budget_spent` in `app/agent/state.py` used by both the graph router and the critic. (4) worker: `Worker.state` (stopping > cold > degraded > ready) replaces three flags read together. (5) `_TEMPERATURE_UNSUPPORTED` is an expiring set (1 h). (6) a failed BM25 load is retried after `SPARSE_RETRY_S` (300 s) instead of never. (7) `outcome_for`/`OUTCOMES` in telemetry. 11 new tests; suite **1056 passed, 11 skipped**.
+
+**Not covered by a test:** the local-path `_set_job` guard. **Not touched:** the browser UI's client-side state (never read).
+
 ## Latest: everything merged, AWS redeployed once more and torn down again, README refreshed (2026-11-11)
 
 **State:** `master` has PR #28 (larger retrieval eval; hybrid stays opt-in) and ten Dependabot PRs (#10-#13, #16 Actions; #14, #15, #17, #18, #19 Python). Master CI passed on `321c084`. Locally `ruff` clean and `pytest -m "not eval"` gives **1045 passed, 11 skipped**. PR #24 (AWS provider 5.100 to 6.x) is deliberately OPEN: the deploy is only proven on 5.x and `versions.tf` pins `<6.0`; test it with a throwaway apply or close it and ignore 6.x.

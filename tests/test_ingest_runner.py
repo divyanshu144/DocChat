@@ -252,3 +252,38 @@ async def test_redelivery_after_worker_crash_is_reclaimed_not_dropped_as_duplica
     assert await runner.claim_job(web_msg(), "k") == runner.BUSY  # a live duplicate copy is still refused
     monkeypatch.setattr(runner, "_now", lambda: t0 + visibility)  # SQS redelivers right here
     assert await runner.claim_job(web_msg(), "k") == runner.CLAIMED
+
+
+# --- the transition table (LEGAL_TRANSITIONS) ------------------------------------------------------------------
+
+def test_transition_table_covers_every_status_and_done_is_terminal():
+    from app.models.ingest_job import LEGAL_TRANSITIONS, TERMINAL, can_transition
+
+    assert set(LEGAL_TRANSITIONS) == set(S)
+    assert TERMINAL == {S.done}
+    assert all(not can_transition(S.done, other) for other in S if other is not S.done)
+    assert can_transition(S.error, S.running)   # a redriven job may run again
+    assert not can_transition(S.queued, S.done)  # must be claimed (running) first
+
+
+async def test_update_job_never_reopens_or_touches_a_finished_job(sessions):
+    await add_job(sessions, status=S.done, phase="done", message="Ingested", lease_until=None)
+
+    assert await runner.update_job("j1", status=S.running, phase="starting") is False
+    assert await runner.update_job("j1", lease_until=runner._now() + timedelta(seconds=60)) is False  # late heartbeat
+
+    row = await job(sessions)
+    assert (row.status, row.phase, row.lease_until) == (S.done, "done", None)
+
+
+async def test_update_job_rejects_an_illegal_status_move_but_allows_a_legal_one(sessions):
+    await add_job(sessions, status=S.queued, phase="queued")
+
+    assert await runner.update_job("j1", status=S.done) is False  # queued -> done skips the claim
+    assert (await job(sessions)).status == S.queued
+    assert await runner.update_job("j1", status=S.running, phase="starting") is True
+    assert (await job(sessions)).status == S.running
+
+
+async def test_update_job_reports_a_missing_job(sessions):
+    assert await runner.update_job("nope", phase="x") is False

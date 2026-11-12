@@ -11,6 +11,7 @@ Adding a provider means: a branch in `_build_client`, a `_*_complete`, a
 
 import logging
 import json
+import time
 import asyncio
 import inspect
 from urllib.parse import urlsplit
@@ -371,7 +372,36 @@ async def _mistral_stream_raw(
 # Models that have rejected an explicit temperature. Reasoning-family models accept
 # only the default and reject every single time, so without this the retry below would
 # permanently double the request count of every classification call.
-_TEMPERATURE_UNSUPPORTED: set[str] = set()
+class _ExpiringSet:
+    """A set whose members lapse after `ttl_s` seconds. The temperature quirk is a property of a model that a
+    provider can change, so a permanent entry would keep dropping the parameter long after it became legal;
+    on expiry the next call simply probes once more (one extra request at most)."""
+
+    def __init__(self, ttl_s: float = 3600.0) -> None:
+        self._ttl = ttl_s
+        self._until: dict[str, float] = {}
+
+    def _prune(self) -> None:
+        now = time.monotonic()
+        for key in [k for k, until in self._until.items() if until <= now]:
+            del self._until[key]
+
+    def add(self, key: str) -> None:
+        self._until[key] = time.monotonic() + self._ttl
+
+    def __contains__(self, key: object) -> bool:
+        self._prune()
+        return key in self._until
+
+    def __len__(self) -> int:
+        self._prune()
+        return len(self._until)
+
+    def clear(self) -> None:
+        self._until.clear()
+
+
+_TEMPERATURE_UNSUPPORTED = _ExpiringSet()
 
 
 async def _openai_post(client, payload):

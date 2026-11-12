@@ -1,5 +1,13 @@
 from typing import TypedDict
 
+# One answer pass plus one critic-requested replan. The critic stops asking and the graph stops routing back
+# from the same predicate, so the two can never disagree about when the budget is spent.
+MAX_PASSES = 2
+
+
+def budget_spent(iteration: int) -> bool:
+    return iteration >= MAX_PASSES
+
 
 class AgentState(TypedDict):
     original_query: str          # immutable user question; query may be rewritten for retrieval
